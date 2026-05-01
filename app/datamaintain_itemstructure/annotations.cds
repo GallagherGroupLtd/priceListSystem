@@ -2,7 +2,7 @@ using PriceListService as service from '../../srv/service';
 
 annotate service.ItemStructure with @(
     UI.HeaderInfo: {
-        TypeName      : 'Item Structure Component',
+        TypeName      : 'Item Structure Component1',
         TypeNamePlural: 'Item Structure Components'
     },
 
