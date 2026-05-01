@@ -1,0 +1,205 @@
+{
+  "_version": "1.81.0",
+  "sap.app": {
+    "id": "pricelistapp.datamaintaintradescenarios",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:lrop",
+      "version": "1.20.2",
+      "toolsId": "4076eda8-406e-4e8f-86ee-304c1f982f3b"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/odata/v4/price-list/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "odataVersion": "4.0"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "DataMaintainTS-maintain": {
+          "semanticObject": "DataMaintainTS",
+          "action": "maintain",
+          "title": "{{DataMaintainTS-maintain.flpTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.144.1",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.fe.templates": {},
+        "sap.f": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "pricelistapp.datamaintaintradescenarios.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "operationMode": "Server",
+          "autoExpandSelect": true,
+          "earlyRequests": true
+        }
+      },
+      "@i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "uri": "i18n/i18n.properties"
+      }
+    },
+    "resources": {
+      "css": []
+    },
+    "routing": {
+      "config": {
+        "flexibleColumnLayout": {
+          "defaultTwoColumnLayoutType": "TwoColumnsMidExpanded",
+          "defaultThreeColumnLayoutType": "ThreeColumnsMidExpanded"
+        },
+        "routerClass": "sap.f.routing.Router"
+      },
+      "routes": [
+        {
+          "pattern": ":?query:",
+          "name": "TradeScenariosList",
+          "target": [
+            "TradeScenariosList"
+          ]
+        },
+        {
+          "pattern": "TradeScenarios({key}):?query:",
+          "name": "TradeScenariosObjectPage",
+          "target": [
+            "TradeScenariosList",
+            "TradeScenariosObjectPage"
+          ]
+        }
+      ],
+      "targets": {
+        "TradeScenariosList": {
+          "type": "Component",
+          "id": "TradeScenariosList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "contextPath": "/TradeScenarios",
+              "variantManagement": "Page",
+              "initialLoad": true,
+              "navigation": {
+                "TradeScenarios": {
+                  "detail": {
+                    "route": "TradeScenariosObjectPage"
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "type": "GridTable",
+                    "creationMode": "Inline",
+                    "selectionMode": "Multi",
+                    "useExportToExcel": true
+                  },
+                  "actions": {
+                    "upload": {
+                      "press": "pricelistapp.datamaintaintradescenarios.ext.controller.controller.uploadExcel",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": false,
+                      "text": "Upload"
+                    },
+                    "duplicateRow": {
+                      "press": "pricelistapp.datamaintaintradescenarios.ext.controller.controller.onDuplicate",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": true,
+                      "text": "Duplicate Record"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "controlAggregation": "beginColumnPages",
+          "contextPattern": ""
+        },
+        "TradeScenariosObjectPage": {
+          "type": "Component",
+          "id": "TradeScenariosObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/TradeScenarios"
+            }
+          },
+          "controlAggregation": "midColumnPages",
+          "contextPattern": "/TradeScenarios({key})"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "sap.fe.templates.RootContainer.view.Fcl",
+      "type": "XML",
+      "async": true,
+      "id": "appRootView"
+    }
+  },
+  "sap.fiori": {
+    "registrationIds": [],
+    "archeType": "transactional"
+  },
+  "sap.fe": {
+    "app": {
+      "enableLazyLoading": true
+    }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "priceListSystem.service"
+  } 
+}

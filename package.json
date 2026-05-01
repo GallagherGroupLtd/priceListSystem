@@ -1,0 +1,97 @@
+{
+  "name": "priceListSystem",
+  "version": "1.0.0",
+  "description": "Pricelist Systemization Application",
+  "dependencies": {
+    "@cap-js/hana": "^2",
+    "@sap/cds": "^9.6.4",
+    "@sap/xssec": "^4.12.2",
+    "express": "^4",
+    "pdfkit": "^0.18.0",
+    "ui5-tooling-modules": "^3.34.6",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": "^2",
+    "@sap/cds-dk": "^9",
+    "cds-plugin-ui5": "^0.13.0",
+    "mbt": "^1.2.29",
+    "rimraf": "^5.0.5"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch-main": "cds watch --open pricelistapp.main/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "undeploy": "cf undeploy priceListSystem --delete-services --delete-service-keys --delete-service-brokers",
+    "build": "rimraf resources mta_archives && mbt build --mtar archive",
+    "deploy": "cf deploy mta_archives/archive.mtar --retries 1",
+    "watch-datamaintain": "cds watch --open pricelistapp.datamaintain/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-datamaintain_tradescenarios": "cds watch --open pricelistapp.datamaintaintradescenarios/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-datamaintain_itemstructure": "cds watch --open pricelistapp.datamaintainitemstructure/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-datamaintain_partnumbers": "cds watch --open pricelistapp.datamaintainpartnumbers/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-datamaintain_termsandcond": "cds watch --open pricelistapp.datamaintaintermsandcond/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-datamaintain_pricingparameters": "cds watch --open pricelistapp.datamaintainpricingparameters/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-datamaintain_tilecontent": "cds watch --open pricelistapp.datamaintaintilecontent/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-datamaintain_contactinfo": "cds watch --open pricelistapp.datamaintaincontactinfo/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-pricelistmaintain": "cds watch --open pricelistapp.pricelistmaintain/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-pricelistdisplay": "cds watch --open pricelistapp.pricelistdisplay/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-datamaintain_acctassign": "cds watch --open pricelistapp.datamaintainacctassign/index.html?sap-ui-xx-viewCache=false --livereload false"
+  },
+  "private": true,
+  "cds": {
+    "requires": {
+      "auth": {
+        "kind": "mocked",
+        "[production]": {
+          "kind": "xsuaa"
+        }
+      },
+      "destinations": true,
+      "html5-repo": true,
+      "db": {
+        "kind": "sql",
+        "model": "db",
+        "[hybrid]": {
+          "kind": "hana"
+        }
+      },
+      "extdb": {
+        "kind": "hana",
+        "vcap": {
+          "name": "ups-sapecc"
+        }
+      },
+      "[production]": {
+        "auth": "xsuaa",
+        "db": {
+          "kind": "hana"
+        },
+        "extdb": {
+          "kind": "hana",
+          "vcap": {
+            "name": "ups-sapecc"
+          }
+        },
+        "data": false
+      }
+    },
+    "features": {
+      "fiori_filter_ignore_case": true
+    }
+  },
+  "workspaces": [
+    "app/*"
+  ],
+  "sapux": [
+    "app/datamaintain",
+    "app/datamaintain_tradescenarios",
+    "app/datamaintain_itemstructure",
+    "app/datamaintain_partnumbers",
+    "app/datamaintain_termsandcond",
+    "app/datamaintain_pricingparameters",
+    "app/datamaintain_tilecontent",
+    "app/datamaintain_contactinfo",
+    "app/pricelistmaintain",
+    "app/pricelistdisplay",
+    "app/datamaintain_acctassign"
+  ]
+}

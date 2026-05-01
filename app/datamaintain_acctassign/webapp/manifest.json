@@ -1,0 +1,204 @@
+{
+  "_version": "1.81.0",
+  "sap.app": {
+    "id": "pricelistapp.datamaintainacctassign",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:lrop",
+      "version": "1.20.2",
+      "toolsId": "f9d9c818-6582-4e82-9efc-47dc6c856ddd"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/odata/v4/price-list/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "odataVersion": "4.0"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "DataMaintainAS-maintain": {
+          "semanticObject": "DataMaintainAS",
+          "action": "maintain",
+          "title": "{{DataMaintainAS-maintain.flpTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.146.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.fe.templates": {},
+        "sap.f": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "pricelistapp.datamaintainacctassign.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "operationMode": "Server",
+          "autoExpandSelect": true,
+          "earlyRequests": true
+        }
+      },
+      "@i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "uri": "i18n/i18n.properties"
+      }
+    },
+    "resources": {
+      "css": []
+    },
+    "routing": {
+      "config": {
+        "flexibleColumnLayout": {
+          "defaultTwoColumnLayoutType": "TwoColumnsMidExpanded",
+          "defaultThreeColumnLayoutType": "ThreeColumnsMidExpanded"
+        },
+        "routerClass": "sap.f.routing.Router"
+      },
+      "routes": [
+        {
+          "pattern": ":?query:",
+          "name": "AccountAssignmentList",
+          "target": [
+            "AccountAssignmentList"
+          ]
+        },
+        {
+          "pattern": "AccountAssignment({key}):?query:",
+          "name": "AccountAssignmentObjectPage",
+          "target": [
+            "AccountAssignmentList",
+            "AccountAssignmentObjectPage"
+          ]
+        }
+      ],
+      "targets": {
+        "AccountAssignmentList": {
+          "type": "Component",
+          "id": "AccountAssignmentList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "contextPath": "/AccountAssignment",
+              "variantManagement": "Page",
+              "navigation": {
+                "AccountAssignment": {
+                  "detail": {
+                    "route": "AccountAssignmentObjectPage"
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "type": "GridTable",
+                    "creationMode": "Inline",
+                    "selectionMode": "Multi",
+                    "useExportToExcel": true
+                  },
+                  "actions": {
+                    "upload": {
+                      "press": "pricelistapp.datamaintainacctassign.ext.controller.controller.uploadExcel",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": false,
+                      "text": "Upload"
+                    },
+                    "duplicateRow": {
+                      "press": "pricelistapp.datamaintainacctassign.ext.controller.controller.onDuplicate",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": true,
+                      "text": "Duplicate Record"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "controlAggregation": "beginColumnPages",
+          "contextPattern": ""
+        },
+        "AccountAssignmentObjectPage": {
+          "type": "Component",
+          "id": "AccountAssignmentObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/AccountAssignment"
+            }
+          },
+          "controlAggregation": "midColumnPages",
+          "contextPattern": "/AccountAssignment({key})"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "sap.fe.templates.RootContainer.view.Fcl",
+      "type": "XML",
+      "async": true,
+      "id": "appRootView"
+    }
+  },
+  "sap.fiori": {
+    "registrationIds": [],
+    "archeType": "transactional"
+  },
+  "sap.fe": {
+    "app": {
+      "enableLazyLoading": true
+    }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "priceListSystem.service"
+  }
+}

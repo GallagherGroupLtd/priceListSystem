@@ -1,0 +1,139 @@
+/* 🔶 Brand color overrides */
+:root {
+  --sapBrandColor: #F36F21;
+  --sapHighlightColor: #F36F21;
+  --sapBaseColor: #ffffff;
+  --sapObjectPageSectionBorderColor: #000000;
+  --sapObjectPageSubSectionBorderColor: #000000;
+}
+
+/* 🔶 Titles on light background → orange */
+.sapMTitle {
+  color: #F36F21 !important;
+}
+
+/* 🔶 Standard buttons */
+.sapMBtn .sapMBtnInner {
+  background-color: #F36F21 !important;
+  border-color: #F36F21 !important;
+  color: #ffffff !important;
+}
+.sapMBtn .sapMBtnContent {
+  color: #ffffff !important;
+}
+.sapMBtn:hover .sapMBtnInner {
+  background-color: #d95f1d !important;
+  border-color: #d95f1d !important;
+}
+.sapMBtn:hover .sapMBtnContent {
+  color: #ffffff !important;
+}
+.sapMBtn:focus .sapMBtnInner {
+  outline: 2px solid #ff944d !important;
+}
+
+/* 🔶 Emphasized buttons (primary actions) */
+.sapMBtn.sapMBtnEmphasized .sapMBtnInner {
+  background-color: #F36F21 !important;
+  border-color: #F36F21 !important;
+}
+.sapMBtn.sapMBtnEmphasized .sapMBtnContent {
+  color: #ffffff !important;
+}
+.sapMBtn.sapMBtnEmphasized:hover .sapMBtnInner {
+  background-color: #d95f1d !important;
+  border-color: #d95f1d !important;
+}
+.sapMBtn.sapMBtnEmphasized:hover .sapMBtnContent {
+  color: #ffffff !important;
+}
+.sapMBtn.sapMBtnEmphasized:focus .sapMBtnInner {
+  outline: 2px solid #ff944d !important;
+}
+
+/* 🔶 Toolbars */
+.sapMBar {
+  background-color: #F36F21 !important;
+  color: #ffffff !important;
+}
+.sapMBar .sapMBtn .sapMBtnContent,
+.sapMBar .sapMBtnIcon,
+.sapMBar .sapMLabel {
+  color: #ffffff !important;   /* White text/icons inside orange bar */
+}
+
+/* 🔶 Table row highlights */
+.sapMLIB.sapMLIBSelected {
+  background-color: #F36F21 !important;
+  color: #ffffff !important;
+}
+
+/* 🔶 Links */
+.sapMLnk {
+  color: #F36F21 !important;   /* Orange on light background */
+}
+.sapMBar .sapMLnk {
+  color: #ffffff !important;   /* White when inside orange bar */
+}
+
+/* 🔶 Icons */
+.sapUiIcon {
+  color: #ffffff !important;   /* Force icons to white */
+}
+.sapMBtn .sapMBtnIcon {
+  color: #ffffff !important;   /* Icons inside buttons → white */
+}
+.sapMBtn:hover .sapMBtnIcon {
+  color: #ffffff !important;   /* Keep white on hover */
+}
+.sapMBar .sapUiIcon {
+  color: #ffffff !important;   /* Icons inside orange toolbars → white */
+}
+.sapUiTableActionIcon {
+    color: #F36F21 !important;
+}
+
+/* 🔶 IconTabBar (ITB) filters */
+.sapMITBTextOnly .sapMITBFilterDefault.sapMITBSelected .sapMITBText,
+.sapMITBFilterDefault .sapMITBText,
+.sapMITBFilterDefault,
+.sapMITH .sapMITBSelected .sapMITBContentArrow::after {
+  color: #F36F21 !important;
+}
+
+/* Menu Dropwdown Buttons */
+.sapMIBar .sapMMenuBtn.sapMMenuBtnRegular .sapMBtnInner.sapMBtnDefault::after {
+  color: #ffffff !important;
+}
+html body .sapMITBTextOnly .sapMITBFilterDefault.sapMITBSelected .sapMITBFilterExpandIcon {
+  color: #F36F21 !important;
+}
+
+/* 🔶 Menu List and Icons*/
+.sapMMenu .sapMMenuList {
+  color: #F36F21 !important;
+}
+.sapMMenu .sapMMenuItemIcon,
+.sapMMenu .sapUiIcon {
+  color: #F36F21 !important;
+}
+
+/* 🔶 Menu: Hover state */
+.sapMMenu .sapMMenuItem:hover {
+  background-color: #ffe5d0 !important;   /* light orange background */
+  color: #F36F21 !important;              /* keep text orange */
+}
+.sapMMenu .sapMMenuItem:hover .sapMMenuItemIcon {
+  color: #F36F21 !important;              /* keep icons orange */
+}
+
+/* 🔶 Menu: Selected/Active State */
+.sapMMenu .sapMMenuItem.sapMMenuItemSelected {
+  background-color: #F36F21 !important;   /* orange background */
+  color: #ffffff !important;              /* white text */
+}
+.sapMMenu .sapMMenuItem.sapMMenuItemSelected .sapMMenuItemIcon {
+  color: #ffffff !important;              /* white icons when selected */
+}
+
+

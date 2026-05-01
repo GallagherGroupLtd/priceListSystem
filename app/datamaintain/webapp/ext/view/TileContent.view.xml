@@ -1,0 +1,5 @@
+<mvc:View xmlns:core="sap.ui.core" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:macros="sap.fe.macros" xmlns:html="http://www.w3.org/1999/xhtml" controllerName="pricelistapp.datamaintain.ext.controller.Main">
+    <macros:Page id="TileContentPage" title="Data Maintenance: Tile Content">
+        <macros:Table id="TileContentTable" metaPath="/TileContent/@com.sap.vocabularies.UI.v1.LineItem" header="Tile Content Data" enableFullScreen="true" exportRequestSize="-2" personalization="true" rowCountMode="Auto" selectionMode="None" type="ResponsiveTable"/>
+    </macros:Page>
+</mvc:View>

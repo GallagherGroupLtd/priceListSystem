@@ -1,0 +1,32 @@
+{
+  "xsappname": "priceListSystem",
+  "tenant-mode": "dedicated",
+  "scopes": [
+    {
+      "name": "$XSAPPNAME.Display",
+      "description": "View price list data"
+    },
+    {
+      "name": "$XSAPPNAME.Admin",
+      "description": "Maintain price list data"
+    }
+  ],
+  "role-templates": [
+    {
+      "name": "Viewer",
+      "description": "Read-only access",
+      "scope-references": [
+        "$XSAPPNAME.Display"
+      ]
+    },
+    {
+      "name": "Manager",
+      "description": "Full access to price lists",
+      "scope-references": [
+        "$XSAPPNAME.Display",
+        "$XSAPPNAME.Admin"
+      ]
+    }
+  ],
+  "attributes": []
+}

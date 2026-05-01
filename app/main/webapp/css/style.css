@@ -1,0 +1,37 @@
+/* Custom Background Box */
+.welcomeBox {
+    background-color: #005085; /* Change this hex code to any color you want */
+    border-radius: 0.5rem;     /* Rounded corners */
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); /* Optional: Drop shadow */
+}
+
+/* Force the Text and Title inside the box to be White */
+.welcomeBox .sapMText, 
+.welcomeBox .sapMTitle {
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5); /* Optional: Text shadow for readability */
+}
+
+/* Card Look for the Background */
+.newsCardStyle {
+    background-color: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-bottom: 1px solid #f0f0f0;
+    border-radius: 0.5rem;       /* Rounded Corners */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Subtle Shadow */
+    overflow: hidden;            /* Ensures image stays inside rounded corners */
+    cursor: pointer;             /* Hand cursor to show it's clickable */
+    transition: box-shadow 0.2s;
+}
+
+/* Card Hover Effect */
+.newsCardStyle:hover {
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* The Image: Ensure it fills the top nicely */
+.newsCardImage {
+    border-bottom: 1px solid #f0f0f0;
+    object-fit: cover;
+    object-position: center;    
+}

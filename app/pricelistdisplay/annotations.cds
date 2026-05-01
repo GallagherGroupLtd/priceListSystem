@@ -1,0 +1,1 @@
+using PriceListService as service from '../../srv/service';

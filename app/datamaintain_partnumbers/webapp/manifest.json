@@ -1,0 +1,204 @@
+{
+  "_version": "1.81.0",
+  "sap.app": {
+    "id": "pricelistapp.datamaintainpartnumbers",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:lrop",
+      "version": "1.20.2",
+      "toolsId": "52700967-7780-4239-8837-60c6b5ef485a"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/odata/v4/price-list/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "odataVersion": "4.0"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "DataMaintainPN-maintain": {
+          "semanticObject": "DataMaintainPN",
+          "action": "maintain",
+          "title": "{{DataMaintainPN-maintain.flpTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.144.1",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.fe.templates": {},
+        "sap.f": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "pricelistapp.datamaintainpartnumbers.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "operationMode": "Server",
+          "autoExpandSelect": true,
+          "earlyRequests": true
+        }
+      },
+      "@i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "uri": "i18n/i18n.properties"
+      }
+    },
+    "resources": {
+      "css": []
+    },
+    "routing": {
+      "config": {
+        "flexibleColumnLayout": {
+          "defaultTwoColumnLayoutType": "TwoColumnsMidExpanded",
+          "defaultThreeColumnLayoutType": "ThreeColumnsMidExpanded"
+        },
+        "routerClass": "sap.f.routing.Router"
+      },
+      "routes": [
+        {
+          "pattern": ":?query:",
+          "name": "PartNumbersList",
+          "target": [
+            "PartNumbersList"
+          ]
+        },
+        {
+          "pattern": "PartNumbers({key}):?query:",
+          "name": "PartNumbersObjectPage",
+          "target": [
+            "PartNumbersList",
+            "PartNumbersObjectPage"
+          ]
+        }
+      ],
+      "targets": {
+        "PartNumbersList": {
+          "type": "Component",
+          "id": "PartNumbersList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "contextPath": "/PartNumbers",
+              "variantManagement": "Page",
+              "navigation": {
+                "PartNumbers": {
+                  "detail": {
+                    "route": "PartNumbersObjectPage"
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "type": "ResponsiveTable",
+                    "creationMode": "Inline",
+                    "selectionMode": "Single",
+                    "useExportToExcel": true
+                  },
+                  "actions": {
+                    "upload": {
+                      "press": "pricelistapp.datamaintainpartnumbers.ext.controller.controller.uploadExcel",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": false,
+                      "text": "Upload"
+                    },
+                    "duplicateRow": {
+                      "press": "pricelistapp.datamaintainpartnumbers.ext.controller.controller.onDuplicate",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": true,
+                      "text": "Duplicate Record"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "controlAggregation": "beginColumnPages",
+          "contextPattern": ""
+        },
+        "PartNumbersObjectPage": {
+          "type": "Component",
+          "id": "PartNumbersObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/PartNumbers"
+            }
+          },
+          "controlAggregation": "midColumnPages",
+          "contextPattern": "/PartNumbers({key})"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "sap.fe.templates.RootContainer.view.Fcl",
+      "type": "XML",
+      "async": true,
+      "id": "appRootView"
+    }
+  },
+  "sap.fiori": {
+    "registrationIds": [],
+    "archeType": "transactional"
+  },
+  "sap.fe": {
+    "app": {
+      "enableLazyLoading": true
+    }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "priceListSystem.service"
+  }
+}

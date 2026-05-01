@@ -1,0 +1,232 @@
+<mvc:View controllerName="pricelistapp.main.controller.landingPage"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core" >
+    <Page id= "Page" title="Pricelist System" enableScrolling="true">
+        <content>
+            <IconTabBar id="idIconTabBar" expanded="true" class="sapUiResponsiveContentPadding">
+                <items>
+                    <IconTabFilter id="Home" text="Home" key="All">
+                        <VBox class="sapUiSmallMargin" id="VBox">
+                            <items>
+                                <Title id="TitleLatestUpd" text="Latest Updates" titleStyle="H2" class="sapUiTinyMarginBottom" />
+
+                                <VBox id="VBox1" class="sapUiSmallsapUiTinyMarginBottom sapUiSmallPadding welcomeBox" >
+                                    <Text id="IdTextDate" text="{home>/currentDate}" class="sapUiTinyMarginTop sapUiTinyMarginBottom sapUiTinyMarginBegin" />
+                                    <Title id="IdTitleUser" text="Hi {home>/userName}, great to see you!" titleStyle="H3" class="sapUiTinyMarginBottom sapUiTinyMarginBegin"/>
+                                </VBox> 
+
+                                <VBox id="CardNews_All" class="sapUiTinyMarginTop sapUiSmallMarginBottom newsCardStyle">
+                                    <Image id="ImageNews"
+                                        src="./images/newsImageBig.jpg"
+                                        width="100%"
+                                        height="10rem"
+                                        class="sapUiTinyMarginBottom newsCardImage" />
+
+                                    <VBox id="VBox2" class="sapUiTinyMarginBeginEnd sapUiTinyMarginBottom">
+                                        <Title id="TitleGallagher" text="Gallagher New Zealand Pricelist" titleStyle="H3" class="sapUiTinyMarginBottom" />
+                                        <Text id="TitleAccess" text="Access the official Gallagher New Zealand pricing information." class="sapUiSmallMarginBottom" />
+                                    </VBox>
+                                </VBox>
+
+                                <!-- <GenericTile id="TileNews_All" frameType="TwoByOne" backgroundImage="../images/newsImage.jpg" class="sapUiSmallMarginBottom">
+                                    <tileContent>
+                                        <TileContent id="TileContentNews">
+                                            <NewsContent id="NewsContent" contentText="Gallagher New Zealand Pricelist" subheader="Access the official Gallagher New Zealand pricing information." />
+                                        </TileContent>
+                                    </tileContent>
+
+                                    <customData>
+                                        <core:CustomData key="target" value="News-display" />
+                                    </customData>
+                                </GenericTile> -->
+
+                                <Title id="TitlePricelist" text="Price Information" level="H2" class="sapUiSmallsapUiTinyMarginBottom sapUiMediumMarginTopMarginTopBottom" />
+
+                                <HBox id="HBox1" wrap="Wrap">
+                                    <items>
+                                        <GenericTile id="TilePricelist_All" header="Pricelist" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                            <tileContent>
+                                                <TileContent id="TileContentPricelist_All">
+                                                    <ImageContent id="ImagePricelist_All" src="sap-icon://sales-order-item" />
+                                                </TileContent>
+                                            </tileContent>
+                                            <customData>
+                                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="PriceMaintain-display" />
+                                            </customData>
+                                        </GenericTile>
+
+                                        <GenericTile id="TileMyRequest_All" header="My Request" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                            <tileContent>
+                                                <TileContent id="TileContentMyRequest_All">
+                                                    <ImageContent id="ImageMyRequest_All" src="sap-icon://customer-order-entry" />
+                                                </TileContent>
+                                            </tileContent>
+                                            <customData>
+                                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="MyRequest-display" />
+                                            </customData>
+                                        </GenericTile>
+
+                                        <GenericTile id="TileWorkflow_All" header="Workflow" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                            <tileContent>
+                                                <TileContent id="TileContentWorkflow_All">
+                                                    <ImageContent id="ImageWorkflow_All" src="sap-icon://workflow-tasks" />
+                                                </TileContent>
+                                            </tileContent>
+                                            <customData>
+                                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="Workflow-display" />
+                                            </customData>
+                                        </GenericTile>
+
+                                        <GenericTile id="TilePriceSchedRev_All" header="Pricelist Review Schedule" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                            <tileContent>
+                                                <TileContent id="TileContentPriceSchedRev_All">
+                                                    <ImageContent id="ImagePriceSchedRev_All" src="sap-icon://gantt-bars" />
+                                                </TileContent>
+                                            </tileContent>
+                                            <customData>
+                                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="PriceSchedRev-display" />
+                                            </customData>
+                                        </GenericTile>
+                                    </items>
+                                </HBox>
+
+                                <Title id="TitleMaintain" text="Maintenance" level="H2" class="sapUiSmallMarginTop sapUiMediumMarginToprginTopBottom" />
+                                <HBox id="HBox3" wrap="Wrap">
+                                    <items>
+                                        <GenericTile id="TileMaintain_All" header="Pricelist Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                            <tileContent>
+                                                <TileContent id="TileContenctMaintain_All">
+                                                    <ImageContent id="ImageMaintain_All" src="sap-icon://wrench" />
+                                                </TileContent>
+                                            </tileContent>
+                                            <customData>
+                                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="PriceMaintain-manage" />
+                                            </customData>
+                                        </GenericTile>
+
+                                        <GenericTile id="TileMaintain2_All" header="Data Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                            <tileContent>
+                                                <TileContent id="TileContenctMaintain2_All">
+                                                    <ImageContent id="ImageMaintain2_All" src="sap-icon://provision" />
+                                                </TileContent>
+                                            </tileContent>
+                                            <customData>
+                                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="DataMaintain-manage" />
+                                            </customData>
+                                        </GenericTile>
+
+                                        <GenericTile id="TileMaintain3_All" header="Application Log" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                            <tileContent>
+                                                <TileContent id="TileContenctMaintain3_All">
+                                                    <ImageContent id="ImageMaintain3_All" src="sap-icon://provision" />
+                                                </TileContent>
+                                            </tileContent>
+                                            <customData>
+                                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="AppLog-display" />
+                                            </customData>
+                                        </GenericTile>
+                                    </items>
+                                </HBox>
+
+                                <Title id="TitleContactUs" text="Contact Us" level="H2" class="sapUiSmallMarginTop sapUiMediumMarginToprginTopBottom" />
+                                <HBox id="HBox2" wrap="Wrap">
+                                    <items>
+                                        <core:Icon id="IconPhone" src="sap-icon://headset" size="1rem" class="sapUiTinyMarginEnd" color="#333333"/>
+                                        <Link id="LinkPhone" text="+64 993587556" href="tel:+64993587556" class="sapUiMediumMarginEnd" />
+
+                                        <core:Icon id="IconMail" src="sap-icon://email" size="1rem" class="sapUiTinyMarginEnd" color="#333333"/>
+                                        <Link id="LinkMail" text="pricing@gallagher.com" href="mailto:pricing@gallagher.com" />
+                                    </items>
+                                </HBox>
+                            </items>
+                        </VBox>
+                    </IconTabFilter>
+
+                    <IconTabSeparator id="Sep1"/>
+
+                    <IconTabFilter id="TabPricelist" text="Price Information">
+                        <GenericTile id="TilePricelist" header="Pricelist" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                            <tileContent>
+                                <TileContent id="TileContentPricelist">
+                                    <ImageContent id="ImagePricelist" src="sap-icon://sales-order-item" />
+                                </TileContent>
+                            </tileContent>
+                            <customData>
+                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="Pricelist-display" />
+                            </customData>
+                        </GenericTile>
+
+                        <GenericTile id="TileMyRequest" header="My Request" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                            <tileContent>
+                                <TileContent id="TileContentMyRequest">
+                                    <ImageContent id="ImageMyRequest" src="sap-icon://customer-order-entry" />
+                                </TileContent>
+                            </tileContent>
+                            <customData>
+                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="MyRequest-display" />
+                            </customData>
+                        </GenericTile>
+                        
+                        <GenericTile id="TileWorkflow" header="Workflow" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                            <tileContent>
+                                <TileContent id="TileContentWorkflow">
+                                    <ImageContent id="ImageWorkflow" src="sap-icon://workflow-tasks" />
+                                </TileContent>
+                            </tileContent>
+                            <customData>
+                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="Workflow-display" />
+                            </customData>
+                        </GenericTile>
+
+                        <GenericTile id="TilePriceSchedRev" header="Pricelist Review Schedule" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                            <tileContent>
+                                <TileContent id="TileContentPriceSchedRev">
+                                    <ImageContent id="ImagePriceSchedRev" src="sap-icon://gantt-bars" />
+                                </TileContent>
+                            </tileContent>
+                            <customData>
+                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="PriceSchedRev-display" />
+                            </customData>
+                        </GenericTile>
+                    </IconTabFilter>
+
+                    <IconTabFilter id="TabMaintain" text="Maintenance">
+                        <GenericTile id="TileMaintain" header="Pricelist Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                            <tileContent>
+                                <TileContent id="TileContenctMaintain">
+                                    <ImageContent id="ImageMaintain" src="sap-icon://wrench" />
+                                </TileContent>
+                            </tileContent>
+                            <customData>
+                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="PriceMaintain-manage" />
+                            </customData>
+                        </GenericTile>
+
+                        <GenericTile id="TileMaintain2" header="Data Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                            <tileContent>
+                                <TileContent id="TileContenctMaintain2">
+                                    <ImageContent id="ImageMaintain2" src="sap-icon://provision" />
+                                </TileContent>
+                            </tileContent>
+                            <customData>
+                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="data_maintenance-manage" />
+                            </customData>
+                        </GenericTile>
+
+                        <GenericTile id="TileMaintain3" header="Application Log" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                            <tileContent>
+                                <TileContent id="TileContenctMaintain3">
+                                    <ImageContent id="ImageMaintain3" src="sap-icon://provision" />
+                                </TileContent>
+                            </tileContent>
+                            <customData>
+                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="AppLog-display" />
+                            </customData>
+                        </GenericTile>
+                    </IconTabFilter>
+                </items>
+            </IconTabBar>
+        </content>
+    </Page>
+</mvc:View>

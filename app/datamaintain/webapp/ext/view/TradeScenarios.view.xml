@@ -1,0 +1,16 @@
+<mvc:View xmlns:core="sap.ui.core" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:macros="sap.fe.macros" xmlns:html="http://www.w3.org/1999/xhtml" controllerName="pricelistapp.datamaintain.ext.controller.Main">
+    <macros:Page id="TradeScenarioPage" title="Data Maintenance: Trade Scenario">
+        <macros:Table id="TradeScenarioTable" 
+                      metaPath="/TradeScenarios/@com.sap.vocabularies.UI.v1.LineItem" 
+                      header="General Trade Scenario Data" 
+                      readOnly="false"
+                      enableFullScreen="true" 
+                      exportRequestSize="-2" 
+                      personalization="true" 
+                      rowCountMode="Auto" 
+                      selectionMode="Auto"
+                      type="ResponsiveTable">
+            
+        </macros:Table>
+    </macros:Page>
+</mvc:View>

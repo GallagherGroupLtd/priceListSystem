@@ -1,0 +1,186 @@
+{
+  "_version": "1.81.0",
+  "sap.app": {
+    "id": "pricelistapp.pricelistdisplay",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:lrop",
+      "version": "1.20.2",
+      "toolsId": "48416d33-16ba-46c1-bb2c-dff3c0297f9f"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/odata/v4/price-list/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "odataVersion": "4.0"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "PriceMaintain-display": {
+          "semanticObject": "PriceMaintain",
+          "action": "display",
+          "title": "Pricelist",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.145.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.fe.templates": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "pricelistapp.pricelistdisplay.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "operationMode": "Server",
+          "autoExpandSelect": true,
+          "earlyRequests": true
+        }
+      },
+      "@i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "uri": "i18n/i18n.properties"
+      }
+    },
+    "resources": {
+      "css": []
+    },
+    "routing": {
+      "config": {},
+      "routes": [
+        {
+          "pattern": ":?query:",
+          "name": "PricelistDataList",
+          "target": "PricelistDataList"
+        },
+        {
+          "pattern": "PricelistData({key}):?query:",
+          "name": "PricelistDataObjectPage",
+          "target": "PricelistDataObjectPage"
+        },
+        {
+          "pattern": "PricelistData({key})/items({key2}):?query:",
+          "name": "PricelistItemDataObjectPage",
+          "target": "PricelistItemDataObjectPage"
+        }
+      ],
+      "targets": {
+        "PricelistDataList": {
+          "type": "Component",
+          "id": "PricelistDataList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "contextPath": "/PricelistData",
+              "variantManagement": "Page",
+              "navigation": {
+                "PricelistData": {
+                  "detail": {
+                    "route": "PricelistDataObjectPage"
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "type": "ResponsiveTable"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PricelistDataObjectPage": {
+          "type": "Component",
+          "id": "PricelistDataObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/PricelistData",
+              "navigation": {
+                "items": {
+                  "detail": {
+                    "route": "PricelistItemDataObjectPage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PricelistItemDataObjectPage": {
+          "type": "Component",
+          "id": "PricelistItemDataObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/PricelistData/items"
+            }
+          }
+        }
+      }
+    }
+  },
+  "sap.fiori": {
+    "registrationIds": [],
+    "archeType": "transactional"
+  },
+  "sap.fe": {
+    "app": {
+      "enableLazyLoading": true
+    }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "priceListSystem.service"
+  }
+}
