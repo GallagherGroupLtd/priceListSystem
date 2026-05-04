@@ -1,0 +1,6 @@
+ID;TradeScenario;MarketScopeRegion;MarketScopeCountry;SalesOrg;DistChannel;CustPriceList;CustGroup1;ErpCustomer;DeliveringPlant;ErpPriceCondition;ErpSequence;ErpPricingAccessSequence;SequenceDescription;TechnicalFilter;createdAt;createdBy;modifiedAt;modifiedBy
+73522c30-5dd0-4d6a-8add-8a5fa7b411d3;Scenario1;North America;USA;1000;01;PriceList1;Group1;CUST001;Plant1;Condition1;Seq1;AccessSeq1;Description for Seq1;Filter1;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
+9bedfb2a-d19d-4975-9619-6ed2efaa0779;Scenario2;Europe;Germany;1001;02;PriceList2;Group2;CUST002;Plant2;Condition2;Seq2;AccessSeq2;Description for Seq2;Filter2;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
+79f5a251-009d-4318-b22b-c87271cdf458;Scenario1;North America;Canada;1000;01;PriceList3;Group1;CUST003;Plant1;Condition3;Seq3;AccessSeq3;Description for Seq3;Filter3;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
+b870b2d2-8a71-4539-9fe5-3c98807cdd59;Scenario3;Asia;Japan;1002;03;PriceList4;Group3;CUST004;Plant3;Condition4;Seq4;AccessSeq4;Description for Seq4;Filter4;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
+fb279892-bac8-487e-b9f9-8d769b52903d;Scenario2;Europe;France;1001;02;PriceList5;Group2;CUST005;Plant2;Condition5;Seq5;AccessSeq5;Description for Seq5;Filter5;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin

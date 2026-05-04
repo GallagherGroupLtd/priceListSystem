@@ -1,0 +1,6 @@
+ID;ErpPricingAccessSequence;SequenceDescription;TechnicalFilter;createdAt;createdBy;modifiedAt;modifiedBy
+73522c30-5dd0-4d6a-8add-8a5fa7b411d3;AccessSeq1;Description for Access Sequence 1;Filter1;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
+9bedfb2a-d19d-4975-9619-6ed2efaa0779;AccessSeq2;Description for Access Sequence 2;Filter2;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
+79f5a251-009d-4318-b22b-c87271cdf458;AccessSeq3;Description for Access Sequence 3;Filter3;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
+b870b2d2-8a71-4539-9fe5-3c98807cdd59;AccessSeq4;Description for Access Sequence 4;Filter4;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
+fb279892-bac8-487e-b9f9-8d769b52903d;AccessSeq5;Description for Access Sequence 5;Filter5;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
