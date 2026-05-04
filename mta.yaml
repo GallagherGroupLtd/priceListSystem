@@ -32,6 +32,7 @@ modules:
   type: approuter.nodejs
   path: app/router
   requires:
+  - name: srv-api
   - name: priceListSystem-destination
   - name: priceListSystem-html5-runtime
   - name: priceListSystem-auth
