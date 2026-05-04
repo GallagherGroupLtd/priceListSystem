@@ -145,6 +145,11 @@ entity TermsDataLevelValues {
     key Level : String(20);
 }
 
+entity StatusValues {
+    key code : String(12);
+    name : String;
+}
+
 /** Pricelist Table */
 entity PricelistData : managed, cuid {
     PricelistTitle     : String(255) @title: 'Pricelist Name';
@@ -157,7 +162,7 @@ entity PricelistData : managed, cuid {
     ErpCustomer        : String(255) @title: 'ERP Customer Code';
     CustGroup1         : String(255) @title: 'Customer Group 1';
     DeliveringPlant    : String(255) @title: 'Plant';
-    Status             : String(20)  @title: 'Status';
+    Status             : String(12)  @title: 'Status';
     PublishedBy        : String(255) @title: 'Published By';
     PublishedDate      : Date        @title: 'Published Date';
     EffectiveDate      : Date        @title: 'Effectivity Date';

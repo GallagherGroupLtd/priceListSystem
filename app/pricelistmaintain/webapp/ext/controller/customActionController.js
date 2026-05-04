@@ -1,79 +1,144 @@
 sap.ui.define([
-  "sap/ui/core/mvc/Controller",
-  "sap/m/MessageToast"
+    "sap/ui/core/mvc/Controller",
+    "sap/m/MessageToast"
 ], function (Controller, MessageToast) {
-  'use strict';
+    'use strict';
 
-  return {
-    onDuplicatePricelist: async function () {
-      const aSelectedContexts = this.getSelectedContexts();
-      if (!aSelectedContexts.length) {
-          sap.m.MessageToast.show("Please select a record to duplicate.");
-          return;
-      }
-      if (aSelectedContexts.length > 1) {
-          sap.m.MessageToast.show("Please select only one record to duplicate.");
-          return;
-      }
+    return {
+        onDuplicatePricelist: async function () {
+            const aSelectedContexts = this.getSelectedContexts();
+            if (!aSelectedContexts.length) {
+                sap.m.MessageToast.show("Please select a record to duplicate.");
+                return;
+            }
+            if (aSelectedContexts.length > 1) {
+                sap.m.MessageToast.show("Please select only one record to duplicate.");
+                return;
+            }
 
-      const oContext = aSelectedContexts[0];
-      const oModel = oContext.getModel();
+            const oContext = aSelectedContexts[0];
+            const oModel = oContext.getModel();
 
-      // Utility: strip system/draft fields recursively
-      const excludeKeys = [
-          "ID", "IsActiveEntity", "HasActiveEntity",
-          "DraftAdministrativeData", "DraftAdministrativeData_DraftUUID", "HasDraftEntity"
-      ];
-      function buildCleanPayload(obj) {
-          if (!obj || typeof obj !== "object") return obj;
-          const clean = {};
-          for (const [key, value] of Object.entries(obj)) {
-              if (!excludeKeys.includes(key)) {
-                  if (value && typeof value === "object" && !Array.isArray(value)) {
-                      clean[key] = buildCleanPayload(value); // recurse for nested objects
-                  } else {
-                      clean[key] = value;
-                  }
-              }
-          }
-          return clean;
-      }
+            // Utility: strip system/draft fields recursively
+            const excludeKeys = [
+                "ID", "IsActiveEntity", "HasActiveEntity",
+                "DraftAdministrativeData", "DraftAdministrativeData_DraftUUID", "HasDraftEntity"
+            ];
+            // function buildCleanPayload(obj) {
+            //     if (!obj || typeof obj !== "object") return obj;
+            //     const clean = {};
+            //     for (const [key, value] of Object.entries(obj)) {
+            //         if (!excludeKeys.includes(key)) {
+            //             if (value && typeof value === "object" && !Array.isArray(value)) {
+            //                 clean[key] = buildCleanPayload(value); // recurse for nested objects
+            //             } else {
+            //                 clean[key] = value;
+            //             }
+            //         }
+            //     }
+            //     return clean;
+            // }
 
-      // Fetch full header record from backend (not just annotated fields)
-      const sPath = oContext.getPath(); // e.g. "/PricelistData('123')"
-      const oFullContext = oModel.bindContext(sPath);
-      const oPricelist = await oFullContext.requestObject();
+            // New me !@#$%
+            function buildCleanPayload(obj) {
+                if (!obj || typeof obj !== "object") return obj;
 
-      // Fetch full items from backend
-      const sItemsPath = sPath + "/items";
-      const oItemsBinding = oModel.bindList(sItemsPath);
-      const aItemContexts = await oItemsBinding.requestContexts();
-      const aItems = await Promise.all(aItemContexts.map(ctx => ctx.requestObject()));
+                // ถ้าเป็น Array (เช่น รายการ items หรือ children) ให้จัดการทุกตัวในนั้น
+                if (Array.isArray(obj)) {
+                    return obj.map(item => buildCleanPayload(item));
+                }
 
-      // Build clean header payload
-      const newHeader = buildCleanPayload(oPricelist);
-      newHeader.PricelistTitle = (oPricelist.PricelistTitle || "") + "-copy";
+                const clean = {};
+                for (const [key, value] of Object.entries(obj)) {
+                    // 1. ข้าม System Keys
+                    if (!excludeKeys.includes(key) && !key.startsWith("UI")) {
 
-      // Create new Pricelist draft
-      const oRootBinding = oModel.bindList("/PricelistData");
-      const oNewCtx = oRootBinding.create(newHeader);
-      await oNewCtx.created();
+                        // 2. ถ้าเจอ Object หรือ Array ให้ทำ Recursive (เรียกตัวเองซ้ำ)
+                        if (value && typeof value === "object") {
+                            // ข้ามการ Copy Metadata ของ OData
+                            if (key.startsWith("@")) continue;
 
-      // Duplicate items under new Pricelist
-      const sNewItemsPath = oNewCtx.getPath() + "/items";
-      const oNewItemsBinding = oModel.bindList(sNewItemsPath);
+                            clean[key] = buildCleanPayload(value);
+                        } else {
+                            clean[key] = value;
+                        }
+                    }
+                }
+                return clean;
+            }
+            // New me !@#$%
 
-      for (const item of aItems) {
-          const newItem = buildCleanPayload(item);
-          newItem.PricelistPartNumber = (item.PricelistPartNumber || "") + "-copy";
-          oNewItemsBinding.create(newItem);
-      }
+            // Fetch full header record from backend (not just annotated fields)
+            const sPath = oContext.getPath(); // e.g. "/PricelistData('123')"
+            const oFullContext = oModel.bindContext(sPath);
+            const oPricelist = await oFullContext.requestObject();
 
-      // Persist header + items
-      await oModel.submitBatch("PricelistData");
+            // Fetch full items from backend
+            const sItemsPath = sPath + "/items";
+            const oItemsBinding = oModel.bindList(sItemsPath);
+            const aItemContexts = await oItemsBinding.requestContexts();
+            const aItems = await Promise.all(aItemContexts.map(ctx => ctx.requestObject()));
 
-      // Refresh list so new record appears
-      this.getModel().refresh();
-    }
-  };
+            // Build clean header payload
+            const newHeader = buildCleanPayload(oPricelist);
+            newHeader.PricelistTitle = (oPricelist.PricelistTitle || "") + "-copy";
+
+            // Create new Pricelist draft
+            const oRootBinding = oModel.bindList("/PricelistData");
+            const oNewCtx = oRootBinding.create(newHeader);
+            await oNewCtx.created();
+
+            // Duplicate items under new Pricelist
+            const sNewItemsPath = oNewCtx.getPath() + "/items";
+            const oNewItemsBinding = oModel.bindList(sNewItemsPath);
+
+            for (const item of aItems) {
+                const newItem = buildCleanPayload(item);
+                newItem.PricelistPartNumber = (item.PricelistPartNumber || "") + "-copy";
+                oNewItemsBinding.create(newItem);
+            }
+
+            // Persist header + items
+            await oModel.submitBatch("PricelistData");
+
+            // Refresh list so new record appears
+            this.getModel().refresh();
+
+
+            // New Me !@#$%
+            try {
+                // 1. แสดง Busy Indicator (หมุนๆ) ให้ User รู้ว่ากำลังทำงาน
+                sap.ui.core.BusyIndicator.show(0);
+
+                // 2. บันทึก Batch
+                await oModel.submitBatch("PricelistData");
+
+                // 3. รอให้ Create สำเร็จและได้ Context ที่สมบูรณ์
+                await oNewCtx.created();
+
+                sap.m.MessageToast.show("Duplicated successfully!");
+
+                // 4. *** วิธีการ Navigate (ข้อ 2) ***
+                if (this.routing) {
+                    // สำหรับ Fiori Elements ExtensionAPI
+                    this.routing.navigate(oNewCtx);
+                } else {
+                    // สำหรับกรณีทั่วไป ใช้ Router ปกติ
+                    const oRouter = sap.ui.core.UIComponent.getRouterFor(this);
+                    oRouter.navTo("PricelistDataObjectPage", { // ชื่อ Route ต้องเช็คใน manifest.json
+                        key: oNewCtx.getProperty("ID"),
+                        IsActiveEntity: false // ถ้าเป็น Draft ให้ใส่ false
+                    });
+                }
+
+            } catch (oError) {
+                sap.m.MessageBox.error("Duplicate failed: " + oError.message);
+            } finally {
+                sap.ui.core.BusyIndicator.hide();
+            }
+            // New Me !@#$%
+
+
+        }
+    };
 });

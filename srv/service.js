@@ -916,6 +916,20 @@ module.exports = cds.service.impl(async function () {
         return await extdb.run(q);
     });
 
+    this.on('READ', 'StatusVH', (req) => {
+        const data = [
+            { code: 'Initial', name: 'Initial' },
+            { code: 'Active', name: 'Active' },
+            { code: 'Inactive', name: 'Inactive' }
+        ];
+
+        if (req.query.SELECT.count) {
+            data.$count = data.length;
+        }
+        
+        return data;
+    });
+
     // Handler for PricelistData Status Assignment
     this.before('CREATE', PricelistData, async (req) => {
         req.data.Status = 'Initial';
