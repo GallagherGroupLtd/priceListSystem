@@ -3,14 +3,14 @@
   "authenticationMethod": "route",
   "routes": [
     {
-      "source": "^/odata/v4/(.*)$",
-      "target": "/odata/v4/$1",
-      "destination": "CAP_BACKEND",
-      "authenticationType": "xsuaa"
-    },
-    {
       "source": "^/odata/v4/price-list/(.*)$",
       "target": "/odata/v4/price-list/$1",
+      "destination": "priceListSystem-app-srv",
+      "authenticationType": "xsuaa"
+    },    
+    {
+      "source": "^/odata/v4/(.*)$",
+      "target": "/odata/v4/$1",
       "destination": "CAP_BACKEND",
       "authenticationType": "xsuaa"
     },

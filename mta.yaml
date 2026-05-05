@@ -32,7 +32,6 @@ modules:
   type: approuter.nodejs
   path: app/router
   requires:
-  - name: srv-api
   - name: priceListSystem-destination
   - name: priceListSystem-html5-runtime
   - name: priceListSystem-auth
@@ -249,6 +248,12 @@ modules:
           ServiceInstanceName: priceListSystem-auth
           ServiceKeyName: priceListSystem-auth-key
           sap.cloud.service: priceListSystem.service
+        - Name: priceListSystem-app-srv
+          URL: ~{srv-api/srv-url}
+          Authentication: OAuth2UserTokenExchange
+          TokenServiceInstanceName: priceListSystem-auth
+          TokenServiceKeyName: priceListSystem-auth-key
+          sap.cloud.service: priceListSystem.service          
         existing_destinations_policy: update
   build-parameters:
     no-source: true

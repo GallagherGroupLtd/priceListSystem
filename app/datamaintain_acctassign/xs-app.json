@@ -5,7 +5,7 @@
     {
       "source": "^/odata/v4/(.*)$",
       "target": "/odata/v4/$1",
-      "destination": "CAP_BACKEND",
+      "destination": "priceListSystem-app-srv",
       "authenticationType": "xsuaa"
     },
     {

@@ -1,0 +1,64 @@
+# CAP priceListSystem
+_out
+*.db
+*.sqlite
+connection.properties
+default-*.json
+.cdsrc-private.json
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+gen/
+target/
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+bin/
+
+# --- Environment & Secrets ---
+# NEVER commit your credentials or local secrets
+.env
+default-env.json
+default-services.json
+*cds-secrets.json
+
+# Web IDE, App Studio
+.vscode/
+.che/
+.gen/
+
+# MTA
+*_mta_build_tmp
+*.mtar
+mta_archives/
+resources/
+
+# Other
+Thumbs.db
+.DS_Store
+.history/
+*.orig
+*.log
+
+*.iml
+*.flattened-pom.xml
+
+# @cap-js/cds-typer
+@cds-models
+
+# Ignore all zip files in router folder
+app/*.zip
+app/**/dist/
+app/**/*.zip
+webapp/test/flpSandbox.html
+**/sap-ui-cachebuster-info.json
+Makefile_*
+
+# Ignore any zip files anywhere
+*.zip
+# auto generated wildcard
+db/.env
