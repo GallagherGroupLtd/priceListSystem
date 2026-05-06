@@ -1,6 +1,0 @@
-ID;TradeScenario;MarketScopeRegion;MarketScopeCountry;InformationHeading;InformationDetails;ImageLink;createdAt;createdBy;modifiedAt;modifiedBy
-73522c30-5dd0-4d6a-8add-8a5fa7b411d3;Scenario1;North America;USA;New Product Launch;We are excited to announce our new product launch.;http://example.com/image1.jpg;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
-9bedfb2a-d19d-4975-9619-6ed2efaa0779;Scenario2;Europe;Germany;Sales Growth;Our sales have increased by 20% this quarter.;http://example.com/image2.jpg;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
-79f5a251-009d-4318-b22b-c87271cdf458;Scenario1;North America;Canada;Customer Feedback;We value our customers' feedback and strive to improve.;http://example.com/image3.jpg;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
-b870b2d2-8a71-4539-9fe5-3c98807cdd59;Scenario3;Asia;Japan;Market Expansion;We are expanding our market presence in Asia.;http://example.com/image4.jpg;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
-fb279892-bac8-487e-b9f9-8d769b52903d;Scenario2;Europe;France;Sustainability Initiatives;We are committed to sustainable practices.;http://example.com/image5.jpg;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin

@@ -1,6 +1,0 @@
-ID;FirstName;LastName;Type;Email;TradeScenario;MarketScopeRegion;MarketScopeCountry;CustomerNumber;SalesOrg;DistChannel;createdAt;createdBy;modifiedAt;modifiedBy
-73522c30-5dd0-4d6a-8add-8a5fa7b411d3;John;Doe;Sales;john.doe@example.com;Scenario1;North America;USA;CUST001;1000;01;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
-9bedfb2a-d19d-4975-9619-6ed2efaa0779;Jane;Smith;Sales;jane.smith@example.com;Scenario2;Europe;Germany;CUST002;1001;02;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
-79f5a251-009d-4318-b22b-c87271cdf458;Alice;Johnson;Sales;alice.johnson@example.com;Scenario1;North America;Canada;CUST003;1000;01;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
-b870b2d2-8a71-4539-9fe5-3c98807cdd59;Bob;Brown;Support;bob.brown@example.com;Scenario3;Asia;Japan;CUST004;1002;03;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
-fb279892-bac8-487e-b9f9-8d769b52903d;Charlie;Davis;Sales;charlie.davis@example.com;Scenario2;Europe;France;CUST005;1001;02;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin

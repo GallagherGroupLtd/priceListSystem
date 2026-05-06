@@ -1,6 +1,0 @@
-ID;TradeScenario;MarketScopeRegion;MarketScopeCountry;ContactEmail;ContactNumber;createdAt;createdBy;modifiedAt;modifiedBy
-73522c30-5dd0-4d6a-8add-8a5fa7b411d3;Scenario1;North America;USA;contact1@example.com;1234567890;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
-9bedfb2a-d19d-4975-9619-6ed2efaa0779;Scenario2;Europe;Germany;contact2@example.com;0987654321;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
-79f5a251-009d-4318-b22b-c87271cdf458;Scenario1;North America;Canada;contact3@example.com;1122334455;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
-b870b2d2-8a71-4539-9fe5-3c98807cdd59;Scenario3;Asia;Japan;contact4@example.com;2233445566;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
-fb279892-bac8-487e-b9f9-8d769b52903d;Scenario2;Europe;France;contact5@example.com;3344556677;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
