@@ -2,23 +2,34 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:core="sap.ui.core" >
-    <Page id= "Page" title="Pricelist System" enableScrolling="true">
-        <content>
-            <IconTabBar id="idIconTabBar" expanded="true" class="sapUiResponsiveContentPadding">
+    <Page id= "Page" title="Pricelist System123" enableScrolling="true">
+        <customHeader>
+            <Bar id="headerBar" class="barLogo">
+                <contentMiddle> 
+                    <Image
+                        id="companyLogo"
+                        src="./images/logo.png"
+                        class="sapUiSmallMarginEnd"
+                        alt="Company Logo"/> 
+                </contentMiddle>    
+            </Bar>       
+        </customHeader>        
+        <content>          
+            <IconTabBar id="idIconTabBar" expanded="true" class="sapUiResponsiveContentPadding IconTabColor">
                 <items>
                     <IconTabFilter id="Home" text="Home" key="All">
-                        <VBox class="sapUiSmallMargin" id="VBox">
-                            <items>
-                                <Title id="TitleLatestUpd" text="Latest Updates" titleStyle="H2" class="sapUiTinyMarginBottom" />
-
+                        <VBox class="sapUiSmallMargin" id="VBox"> 
+                            <items> 
+                                <Title id="TitleLatestUpd" text="Pricelist Page" titleStyle="H2" class="sapUiTinyMarginBottom" />
+   
                                 <VBox id="VBox1" class="sapUiSmallsapUiTinyMarginBottom sapUiSmallPadding welcomeBox" >
                                     <Text id="IdTextDate" text="{home>/currentDate}" class="sapUiTinyMarginTop sapUiTinyMarginBottom sapUiTinyMarginBegin" />
                                     <Title id="IdTitleUser" text="Hi {home>/userName}, great to see you!" titleStyle="H3" class="sapUiTinyMarginBottom sapUiTinyMarginBegin"/>
                                 </VBox> 
-
+  
                                 <VBox id="CardNews_All" class="sapUiTinyMarginTop sapUiSmallMarginBottom newsCardStyle">
                                     <Image id="ImageNews"
-                                        src="./images/newsImageBig.jpg"
+                                        src="./images/TrendsBanenrBG.jpg"
                                         width="100%"
                                         height="10rem"
                                         class="sapUiTinyMarginBottom newsCardImage" />
@@ -42,10 +53,10 @@
                                 </GenericTile> -->
 
                                 <Title id="TitlePricelist" text="Price Information" level="H2" class="sapUiSmallsapUiTinyMarginBottom sapUiMediumMarginTopMarginTopBottom" />
-
+ 
                                 <HBox id="HBox1" wrap="Wrap">
                                     <items>
-                                        <GenericTile id="TilePricelist_All" header="Pricelist" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                        <GenericTile id="TilePricelist_All" header="Pricelist" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                                             <tileContent>
                                                 <TileContent id="TileContentPricelist_All">
                                                     <ImageContent id="ImagePricelist_All" src="sap-icon://sales-order-item" />
@@ -56,7 +67,7 @@
                                             </customData>
                                         </GenericTile>
 
-                                        <GenericTile id="TileMyRequest_All" header="My Request" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                        <GenericTile id="TileMyRequest_All" header="My Request" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                                             <tileContent>
                                                 <TileContent id="TileContentMyRequest_All">
                                                     <ImageContent id="ImageMyRequest_All" src="sap-icon://customer-order-entry" />
@@ -67,7 +78,7 @@
                                             </customData>
                                         </GenericTile>
 
-                                        <GenericTile id="TileWorkflow_All" header="Workflow" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                        <GenericTile id="TileWorkflow_All" header="Workflow" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                                             <tileContent>
                                                 <TileContent id="TileContentWorkflow_All">
                                                     <ImageContent id="ImageWorkflow_All" src="sap-icon://workflow-tasks" />
@@ -78,7 +89,7 @@
                                             </customData>
                                         </GenericTile>
 
-                                        <GenericTile id="TilePriceSchedRev_All" header="Pricelist Review Schedule" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                        <GenericTile id="TilePriceSchedRev_All" header="Pricelist Review Schedule" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                                             <tileContent>
                                                 <TileContent id="TileContentPriceSchedRev_All">
                                                     <ImageContent id="ImagePriceSchedRev_All" src="sap-icon://gantt-bars" />
@@ -94,7 +105,7 @@
                                 <Title id="TitleMaintain" text="Maintenance" level="H2" class="sapUiSmallMarginTop sapUiMediumMarginToprginTopBottom" />
                                 <HBox id="HBox3" wrap="Wrap">
                                     <items>
-                                        <GenericTile id="TileMaintain_All" header="Pricelist Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                        <GenericTile id="TileMaintain_All" header="Pricelist Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                                             <tileContent>
                                                 <TileContent id="TileContenctMaintain_All">
                                                     <ImageContent id="ImageMaintain_All" src="sap-icon://wrench" />
@@ -105,7 +116,7 @@
                                             </customData>
                                         </GenericTile>
 
-                                        <GenericTile id="TileMaintain2_All" header="Data Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                        <GenericTile id="TileMaintain2_All" header="Data Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                                             <tileContent>
                                                 <TileContent id="TileContenctMaintain2_All">
                                                     <ImageContent id="ImageMaintain2_All" src="sap-icon://provision" />
@@ -116,7 +127,7 @@
                                             </customData>
                                         </GenericTile>
 
-                                        <GenericTile id="TileMaintain3_All" header="Application Log" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                                        <GenericTile id="TileMaintain3_All" header="Application Log" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                                             <tileContent>
                                                 <TileContent id="TileContenctMaintain3_All">
                                                     <ImageContent id="ImageMaintain3_All" src="sap-icon://provision" />
@@ -146,7 +157,7 @@
                     <IconTabSeparator id="Sep1"/>
 
                     <IconTabFilter id="TabPricelist" text="Price Information">
-                        <GenericTile id="TilePricelist" header="Pricelist" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                        <GenericTile id="TilePricelist" header="Pricelist" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                             <tileContent>
                                 <TileContent id="TileContentPricelist">
                                     <ImageContent id="ImagePricelist" src="sap-icon://sales-order-item" />
@@ -157,7 +168,7 @@
                             </customData>
                         </GenericTile>
 
-                        <GenericTile id="TileMyRequest" header="My Request" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                        <GenericTile id="TileMyRequest" header="My Request" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                             <tileContent>
                                 <TileContent id="TileContentMyRequest">
                                     <ImageContent id="ImageMyRequest" src="sap-icon://customer-order-entry" />
@@ -168,7 +179,7 @@
                             </customData>
                         </GenericTile>
                         
-                        <GenericTile id="TileWorkflow" header="Workflow" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                        <GenericTile id="TileWorkflow" header="Workflow" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                             <tileContent>
                                 <TileContent id="TileContentWorkflow">
                                     <ImageContent id="ImageWorkflow" src="sap-icon://workflow-tasks" />
@@ -179,7 +190,7 @@
                             </customData>
                         </GenericTile>
 
-                        <GenericTile id="TilePriceSchedRev" header="Pricelist Review Schedule" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                        <GenericTile id="TilePriceSchedRev" header="Pricelist Review Schedule" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                             <tileContent>
                                 <TileContent id="TileContentPriceSchedRev">
                                     <ImageContent id="ImagePriceSchedRev" src="sap-icon://gantt-bars" />
@@ -192,7 +203,7 @@
                     </IconTabFilter>
 
                     <IconTabFilter id="TabMaintain" text="Maintenance">
-                        <GenericTile id="TileMaintain" header="Pricelist Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                        <GenericTile id="TileMaintain" header="Pricelist Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                             <tileContent>
                                 <TileContent id="TileContenctMaintain">
                                     <ImageContent id="ImageMaintain" src="sap-icon://wrench" />
@@ -203,7 +214,7 @@
                             </customData>
                         </GenericTile>
 
-                        <GenericTile id="TileMaintain2" header="Data Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                        <GenericTile id="TileMaintain2" header="Data Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                             <tileContent>
                                 <TileContent id="TileContenctMaintain2">
                                     <ImageContent id="ImageMaintain2" src="sap-icon://provision" />
@@ -214,7 +225,7 @@
                             </customData>
                         </GenericTile>
 
-                        <GenericTile id="TileMaintain3" header="Application Log" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                        <GenericTile id="TileMaintain3" header="Application Log" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                             <tileContent>
                                 <TileContent id="TileContenctMaintain3">
                                     <ImageContent id="ImageMaintain3" src="sap-icon://provision" />

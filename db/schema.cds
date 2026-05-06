@@ -71,6 +71,12 @@ entity TermsAndConditionDetermination : managed, cuid {
     Subcategory3              : String(255) @title: 'Subcategory 3';
     Subcategory4              : String(255) @title: 'Subcategory 4';
     Subcategory5              : String(255) @title: 'Subcategory 5';
+    MainCategoryLocal         : String(255) @title: 'Main Category Local Description';
+    Subcategory1Local         : String(255) @title: 'Subcategory 1 Local Description';
+    Subcategory2Local         : String(255) @title: 'Subcategory 2 Local Description';
+    Subcategory3Local         : String(255) @title: 'Subcategory 3 Local Description';
+    Subcategory4Local         : String(255) @title: 'Subcategory 4 Local Description';
+    Subcategory5Local         : String(255) @title: 'Subcategory 5 Local Description';    
     TermsAndConditionCategory : String(255) @title: 'Terms and Conditions Category';
     PricelistFieldName        : String(255) @title: 'Pricelist Fieldname';
     PricelistDataLevel        : String(255) @title: 'Pricelist Data Level';
@@ -100,6 +106,11 @@ entity InformationTileContent : managed, cuid {
     TradeScenario      : String(255) @title: 'Trade Scenario';
     MarketScopeRegion  : String(255) @title: 'Region';
     MarketScopeCountry : String(255) @title: 'Country';
+    SalesOrg           : String(4)   @title : 'Sales Organization';
+    DistChannel        : String(2)   @title : 'Distribution Channel';
+    CustPriceList      : String(20)  @title : 'Customer Pricelist';
+    CustGroup1         : String(255) @title : 'Customer Group 1';
+    ErpCustomer        : String(255) @title : 'ERP Customer Code';    
     InformationHeading : String(30)  @title: 'Information Heading';
     InformationDetails : String(100) @title: 'Information Details';
     ImageLink          : String(255) @title: 'Image Link';
@@ -132,6 +143,14 @@ entity AccountAssignment : managed, cuid {
 entity PricingCondType : managed, cuid {
     ErpPricingAccessSequence : String(100) @title : 'ERP Pricing Access Sequence';
     SequenceDescription      : String(255) @tittle: 'ERP Pricing Access Description';
+    TechnicalFilter          : String(255) @title : 'ERP Pricing Sequence Filter';
+}
+
+/** Pricing Condition Description **/
+entity PricingParameter : managed, cuid {
+    ErpPricingAccessSequence : String(100) @title : 'ERP Pricing Access Sequence';
+    SequenceDescription      : String(255) @title : 'ERP Pricing Access Description';
+    ConditionType            : String(255) @title : 'ERP Condition Type';
     TechnicalFilter          : String(255) @title : 'ERP Pricing Sequence Filter';
 }
 
@@ -213,4 +232,66 @@ entity PricelistItemData : managed, cuid {
     SubCategory3TermsandCond  : String @title : 'Sucategory 3 Terms and Conditions';
     SubCategory4TermsandCond  : String @title : 'Sucategory 4 Terms and Conditions';
     SubCategory5TermsandCond  : String @title : 'Sucategory 5 Terms and Conditions';
+}
+
+/* -------------------------------------- Value Help -------------------------------------- */
+
+/* Sales Org Table */
+entity ErpSalesOrg : managed, cuid {
+    Code        : String(4);
+    Description : String(255);
+}
+
+/* Distribution Channel Table */
+entity ErpDistributionChannel : managed, cuid {
+    Code        : String(4);
+    Description : String(255);
+}
+
+/* Division Table */
+entity ErpDivision : managed, cuid {
+    Code        : String(4);
+    Description : String(255);
+}
+
+/* Plant Table */
+entity ErpPlant : managed, cuid {
+    Code        : String(4);
+    Description : String(255);
+}
+
+/* Material Group 1 Table */
+entity ErpMaterialGroup1 : managed, cuid {
+    Code        : String(4);
+    Description : String(255);
+}
+
+/* Material Group 2 Table */
+entity ErpMaterialGroup2 : managed, cuid {
+    Code        : String(4);
+    Description : String(255);
+}
+
+/* Material Group 5 Table */
+entity ErpMaterialGroup5 : managed, cuid {
+    Code        : String(4);
+    Description : String(255);
+}
+
+/* Price list Table */
+entity ErpPricelist : managed, cuid {
+    Code        : String(4);
+    Description : String(255);
+}
+
+/* Customer Group 1 Table */
+entity ErpCustomerGroup1 : managed, cuid {
+    Code        : String(4);
+    Description : String(255);
+}
+
+/* Price Status Table */
+entity ErpPriceStatus : managed, cuid {
+    Code        : String(4);
+    Description : String(255);
 }

@@ -77,6 +77,76 @@ service PriceListService {
 
     annotate AccountAssignment with @odata.draft.enabled;
 
+    entity ErpSalesOrg    as projection on my.ErpSalesOrg
+        actions {
+            action copyRow() returns ErpDistributionChannel;
+        };
+
+    annotate ErpSalesOrg with @odata.draft.enabled;
+
+    entity ErpDistributionChannel    as projection on my.ErpDistributionChannel
+        actions {
+            action copyRow() returns ErpDistributionChannel;
+        };
+
+    annotate ErpDistributionChannel with @odata.draft.enabled;
+
+    entity ErpDivision    as projection on my.ErpDivision
+        actions {
+            action copyRow() returns ErpDivision;
+        };
+
+    annotate ErpDivision with @odata.draft.enabled;
+
+    entity ErpPlant    as projection on my.ErpPlant
+        actions {
+            action copyRow() returns ErpPlant;
+        };
+
+    annotate ErpPlant with @odata.draft.enabled;
+
+    entity ErpMaterialGroup1    as projection on my.ErpMaterialGroup1
+        actions {
+            action copyRow() returns ErpMaterialGroup1;
+        };
+
+    annotate ErpMaterialGroup1 with @odata.draft.enabled;
+
+    entity ErpMaterialGroup2    as projection on my.ErpMaterialGroup2
+        actions {
+            action copyRow() returns ErpMaterialGroup2;
+        };
+
+    annotate ErpMaterialGroup2 with @odata.draft.enabled;
+
+    entity ErpMaterialGroup5    as projection on my.ErpMaterialGroup5
+        actions {
+            action copyRow() returns ErpMaterialGroup5;
+        };
+
+    annotate ErpMaterialGroup5 with @odata.draft.enabled;
+
+    entity ErpPricelist    as projection on my.ErpPricelist
+        actions {
+            action copyRow() returns ErpPricelist;
+        };
+
+    annotate ErpPricelist with @odata.draft.enabled;
+
+    entity ErpCustomerGroup1    as projection on my.ErpCustomerGroup1
+        actions {
+            action copyRow() returns ErpPricelist;
+        };
+
+    annotate ErpCustomerGroup1 with @odata.draft.enabled;
+
+    entity ErpPriceStatus    as projection on my.ErpPriceStatus
+        actions {
+            action copyRow() returns ErpPricelist;
+        };
+
+    annotate ErpPriceStatus with @odata.draft.enabled;
+
     //File Upload Functions
     action MassUploadTradeScenarios(file: String)                    returns String;
     action MassUploadItemStructure(file: String)                     returns String;
@@ -440,19 +510,39 @@ service PriceListService {
     entity CustomerVH           as projection on ExternalCustomers;
 
     @cds.persistence.skip
-    entity SalesOrgVH           as projection on ExternalCustomers;
+    entity SalesOrgVH        as projection on my.ErpSalesOrg;
 
     @cds.persistence.skip
-    entity DistChannelVH        as projection on ExternalCustomers;
+    entity DistributionChannelVH      as projection on my.ErpDistributionChannel;
 
     @cds.persistence.skip
-    entity PlantVH              as projection on ExternalCustomers;
+    entity DivisionVH      as projection on my.ErpDivision;
+
+    @cds.persistence.skip
+    entity PlantVH      as projection on my.ErpPlant;
+
+    @cds.persistence.skip
+    entity MaterialGroup1VH      as projection on my.ErpMaterialGroup1;
+
+    @cds.persistence.skip
+    entity MaterialGroup2VH      as projection on my.ErpMaterialGroup2;
+
+    @cds.persistence.skip
+    entity MaterialGroup5VH      as projection on my.ErpMaterialGroup5;
+
+    @cds.persistence.skip
+    entity PricelistVH      as projection on my.ErpPricelist;
+
+    @cds.persistence.skip
+    entity CustomerGroup1VH      as projection on my.ErpCustomerGroup1;
 
     @cds.persistence.skip
     entity CustPricelistVH      as projection on ExternalCustomers;
 
     @cds.persistence.skip
     entity StatusVH             as projection on StatusValues;    
+    entity PriceStatusVH      as projection on my.ErpPriceStatus;
+                                                   
 }
 
 

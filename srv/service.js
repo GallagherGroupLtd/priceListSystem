@@ -803,7 +803,8 @@ module.exports = cds.service.impl(async function () {
         const db = cds.transaction(req);
         return await db.run(
             SELECT.distinct.from(TradeScenarios)
-                .columns('TradeScenario', 'MarketScopeRegion', 'MarketScopeCountry')
+                // .columns('TradeScenario', 'MarketScopeRegion', 'MarketScopeCountry')
+                .columns('TradeScenario')
                 .orderBy('TradeScenario')
         );
     });
@@ -812,7 +813,8 @@ module.exports = cds.service.impl(async function () {
     this.on('READ', 'MarketRegionVH', async (req) => {
         const db = cds.transaction(req);
         let q = SELECT.distinct.from(TradeScenarios)
-            .columns('TradeScenario', 'MarketScopeRegion', 'MarketScopeCountry');
+            // .columns('TradeScenario', 'MarketScopeRegion', 'MarketScopeCountry');
+            .columns('MarketScopeRegion');
 
         if (req.query.SELECT.where) {
             q.where(req.query.SELECT.where);
@@ -825,7 +827,8 @@ module.exports = cds.service.impl(async function () {
     this.on('READ', 'MarketCountryVH', async (req) => {
         const db = cds.transaction(req);
         let q = SELECT.distinct.from(TradeScenarios)
-            .columns('TradeScenario', 'MarketScopeRegion', 'MarketScopeCountry');
+            // .columns('TradeScenario', 'MarketScopeRegion', 'MarketScopeCountry');
+            .columns('MarketScopeCountry');
 
         if (req.query.SELECT.where) {
             const filters = {};
@@ -865,10 +868,24 @@ module.exports = cds.service.impl(async function () {
     });
 
     // Distinct Sales Orgs filtered by Customer
+    // this.on('READ', 'SalesOrgVH', async (req) => {
+    //     const extdb = await cds.connect.to('extdb');
+    //     let q = SELECT.distinct.from('T_CUSTOMER_MASTER_DATA')
+    //         .columns('SALES_ORGANIZATION', 'DISTRIBUTION_CHANNEL', 'CUSTOMER');
+
+    //     if (req.query.SELECT.where) {
+    //         q.where(req.query.SELECT.where);
+    //     }
+    //     return await extdb.run(q);
+    // });
+
+    //     return await extdb.run(q);
+    // });
     this.on('READ', 'SalesOrgVH', async (req) => {
         const extdb = await cds.connect.to('extdb');
-        let q = SELECT.distinct.from('T_CUSTOMER_MASTER_DATA')
-            .columns('SALES_ORGANIZATION', 'DISTRIBUTION_CHANNEL', 'CUSTOMER');
+        let q = SELECT.distinct.from('ErpSalesOrg')
+            .columns('Code','Description')
+            .orderBy('Code');
 
         if (req.query.SELECT.where) {
             q.where(req.query.SELECT.where);
@@ -878,10 +895,22 @@ module.exports = cds.service.impl(async function () {
     });
 
     // Distinct Dist Channels filtered by Customer + Sales Orgs
-    this.on('READ', 'DistChannelVH', async (req) => {
+    // this.on('READ', 'DistChannelVH', async (req) => {
+    //     const extdb = await cds.connect.to('extdb');
+    //     let q = SELECT.distinct.from('T_CUSTOMER_MASTER_DATA')
+    //         .columns('SALES_ORGANIZATION', 'DISTRIBUTION_CHANNEL', 'CUSTOMER');
+
+    //     if (req.query.SELECT.where) {
+    //         q.where(req.query.SELECT.where);
+    //     }
+
+    //     return await extdb.run(q);
+    // });
+    this.on('READ', 'DistributionChannelVH', async (req) => {
         const extdb = await cds.connect.to('extdb');
-        let q = SELECT.distinct.from('T_CUSTOMER_MASTER_DATA')
-            .columns('SALES_ORGANIZATION', 'DISTRIBUTION_CHANNEL', 'CUSTOMER');
+        let q = SELECT.distinct.from('ErpDistributionChannel')
+            .columns('Code','Description')
+            .orderBy('Code');
 
         if (req.query.SELECT.where) {
             q.where(req.query.SELECT.where);
