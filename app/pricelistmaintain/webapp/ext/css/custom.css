@@ -32,20 +32,25 @@
   outline: 2px solid #ff944d !important;
 }
 
+/* 🔶 Stanrdard buttons */
+.sapMSB {
+    gap: 3px !important;
+}
+
 /* 🔶 Emphasized buttons (primary actions) */
 .sapMBtn.sapMBtnEmphasized .sapMBtnInner {
   background-color: #F36F21 !important;
   border-color: #F36F21 !important;
 }
 .sapMBtn.sapMBtnEmphasized .sapMBtnContent {
-  color: #ffffff !important;
+  color: #F36F21 !important;
 }
 .sapMBtn.sapMBtnEmphasized:hover .sapMBtnInner {
   background-color: #d95f1d !important;
   border-color: #d95f1d !important;
 }
 .sapMBtn.sapMBtnEmphasized:hover .sapMBtnContent {
-  color: #ffffff !important;
+  color: #F36F21 !important;
 }
 .sapMBtn.sapMBtnEmphasized:focus .sapMBtnInner {
   outline: 2px solid #ff944d !important;
@@ -78,16 +83,16 @@
 
 /* 🔶 Icons */
 .sapUiIcon {
-  color: #ffffff !important;   /* Force icons to white */
+  color: #000000 !important;   /* Force icons to white */
 }
 .sapMBtn .sapMBtnIcon {
-  color: #ffffff !important;   /* Icons inside buttons → white */
+  color: #000000 !important;   /* Icons inside buttons → white */
 }
 .sapMBtn:hover .sapMBtnIcon {
-  color: #ffffff !important;   /* Keep white on hover */
+  color: #F36F21 !important;   /* Keep white on hover */
 }
 .sapMBar .sapUiIcon {
-  color: #ffffff !important;   /* Icons inside orange toolbars → white */
+  color: #F36F21 !important;   /* Icons inside orange toolbars → white */
 }
 .sapUiTableActionIcon {
     color: #F36F21 !important;
@@ -103,7 +108,7 @@
 
 /* Menu Dropwdown Buttons */
 .sapMIBar .sapMMenuBtn.sapMMenuBtnRegular .sapMBtnInner.sapMBtnDefault::after {
-  color: #ffffff !important;
+  color: #F36F21 !important;
 }
 html body .sapMITBTextOnly .sapMITBFilterDefault.sapMITBSelected .sapMITBFilterExpandIcon {
   color: #F36F21 !important;

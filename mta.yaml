@@ -3,310 +3,362 @@ ID: priceListSystem
 description: Pricelist Systemization
 version: 1.0.6
 modules:
-- name: priceListSystem-srv
-  type: nodejs
-  path: gen/srv
-  requires:
+  - name: priceListSystem-srv
+    type: nodejs
+    path: gen/srv
+    requires:
+      - name: priceListSystem-auth
+      - name: priceListSystem-db
+      - name: priceListSystem-destination
+      - name: ups-sapecc
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    parameters:
+      buildpack: nodejs_buildpack
+      instances: 1
+      memory: 512M
+    build-parameters:
+      builder: npm-ci
+  - name: priceListSystem-db-deployer
+    type: hdb
+    path: gen/db
+    requires:
+      - name: priceListSystem-db
+    parameters:
+      buildpack: nodejs_buildpack
+  - name: priceListSystem
+    type: approuter.nodejs
+    path: app/router
+    requires:
+      - name: priceListSystem-destination
+      - name: priceListSystem-html5-runtime
+      - name: priceListSystem-auth
+    provides:
+      - name: app-api
+        properties:
+          app-protocol: ${protocol}
+          app-uri: ${default-uri}
+    parameters:
+      disk-quota: 1G
+      keep-existing-routes: true
+      memory: 512M
+  - name: priceListSystem-app-deployer
+    type: com.sap.application.content
+    path: .
+    requires:
+      - name: priceListSystem-auth
+      - name: srv-api
+      - name: priceListSystem-html5-repo-host
+        parameters:
+          config:
+            HTML5Runtime_enabled: true
+          content-target: true
+      - name: priceListSystem-destination
+    parameters:
+      config:
+        sap.cloud.service: priceListSystem.service
+    build-parameters:
+      build-result: resources
+      requires:
+        - artifacts:
+            - pricelistappmain.zip
+          name: pricelistappmain
+          target-path: resources/
+        - artifacts:
+            - pricelistappdatamaintain.zip
+          name: pricelistappdatamaintain
+          target-path: resources/
+        - artifacts:
+            - pricelistappdatamaintaintradescenarios.zip
+          name: pricelistappdatamaintaintradescenarios
+          target-path: resources/
+        - artifacts:
+            - pricelistappdatamaintainitemstructure.zip
+          name: pricelistappdatamaintainitemstructure
+          target-path: resources/
+        - artifacts:
+            - pricelistappdatamaintainpartnumbers.zip
+          name: pricelistappdatamaintainpartnumbers
+          target-path: resources/
+        - artifacts:
+            - pricelistappdatamaintaintermsandcond.zip
+          name: pricelistappdatamaintaintermsandcond
+          target-path: resources/
+        - artifacts:
+            - pricelistappdatamaintainpricingparameters.zip
+          name: pricelistappdatamaintainpricingparameters
+          target-path: resources/
+        - artifacts:
+            - pricelistappdatamaintaintilecontent.zip
+          name: pricelistappdatamaintaintilecontent
+          target-path: resources/
+        - artifacts:
+            - pricelistappdatamaintaincontactinfo.zip
+          name: pricelistappdatamaintaincontactinfo
+          target-path: resources/
+        - artifacts:
+            - pricelistapppricelistmaintain.zip
+          name: pricelistapppricelistmaintain
+          target-path: resources/
+        - artifacts:
+            - pricelistapppricelistdisplay.zip
+          name: pricelistapppricelistdisplay
+          target-path: resources/
+        - artifacts:
+            - pricelistappdatamaintainacctassign.zip
+          name: pricelistappdatamaintainacctassign
+          target-path: resources/
+  - name: pricelistappmain
+    type: html5
+    path: app/main
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: pricelistappdatamaintain
+    type: html5
+    path: app/datamaintain
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: pricelistappdatamaintaintradescenarios
+    type: html5
+    path: app/datamaintain_tradescenarios
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: pricelistappdatamaintainitemstructure
+    type: html5
+    path: app/datamaintain_itemstructure
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: pricelistappdatamaintainpartnumbers
+    type: html5
+    path: app/datamaintain_partnumbers
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: pricelistappdatamaintaintermsandcond
+    type: html5
+    path: app/datamaintain_termsandcond
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: pricelistappdatamaintainpricingparameters
+    type: html5
+    path: app/datamaintain_pricingparameters
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: pricelistappdatamaintaintilecontent
+    type: html5
+    path: app/datamaintain_tilecontent
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: pricelistappdatamaintaincontactinfo
+    type: html5
+    path: app/datamaintain_contactinfo
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: pricelistapppricelistmaintain
+    type: html5
+    path: app/pricelistmaintain
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: pricelistapppricelistdisplay
+    type: html5
+    path: app/pricelistdisplay
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: priceListSystem-destinations
+    type: com.sap.application.content
+    requires:
+      - name: priceListSystem-auth
+        parameters:
+          service-key:
+            name: priceListSystem-auth-key
+      - name: priceListSystem-html5-repo-host
+        parameters:
+          service-key:
+            name: priceListSystem-html5-repo-host-key
+      - name: srv-api
+      - name: priceListSystem-destination
+        parameters:
+          content-target: true
+    parameters:
+      content:
+        instance:
+          destinations:
+            - Name: priceListSystem-html5-repository
+              ServiceInstanceName: priceListSystem-html5-repo-host
+              ServiceKeyName: priceListSystem-html5-repo-host-key
+              sap.cloud.service: priceListSystem.service
+            - Authentication: OAuth2UserTokenExchange
+              Name: priceListSystem-auth
+              ServiceInstanceName: priceListSystem-auth
+              ServiceKeyName: priceListSystem-auth-key
+              sap.cloud.service: priceListSystem.service
+            - Name: priceListSystem-app-srv
+              URL: ~{srv-api/srv-url}
+              Authentication: OAuth2UserTokenExchange
+              TokenServiceInstanceName: priceListSystem-auth
+              TokenServiceKeyName: priceListSystem-auth-key
+              sap.cloud.service: priceListSystem.service
+          existing_destinations_policy: update
+    build-parameters:
+      no-source: true
+  - name: pricelistappdatamaintainacctassign
+    type: html5
+    path: app/datamaintain_acctassign
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+
+resources:
   - name: priceListSystem-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      path: ./xs-security.json
+      service: xsuaa
+      service-plan: application
+      config:
+        xsappname: priceListSystem-${org}-${space}
+        tenant-mode: dedicated
+        oauth2-configuration:
+          redirect-uris:
+            - https://*.{default-domain}/login/*
+            - https://*.applicationstudio.cloud.sap/**
+    requires:
+      - name: app-api
   - name: priceListSystem-db
+    type: com.sap.xs.hdi-container
+    parameters:
+      service: hana
+      service-plan: hdi-shared
   - name: priceListSystem-destination
-  - name: ups-sapecc
-  provides:
-  - name: srv-api
-    properties:
-      srv-url: ${default-url}
-  parameters:
-    buildpack: nodejs_buildpack
-    instances: 1
-    memory: 512M
-  build-parameters:
-    builder: npm-ci
-- name: priceListSystem-db-deployer
-  type: hdb
-  path: gen/db
-  requires:
-  - name: priceListSystem-db
-  parameters:
-    buildpack: nodejs_buildpack
-- name: priceListSystem
-  type: approuter.nodejs
-  path: app/router
-  requires:
-  - name: priceListSystem-destination
-  - name: priceListSystem-html5-runtime
-  - name: priceListSystem-auth
-  provides:
-  - name: app-api
-    properties:
-      app-protocol: ${protocol}
-      app-uri: ${default-uri}
-  parameters:
-    disk-quota: 1G
-    keep-existing-routes: true
-    memory: 512M
-- name: priceListSystem-app-deployer
-  type: com.sap.application.content
-  path: .
-  requires:
-  - name: priceListSystem-auth
-  - name: srv-api
-  - name: priceListSystem-html5-repo-host
+    type: org.cloudfoundry.managed-service
     parameters:
       config:
         HTML5Runtime_enabled: true
-      content-target: true
-  - name: priceListSystem-destination
-  parameters:
-    config:
-      sap.cloud.service: priceListSystem.service
-  build-parameters:
-    build-result: resources
-    requires:
-    - artifacts:
-      - pricelistappmain.zip
-      name: pricelistappmain
-      target-path: resources/
-    - artifacts:
-      - pricelistappdatamaintain.zip
-      name: pricelistappdatamaintain
-      target-path: resources/
-    - artifacts:
-      - pricelistappdatamaintaintradescenarios.zip
-      name: pricelistappdatamaintaintradescenarios
-      target-path: resources/
-    - artifacts:
-      - pricelistappdatamaintainitemstructure.zip
-      name: pricelistappdatamaintainitemstructure
-      target-path: resources/
-    - artifacts:
-      - pricelistappdatamaintainpartnumbers.zip
-      name: pricelistappdatamaintainpartnumbers
-      target-path: resources/
-    - artifacts:
-      - pricelistappdatamaintaintermsandcond.zip
-      name: pricelistappdatamaintaintermsandcond
-      target-path: resources/
-    - artifacts:
-      - pricelistappdatamaintainpricingparameters.zip
-      name: pricelistappdatamaintainpricingparameters
-      target-path: resources/
-    - artifacts:
-      - pricelistappdatamaintaintilecontent.zip
-      name: pricelistappdatamaintaintilecontent
-      target-path: resources/
-    - artifacts:
-      - pricelistappdatamaintaincontactinfo.zip
-      name: pricelistappdatamaintaincontactinfo
-      target-path: resources/
-    - artifacts:
-      - pricelistapppricelistmaintain.zip
-      name: pricelistapppricelistmaintain
-      target-path: resources/
-    - artifacts:
-      - pricelistapppricelistdisplay.zip
-      name: pricelistapppricelistdisplay
-      target-path: resources/
-    - artifacts:
-      - pricelistappdatamaintainacctassign.zip
-      name: pricelistappdatamaintainacctassign
-      target-path: resources/
-- name: pricelistappmain
-  type: html5
-  path: app/main
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-- name: pricelistappdatamaintain
-  type: html5
-  path: app/datamaintain
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-- name: pricelistappdatamaintaintradescenarios
-  type: html5
-  path: app/datamaintain_tradescenarios
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-- name: pricelistappdatamaintainitemstructure
-  type: html5
-  path: app/datamaintain_itemstructure
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-- name: pricelistappdatamaintainpartnumbers
-  type: html5
-  path: app/datamaintain_partnumbers
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-- name: pricelistappdatamaintaintermsandcond
-  type: html5
-  path: app/datamaintain_termsandcond
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-- name: pricelistappdatamaintainpricingparameters
-  type: html5
-  path: app/datamaintain_pricingparameters
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-- name: pricelistappdatamaintaintilecontent
-  type: html5
-  path: app/datamaintain_tilecontent
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-- name: pricelistappdatamaintaincontactinfo
-  type: html5
-  path: app/datamaintain_contactinfo
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-- name: pricelistapppricelistmaintain
-  type: html5
-  path: app/pricelistmaintain
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-- name: pricelistapppricelistdisplay
-  type: html5
-  path: app/pricelistdisplay
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-- name: priceListSystem-destinations
-  type: com.sap.application.content
-  requires:
-  - name: priceListSystem-auth
-    parameters:
-      service-key:
-        name: priceListSystem-auth-key
+        init_data:
+          instance:
+            destinations:
+              - Authentication: NoAuthentication
+                Name: ui5
+                ProxyType: Internet
+                Type: HTTP
+                URL: https://ui5.sap.com
+            existing_destinations_policy: update
+      service: destination
+      service-plan: lite
   - name: priceListSystem-html5-repo-host
+    type: org.cloudfoundry.managed-service
     parameters:
-      service-key:
-        name: priceListSystem-html5-repo-host-key
-  - name: srv-api
-  - name: priceListSystem-destination
+      service: html5-apps-repo
+      service-plan: app-host
+  - name: priceListSystem-html5-runtime
+    type: org.cloudfoundry.managed-service
     parameters:
-      content-target: true
-  parameters:
-    content:
-      instance:
-        destinations:
-        - Name: priceListSystem-html5-repository
-          ServiceInstanceName: priceListSystem-html5-repo-host
-          ServiceKeyName: priceListSystem-html5-repo-host-key
-          sap.cloud.service: priceListSystem.service
-        - Authentication: OAuth2UserTokenExchange
-          Name: priceListSystem-auth
-          ServiceInstanceName: priceListSystem-auth
-          ServiceKeyName: priceListSystem-auth-key
-          sap.cloud.service: priceListSystem.service
-        existing_destinations_policy: update
-  build-parameters:
-    no-source: true
-- name: pricelistappdatamaintainacctassign
-  type: html5
-  path: app/datamaintain_acctassign
-  build-parameters:
-    build-result: dist
-    builder: custom
-    commands:
-    - npm install
-    - npm run build:cf
-    supported-platforms: []
-resources:
-- name: priceListSystem-auth
-  type: org.cloudfoundry.managed-service
-  parameters:
-    path: ./xs-security.json
-    service: xsuaa
-    service-plan: application
-- name: priceListSystem-db
-  type: com.sap.xs.hdi-container
-  parameters:
-    service: hana
-    service-plan: hdi-shared
-- name: priceListSystem-destination
-  type: org.cloudfoundry.managed-service
-  parameters:
-    config:
-      HTML5Runtime_enabled: true
-      init_data:
-        instance:
-          destinations:
-          - Authentication: NoAuthentication
-            Name: ui5
-            ProxyType: Internet
-            Type: HTTP
-            URL: https://ui5.sap.com
-          existing_destinations_policy: update
-    service: destination
-    service-plan: lite
-- name: priceListSystem-html5-repo-host
-  type: org.cloudfoundry.managed-service
-  parameters:
-    service: html5-apps-repo
-    service-plan: app-host
-- name: priceListSystem-html5-runtime
-  type: org.cloudfoundry.managed-service
-  parameters:
-    service: html5-apps-repo
-    service-plan: app-runtime
-- name: ups-sapecc
-  type: org.cloudfoundry.existing-service
+      service: html5-apps-repo
+      service-plan: app-runtime
+  - name: ups-sapecc
+    type: org.cloudfoundry.existing-service
 parameters:
   deploy_mode: html5-repo
   enable-parallel-deployments: true
 build-parameters:
   before-all:
-  - builder: custom
-    commands:
-    - npm ci
-    - npx cds build --production
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production

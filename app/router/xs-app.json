@@ -3,7 +3,7 @@
     {
       "source": "^/odata/(.*)$",
       "target": "/odata/$1",
-      "destination": "srv-api",
+      "destination": "priceListSystem-app-srv",
       "authenticationType": "xsuaa",
       "csrfProtection": false
     },

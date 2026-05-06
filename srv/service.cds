@@ -161,6 +161,7 @@ service PriceListService {
 
     entity UserTypeValues       as projection on my.UserTypeValues;
     entity TermsDataLevelValues as projection on my.TermsDataLevelValues;
+    entity StatusValues         as projection on my.StatusValues;
 
     //Pricelist Maintenance Application
     @odata.draft.enabled
@@ -536,6 +537,12 @@ service PriceListService {
     entity CustomerGroup1VH      as projection on my.ErpCustomerGroup1;
 
     @cds.persistence.skip
+    entity CustPricelistVH      as projection on ExternalCustomers;
+
+    @cds.persistence.skip
+    entity StatusVH             as projection on StatusValues;    
     entity PriceStatusVH      as projection on my.ErpPriceStatus;
                                                    
 }
+
+

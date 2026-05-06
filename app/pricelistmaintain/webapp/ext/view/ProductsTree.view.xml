@@ -116,7 +116,7 @@
                     <t:Column id="PriceColID" width="20rem">
                         <m:Label id="PriceLabel" text="Price"/>
                         <t:template>
-                            <m:Text id="PriceText" text="{path:'tree>Price', targetType:'any'}"/>
+                            <m:Text id="PriceText" text="{= ${tree>Price} === 0 || ${tree>Price} === '0' ? '' : ${tree>Price} }" />
                         </t:template>
                     </t:Column>
 
