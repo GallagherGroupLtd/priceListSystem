@@ -31,8 +31,13 @@ sap.ui.define([
 			},
 
 			onPageReady: function () {
+				
 				this._productTreeSection = sap.ui.getCore().byId('pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--ProductTreeFragment_ID');
+				this._productTreeTable = sap.ui.getCore().byId('pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--ProductTreeFragment_ID--ProductsTreeTable');
+				
+				this._productTreeTable.collapseAll();
 				this.productsTreeRefresh();
+				
 			}
 		},
 
