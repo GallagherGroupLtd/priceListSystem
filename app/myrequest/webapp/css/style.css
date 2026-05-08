@@ -1,0 +1,28 @@
+
+
+/* Subject field wider */
+[id*="ReqSubject"] {
+    width: 40rem !important;
+    max-width: 100% !important;
+}
+
+[id*="ReqSubject"] .sapMInputBase,
+[id*="ReqSubject"] .sapMInputBaseContentWrapper,
+[id*="ReqSubject-inner"] {
+    width: 40rem !important;
+    max-width: 100% !important;
+}
+
+/* Request Details wider/taller */
+[id*="RequestDetails"] {
+    width: 70rem !important;
+    max-width: 100% !important;
+}
+
+[id*="RequestDetails"] .sapMTextArea,
+[id*="RequestDetails"] .sapMInputBaseContentWrapper,
+[id*="RequestDetails-inner"] {
+    width: 70rem !important;
+    max-width: 100% !important;
+    min-height: 12rem !important;
+}

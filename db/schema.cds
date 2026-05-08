@@ -209,3 +209,13 @@ entity PricelistItemData : managed, cuid {
     SubCategory4TermsandCond  : String @title : 'Sucategory 4 Terms and Conditions';
     SubCategory5TermsandCond  : String @title : 'Sucategory 5 Terms and Conditions';
 }
+
+entity MyRequest {
+  key ID            : UUID;
+  AccountName       : String(100);
+  ReqDate           : Date;
+  ReqTime           : Time;
+  ReqStatus         : String(20);
+  ReqSubject        : String(200);
+  RequestDetails    : String(1000);
+}

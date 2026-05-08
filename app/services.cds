@@ -22,3 +22,5 @@ using from './pricelistmaintain/annotations';
 using from './pricelistdisplay/annotations';
 
 using from './datamaintain_acctassign/annotations';
+
+using from './myrequest/annotations';

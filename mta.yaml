@@ -110,6 +110,10 @@ modules:
       - pricelistappdatamaintainacctassign.zip
       name: pricelistappdatamaintainacctassign
       target-path: resources/
+    - artifacts:
+      - pricelistappmyrequestmyrequest.zip
+      name: pricelistappmyrequestmyrequest
+      target-path: resources/
 - name: pricelistappmain
   type: html5
   path: app/main
@@ -261,6 +265,16 @@ modules:
     - npm install
     - npm run build:cf
     supported-platforms: []
+- name: pricelistappmyrequestmyrequest
+  type: html5
+  path: app/myrequest
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    supported-platforms: []
 resources:
 - name: priceListSystem-auth
   type: org.cloudfoundry.managed-service
@@ -286,9 +300,18 @@ resources:
             ProxyType: Internet
             Type: HTTP
             URL: https://ui5.sap.com
+          - Authentication: NoAuthentication
+            HTML5.DynamicDestination: true
+            HTML5.ForwardAuthToken: true
+            Name: srv-api
+            ProxyType: Internet
+            Type: HTTP
+            URL: ~{srv-api/srv-url}
           existing_destinations_policy: update
     service: destination
     service-plan: lite
+  requires:
+  - name: srv-api
 - name: priceListSystem-html5-repo-host
   type: org.cloudfoundry.managed-service
   parameters:
