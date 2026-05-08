@@ -175,6 +175,15 @@
           }
         }
       }
+    },
+    "extends": {
+      "extensions": {
+        "sap.ui.controllerExtensions": {
+          "sap.fe.templates.ObjectPage.ObjectPageController": {
+            "controllerName": "pricelistapp.pricelistmaintain.ext.controller.PricelistMaintainObjectPageExt"
+          }
+        }
+      }
     }
   },
   "sap.fiori": {
