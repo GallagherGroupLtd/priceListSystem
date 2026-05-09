@@ -22,12 +22,6 @@ sap.ui.define([
 			onInit: function () {
 				// you can access the Fiori elements extensionAPI via this.base.getExtensionAPI
 				var oModel = this.base.getExtensionAPI().getModel();
-
-				// this.getView().setModel(
-                // 	new JSONModel({ nodes: [] }),
-                // 	"tree"
-            	// );
-
 			},
 
 			onPageReady: function () {
