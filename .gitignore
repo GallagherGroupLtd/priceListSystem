@@ -60,3 +60,5 @@ Makefile_*
 
 # Ignore any zip files anywhere
 *.zip
+# auto generated wildcard
+db/.env

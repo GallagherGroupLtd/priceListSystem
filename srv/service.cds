@@ -449,4 +449,12 @@ service PriceListService {
 
     @cds.persistence.skip
     entity CustPricelistVH      as projection on ExternalCustomers;
+
+    @odata.draft.enabled
+    entity MyRequest
+        as projection on my.MyRequest
+        actions {
+            action SubmitRequest();
+        };
+
 }

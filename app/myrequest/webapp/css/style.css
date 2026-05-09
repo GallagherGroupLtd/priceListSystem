@@ -1,0 +1,29 @@
+/* =========================================
+   SUBJECT FIELD
+   ========================================= */
+
+[id*="FormElement::DataField::ReqSubject"] {
+    width: 56rem;
+}
+
+[id$="ReqSubject::Field-edit"],
+[id$="ReqSubject::Field-edit-content"] {
+    width: 50rem;
+}
+
+
+/* =========================================
+   REQUEST DETAILS FIELD
+   ========================================= */
+[id*="RequestDetails"] {
+    width: 70rem !important;
+    max-width: 100% !important;
+}
+
+[id*="RequestDetails"] .sapMTextArea,
+[id*="RequestDetails"] .sapMInputBaseContentWrapper,
+[id*="RequestDetails-inner"] {
+    width: 70rem !important;
+    max-width: 100% !important;
+    min-height: 12rem !important;
+}
