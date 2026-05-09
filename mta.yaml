@@ -110,6 +110,10 @@ modules:
             - pricelistappdatamaintainacctassign.zip
           name: pricelistappdatamaintainacctassign
           target-path: resources/
+        - artifacts:
+          - pricelistappmyrequestmyrequest.zip
+          name: pricelistappmyrequestmyrequest
+          target-path: resources/          
   - name: pricelistappmain
     type: html5
     path: app/main
@@ -303,7 +307,16 @@ modules:
         - npm run build
       supported-platforms:
         []
-
+  - name: pricelistappmyrequestmyrequest
+    type: html5
+    path: app/myrequest
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+      - npm install
+      - npm run build:cf
+      supported-platforms: []
 resources:
   - name: priceListSystem-auth
     type: org.cloudfoundry.managed-service
