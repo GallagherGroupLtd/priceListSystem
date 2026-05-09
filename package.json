@@ -38,7 +38,8 @@
     "watch-datamaintain_contactinfo": "cds watch --open pricelistapp.datamaintaincontactinfo/index.html?sap-ui-xx-viewCache=false --livereload false",
     "watch-pricelistmaintain": "cds watch --open pricelistapp.pricelistmaintain/index.html?sap-ui-xx-viewCache=false --livereload false",
     "watch-pricelistdisplay": "cds watch --open pricelistapp.pricelistdisplay/index.html?sap-ui-xx-viewCache=false --livereload false",
-    "watch-datamaintain_acctassign": "cds watch --open pricelistapp.datamaintainacctassign/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "watch-datamaintain_acctassign": "cds watch --open pricelistapp.datamaintainacctassign/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-myrequest": "cds watch --open pricelistapp.myrequest.myrequest/index.html?sap-ui-xx-viewCache=false --livereload false"
   },
   "private": true,
   "cds": {
@@ -96,6 +97,7 @@
     "app/datamaintain_contactinfo",
     "app/pricelistmaintain",
     "app/pricelistdisplay",
-    "app/datamaintain_acctassign"
+    "app/datamaintain_acctassign",
+    "app/myrequest"
   ]
 }

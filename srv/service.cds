@@ -543,6 +543,13 @@ service PriceListService {
     entity StatusVH             as projection on StatusValues;    
     entity PriceStatusVH      as projection on my.ErpPriceStatus;
                                                    
+    @odata.draft.enabled
+    entity MyRequest
+        as projection on my.MyRequest
+        actions {
+            action SubmitRequest();
+        };
+
 }
 
 
