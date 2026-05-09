@@ -1,19 +1,22 @@
+see again wrong:
 
+/* =========================================
+   SUBJECT FIELD
+   ========================================= */
 
-/* Subject field wider */
-[id*="ReqSubject"] {
-    width: 40rem !important;
-    max-width: 100% !important;
+[id*="FormElement::DataField::ReqSubject"] {
+    width: 56rem;
 }
 
-[id*="ReqSubject"] .sapMInputBase,
-[id*="ReqSubject"] .sapMInputBaseContentWrapper,
-[id*="ReqSubject-inner"] {
-    width: 40rem !important;
-    max-width: 100% !important;
+[id$="ReqSubject::Field-edit"],
+[id$="ReqSubject::Field-edit-content"] {
+    width: 50rem;
 }
 
-/* Request Details wider/taller */
+
+/* =========================================
+   REQUEST DETAILS FIELD
+   ========================================= */
 [id*="RequestDetails"] {
     width: 70rem !important;
     max-width: 100% !important;
