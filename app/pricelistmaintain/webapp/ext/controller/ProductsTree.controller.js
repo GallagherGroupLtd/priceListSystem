@@ -126,7 +126,7 @@ sap.ui.define([
             //Refresh
             this._itemCtxById = new Map();
             this._updateCreateButtonState();
-            this.onRefresh();
+            // this.onRefresh();
 
             //Custom Section does not reload on click of 'Edit' button - react to binding context change instead.
             this.getView().addEventDelegate({
