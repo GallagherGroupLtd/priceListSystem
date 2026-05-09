@@ -3,6 +3,8 @@ _out
 *.db
 *.sqlite
 connection.properties
+default-*.json
+.cdsrc-private.json
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -20,7 +22,7 @@ bin/
 # --- Environment & Secrets ---
 # NEVER commit your credentials or local secrets
 .env
-
+default-env.json
 default-services.json
 *cds-secrets.json
 
