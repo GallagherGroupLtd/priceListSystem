@@ -210,12 +210,33 @@ entity PricelistItemData : managed, cuid {
     SubCategory5TermsandCond  : String @title : 'Sucategory 5 Terms and Conditions';
 }
 
+//entity MyRequest {
+//  key ID            : UUID;
+//  AccountName       : String(100);
+//  ReqDate           : Date;
+//  ReqTime           : Time;
+//  ReqStatus         : String(20);
+//  ReqSubject        : String(200);
+//  RequestDetails    : String(1000);
+//}
+
 entity MyRequest {
   key ID            : UUID;
-  AccountName       : String(100);
-  ReqDate           : Date;
+
+  AccountName       : String(100);   // UI label = Bucket
+  ReqDate           : Date;          // UI label = Start Date
   ReqTime           : Time;
-  ReqStatus         : String(20);
+  ReqStatus         : String(20);    // UI label = Progress
+
   ReqSubject        : String(200);
-  RequestDetails    : String(1000);
+  RequestDetails    : String(1000);  // UI label = Notes / Request Details
+
+  ReqPriority       : String(20);
+  ReqDueDate        : Date;
+  ReqRepeat         : String(50);
+
+  ReqInfoProvided       : Boolean default false;
+  ReqCatalogUpdated     : Boolean default false;
+  ReqMasterPLUpdated    : Boolean default false;
+  ReqSecCommerceChecked : Boolean default false;
 }
