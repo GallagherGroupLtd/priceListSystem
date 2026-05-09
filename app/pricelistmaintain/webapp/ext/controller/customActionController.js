@@ -24,38 +24,19 @@ sap.ui.define([
                 "ID", "IsActiveEntity", "HasActiveEntity",
                 "DraftAdministrativeData", "DraftAdministrativeData_DraftUUID", "HasDraftEntity"
             ];
-            // function buildCleanPayload(obj) {
-            //     if (!obj || typeof obj !== "object") return obj;
-            //     const clean = {};
-            //     for (const [key, value] of Object.entries(obj)) {
-            //         if (!excludeKeys.includes(key)) {
-            //             if (value && typeof value === "object" && !Array.isArray(value)) {
-            //                 clean[key] = buildCleanPayload(value); // recurse for nested objects
-            //             } else {
-            //                 clean[key] = value;
-            //             }
-            //         }
-            //     }
-            //     return clean;
-            // }
 
-            // New me !@#$%
             function buildCleanPayload(obj) {
                 if (!obj || typeof obj !== "object") return obj;
 
-                // ถ้าเป็น Array (เช่น รายการ items หรือ children) ให้จัดการทุกตัวในนั้น
                 if (Array.isArray(obj)) {
                     return obj.map(item => buildCleanPayload(item));
                 }
 
                 const clean = {};
                 for (const [key, value] of Object.entries(obj)) {
-                    // 1. ข้าม System Keys
                     if (!excludeKeys.includes(key) && !key.startsWith("UI")) {
 
-                        // 2. ถ้าเจอ Object หรือ Array ให้ทำ Recursive (เรียกตัวเองซ้ำ)
                         if (value && typeof value === "object") {
-                            // ข้ามการ Copy Metadata ของ OData
                             if (key.startsWith("@")) continue;
 
                             clean[key] = buildCleanPayload(value);
@@ -66,7 +47,6 @@ sap.ui.define([
                 }
                 return clean;
             }
-            // New me !@#$%
 
             // Fetch full header record from backend (not just annotated fields)
             const sPath = oContext.getPath(); // e.g. "/PricelistData('123')"
@@ -105,29 +85,21 @@ sap.ui.define([
             this.getModel().refresh();
 
 
-            // New Me !@#$%
             try {
-                // 1. แสดง Busy Indicator (หมุนๆ) ให้ User รู้ว่ากำลังทำงาน
                 sap.ui.core.BusyIndicator.show(0);
 
-                // 2. บันทึก Batch
                 await oModel.submitBatch("PricelistData");
-
-                // 3. รอให้ Create สำเร็จและได้ Context ที่สมบูรณ์
                 await oNewCtx.created();
 
                 sap.m.MessageToast.show("Duplicated successfully!");
 
-                // 4. *** วิธีการ Navigate (ข้อ 2) ***
                 if (this.routing) {
-                    // สำหรับ Fiori Elements ExtensionAPI
                     this.routing.navigate(oNewCtx);
                 } else {
-                    // สำหรับกรณีทั่วไป ใช้ Router ปกติ
                     const oRouter = sap.ui.core.UIComponent.getRouterFor(this);
-                    oRouter.navTo("PricelistDataObjectPage", { // ชื่อ Route ต้องเช็คใน manifest.json
+                    oRouter.navTo("PricelistDataObjectPage", {
                         key: oNewCtx.getProperty("ID"),
-                        IsActiveEntity: false // ถ้าเป็น Draft ให้ใส่ false
+                        IsActiveEntity: false
                     });
                 }
 
@@ -136,8 +108,6 @@ sap.ui.define([
             } finally {
                 sap.ui.core.BusyIndicator.hide();
             }
-            // New Me !@#$%
-
 
         }
     };
