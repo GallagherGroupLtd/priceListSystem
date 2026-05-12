@@ -46,7 +46,7 @@ sap.ui.define([
         },
 
         onNavigationAppPress: function (oEvent) {
-            /* // Get the clicked tile and its target intent.
+            // Get the clicked tile and its target intent.
             const oTile = oEvent.getSource();
             const sTargetIntent = oTile.data("target") || "";
 
@@ -60,16 +60,17 @@ sap.ui.define([
                 const sBaseUrl = window.location.origin;
                 switch (sTargetIntent) {
                     case "Pricelist-display":
-                        window.location.href = "/pricelistapppricelistdisplay/index.html";
+                        window.location.href = "/pricelistapp.pricelistdisplay/index.html";
                         break;
+                    case "PriceMaintain-manage":
                     case "PricelistMaintain-manage":
-                        window.location.href = "/pricelistapppricelistmaintain/index.html";
+                        window.location.href = "/pricelistapp.pricelistmaintain/index.html";
                         break;
                     case "DataMaintain-manage":
-                        window.location.href = "/pricelistappdatamaintain/index.html";
+                        window.location.href = "/pricelistapp.datamaintain/index.html";
                         break;
                     case "AppLog-display":
-                        window.location.href = "/pricelistappapplicationlog/index.html";
+                        window.location.href = "/pricelistapp.applicationlog/index.html";
                         break;
                     default:
                         MessageToast.show("No navigation defined for: " + sTargetIntent);
@@ -92,57 +93,57 @@ sap.ui.define([
                 oCrossAppNavigator.toExternal(oTarget);
             }).catch(function (oError) {
                 MessageToast.show("Navigation failed: " + oError.message);
-            }); */
-
-            // Exact match for your HANA DB strings
-            // Get the clicked tile and its target intent.
-            const oTile = oEvent.getSource();
-            const sTargetIntent = oTile.data("target") || "";
-
-            let sRouteName = "";
-
-            switch (sTargetIntent) {
-                case "PriceMaintain-display":
-                    sRouteName = "AppURL_PriceDisplay";
-                    break;
-                case "PriceMaintain-manage":
-                    sRouteName = "AppURL_PriceMaintain";
-                    break;
-                case "DataMaintain-manage":
-                    sRouteName = "AppURL_DataMaintain";
-                    break;
-                /* case "AppLog-display":
-                    window.location.href = "/pricelistappapplicationlog/index.html";
-                    break; */
-            }
-
-            //Navigate to Link
-            debugger;
-            let oModel = this.getView().getModel();
-            let sUrl = oModel.sServiceUrl;
-            sUrl = sUrl + "User";
-
-            $.ajax({
-                url: sUrl,
-                type: 'GET',
-                async: false,
-                contentType: 'application/json',
-                success: function (data) {
-                    let response1 = data.value;
-                    let targetUrl = response1[0][sRouteName];
-
-                    if (targetUrl) {
-                        URLHelper.redirect(targetUrl, false);
-                    } else {
-                        MessageBox.error('No redirect URL found. Please contact technical support.');
-                    }
-
-                }.bind(this),
-                error: function (dataError) {
-                    this.getView().setBusy(false);
-                    MessageBox.error('No redirect URL found. Please contact technical support.');
-                }.bind(this)
             });
+
+            // // Exact match for your HANA DB strings
+            // // Get the clicked tile and its target intent.
+            // const oTile = oEvent.getSource();
+            // const sTargetIntent = oTile.data("target") || "";
+
+            // let sRouteName = "";
+
+            // switch (sTargetIntent) {
+            //     case "PriceMaintain-display":
+            //         sRouteName = "AppURL_PriceDisplay";
+            //         break;
+            //     case "PriceMaintain-manage":
+            //         sRouteName = "AppURL_PriceMaintain";
+            //         break;
+            //     case "DataMaintain-manage":
+            //         sRouteName = "AppURL_DataMaintain";
+            //         break;
+            //     /* case "AppLog-display":
+            //         window.location.href = "/pricelistappapplicationlog/index.html";
+            //         break; */
+            // }
+
+            // //Navigate to Link
+            // debugger;
+            // let oModel = this.getView().getModel();
+            // let sUrl = oModel.sServiceUrl;
+            // sUrl = sUrl + "User";
+
+            // $.ajax({
+            //     url: sUrl,
+            //     type: 'GET',
+            //     async: false,
+            //     contentType: 'application/json',
+            //     success: function (data) {
+            //         let response1 = data.value;
+            //         let targetUrl = response1[0][sRouteName];
+
+            //         if (targetUrl) {
+            //             URLHelper.redirect(targetUrl, false);
+            //         } else {
+            //             MessageBox.error('No redirect URL found. Please contact technical support.');
+            //         }
+
+            //     }.bind(this),
+            //     error: function (dataError) {
+            //         this.getView().setBusy(false);
+            //         MessageBox.error('No redirect URL found. Please contact technical support.');
+            //     }.bind(this)
+            // });
         }
     });
 });
