@@ -550,6 +550,16 @@ service PriceListService {
             action SubmitRequest();
         };
 
+    @cds.persistence.skip
+    entity MyRequestPriorityVH {
+        key Priority : String(20);
+    };
+
+    @cds.persistence.skip
+    entity MyRequestRepeatVH {
+        key Repeat : String(30);
+    };
+
 }
 
 

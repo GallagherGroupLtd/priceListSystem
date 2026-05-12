@@ -19,17 +19,27 @@ annotate service.MyRequest with @(
         {
             $Type : 'UI.DataField',
             Value : ReqStatus,
-            Label : 'Status'
+            Label : 'Progress'
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : ReqPriority,
+            Label : 'Priority'
         },
         {
             $Type : 'UI.DataField',
             Value : ReqDate,
-            Label : 'Date'
+            Label : 'Start Date'
         },
         {
             $Type : 'UI.DataField',
             Value : ReqTime,
             Label : 'Time'
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : ReqDueDate,
+            Label : 'Due Date'
         }
     ],
 
@@ -37,13 +47,23 @@ annotate service.MyRequest with @(
         Data : [
             {
                 $Type : 'UI.DataField',
-                Value : ReqAccountName,
-                Label : 'Account Name'
+                Value : AccountName,
+                Label : 'Bucket'
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ReqStatus,
+                Label : 'Progress'
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ReqPriority,
+                Label : 'Priority'
             },
             {
                 $Type : 'UI.DataField',
                 Value : ReqDate,
-                Label : 'Date'
+                Label : 'Start Date'
             },
             {
                 $Type : 'UI.DataField',
@@ -52,8 +72,13 @@ annotate service.MyRequest with @(
             },
             {
                 $Type : 'UI.DataField',
-                Value : ReqStatus,
-                Label : 'Status'
+                Value : ReqDueDate,
+                Label : 'Due Date'
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ReqRepeat,
+                Label : 'Repeat'
             }
         ]
     },
@@ -73,7 +98,32 @@ annotate service.MyRequest with @(
             {
                 $Type : 'UI.DataField',
                 Value : RequestDetails,
-                Label : 'Request Details'
+                Label : 'Notes'
+            }
+        ]
+    },
+
+    UI.FieldGroup #ChecklistGroup : {
+        Data : [
+            {
+                $Type : 'UI.DataField',
+                Value : ReqInfoProvided,
+                Label : 'Requestor to Provide Info - Part #s, Pricing, Regions, Section on PL, eCommerce?'
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ReqCatalogUpdated,
+                Label : 'PPR Team Adds Part/s to Relevant Catalogs'
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ReqMasterPLUpdated,
+                Label : 'PPR Team Updates Master PL'
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ReqSecCommerceChecked,
+                Label : 'Check or Request Tech Admin to add Sec Commerce Flag'
             }
         ]
     },
@@ -91,8 +141,13 @@ annotate service.MyRequest with @(
         },
         {
             $Type  : 'UI.ReferenceFacet',
-            Label  : 'Request Details',
+            Label  : 'Notes',
             Target : '@UI.FieldGroup#DetailsGroup'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            Label  : 'Checklist',
+            Target : '@UI.FieldGroup#ChecklistGroup'
         }
     ]
 );
@@ -100,15 +155,43 @@ annotate service.MyRequest with @(
 annotate service.MyRequest with {
 
     AccountName @Common.FieldControl : #ReadOnly;
-    ReqDate        @Common.FieldControl : #ReadOnly;
-    ReqTime        @Common.FieldControl : #ReadOnly;
-    ReqStatus      @Common.FieldControl : #ReadOnly;
+    ReqDate     @Common.FieldControl : #ReadOnly;
+    ReqTime     @Common.FieldControl : #ReadOnly;
+    ReqStatus   @Common.FieldControl : #ReadOnly;
 
-    ReqSubject     @Common.FieldControl : #Mandatory;
+    ReqSubject @Common.FieldControl : #Mandatory;
 
     RequestDetails @(
         UI.MultiLineText,
         Common.FieldControl : #Mandatory
+    );
+
+    ReqPriority @(
+    Common.ValueListWithFixedValues : true,
+    Common.ValueList : {
+        CollectionPath : 'MyRequestPriorityVH',
+        Parameters : [
+            {
+                $Type : 'Common.ValueListParameterInOut',
+                LocalDataProperty : ReqPriority,
+                ValueListProperty : 'Priority'
+            }
+            ]
+        }
+    );
+
+    ReqRepeat @(
+    Common.ValueListWithFixedValues : true,
+    Common.ValueList : {
+        CollectionPath : 'MyRequestRepeatVH',
+        Parameters : [
+            {
+                $Type : 'Common.ValueListParameterInOut',
+                LocalDataProperty : ReqRepeat,
+                ValueListProperty : 'Repeat'
+            }
+            ]
+        }
     );
 
 };

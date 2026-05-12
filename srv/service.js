@@ -317,7 +317,7 @@ function buildPdfBuffer({ headerCriteria, headerTerms, detailTerms }) {
 module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
     const { User, TradeScenarios, ItemStructure, PartNumbers, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, PricingCondType,
-        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem } = this.entities;
+        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest } = this.entities;
     
     //Selection of Materials
     async function resolveItems(filters, db, extdb) {
@@ -1142,4 +1142,76 @@ module.exports = cds.service.impl(async function () {
 
         return;
     });
+
+
+    //My request
+    this.on('READ', 'MyRequestPriorityVH', async () => {
+        return [
+            { Priority: 'Low' },
+            { Priority: 'Medium' },
+            { Priority: 'High' }
+        ];
+    });
+
+    this.on('READ', 'MyRequestRepeatVH', async () => {
+        return [
+            { Repeat: 'Does not repeat' },
+            { Repeat: 'Repeat' }
+        ];
+    });
+
+    function getCurrentNzDateTime() {
+        const now = new Date();
+
+        const date = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Pacific/Auckland',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(now);
+
+        const time = new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Pacific/Auckland',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }).format(now);
+
+        return { date, time };
+    }
+
+    function setMyRequestDefaults(req) {
+        const { date, time } = getCurrentNzDateTime();
+
+        req.data.AccountName = req.data.AccountName || req.user?.id || req.user?.email || 'Unknown User';
+        req.data.ReqDate = req.data.ReqDate || date;
+        req.data.ReqTime = req.data.ReqTime || time;
+        req.data.ReqStatus = req.data.ReqStatus || 'New';
+
+        req.data.ReqPriority = req.data.ReqPriority || 'Low';
+        req.data.ReqRepeat = req.data.ReqRepeat || 'Does not repeat';
+
+        req.data.ReqInfoProvided = req.data.ReqInfoProvided ?? false;
+        req.data.ReqCatalogUpdated = req.data.ReqCatalogUpdated ?? false;
+        req.data.ReqMasterPLUpdated = req.data.ReqMasterPLUpdated ?? false;
+        req.data.ReqSecCommerceChecked = req.data.ReqSecCommerceChecked ?? false;
+    }
+
+    this.before('NEW', 'MyRequest', (req) => {
+        console.log('>>> MyRequest NEW default handler called');
+        setMyRequestDefaults(req);
+    });
+
+    this.before('CREATE', 'MyRequest', (req) => {
+        console.log('>>> MyRequest CREATE default handler called');
+        setMyRequestDefaults(req);
+    });
+
+    this.before('CREATE', 'MyRequest.drafts', (req) => {
+        console.log('>>> MyRequest.drafts CREATE default handler called');
+        setMyRequestDefaults(req);
+    });
+
+
 });
