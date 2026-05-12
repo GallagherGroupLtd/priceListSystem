@@ -111,7 +111,7 @@ modules:
           name: pricelistappdatamaintainacctassign
           target-path: resources/
         - artifacts:
-          - pricelistappmyrequestmyrequest.zip
+            - pricelistappmyrequestmyrequest.zip
           name: pricelistappmyrequestmyrequest
           target-path: resources/          
   - name: pricelistappmain
@@ -314,8 +314,10 @@ modules:
       build-result: dist
       builder: custom
       commands:
-      - npm install
-      - npm run build:cf
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build      
       supported-platforms: []
 resources:
   - name: priceListSystem-auth
