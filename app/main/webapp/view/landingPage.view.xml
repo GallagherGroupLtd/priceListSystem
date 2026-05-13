@@ -30,11 +30,10 @@
   
                                 <VBox id="CardNews_All" class="sapUiTinyMarginTop sapUiSmallMarginBottom newsCardStyle">
                                     <Image id="ImageNews"
-                                        src="./images/TrendsBanenrBG.jpg"
+                                        src="{imgModel>/banner}"
                                         width="100%"
                                         height="10rem"
                                         class="sapUiTinyMarginBottom newsCardImage" />
-
                                     <VBox id="VBox2" class="sapUiTinyMarginBeginEnd sapUiTinyMarginBottom">
                                         <Title id="TitleGallagher" text="Gallagher New Zealand Pricelist" titleStyle="H3" class="sapUiTinyMarginBottom" />
                                         <Text id="TitleAccess" text="Access the official Gallagher New Zealand pricing information." class="sapUiSmallMarginBottom" />
