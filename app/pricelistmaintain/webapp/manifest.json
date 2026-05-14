@@ -167,6 +167,14 @@
                     "TermsandConditions": {
                       "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsandConditions",
                       "title": "Terms and Conditions"
+                    },
+                    "CsGeneralNotes": {
+                      "template": "pricelistapp.pricelistmaintain.ext.fragment.CsGeneralNotes",
+                      "position": {
+                        "placement": "After",
+                        "anchor": "TermsandConditions"
+                      },
+                      "title": "General Notes"
                     }
                   }
                 }
