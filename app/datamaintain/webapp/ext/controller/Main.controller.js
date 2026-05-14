@@ -58,14 +58,13 @@ sap.ui.define(
                 $.ajax({
                     url: sUrl,
                     type: 'GET',
-                    async: false,
                     contentType: 'application/json',
                     success: function (data) {
                         let response1 = data.value;
                         let targetUrl = response1[0][sRouteName];
 
                         if (targetUrl) {
-                            URLHelper.redirect(targetUrl, false);
+                            URLHelper.redirect(targetUrl, true);
                         } else {
                             MessageBox.error('No redirect URL found. Please contact technical support.');
                         }

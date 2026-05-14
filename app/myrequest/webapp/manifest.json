@@ -24,6 +24,19 @@
           "odataVersion": "4.01"
         }
       }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "myrequest-maintain": {
+          "semanticObject": "myrequest",
+          "action": "maintain",
+          "title": "{{myrequest-maintain.flpTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
     }
   },
   "sap.ui": {
@@ -79,8 +92,8 @@
     },
     "resources": {
       "css": [
-        { 
-          "uri": "css/style.css" 
+        {
+          "uri": "css/style.css"
         }
       ]
     },

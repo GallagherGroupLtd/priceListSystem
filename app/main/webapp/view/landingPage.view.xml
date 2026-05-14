@@ -2,7 +2,8 @@
     xmlns:mvc="sap.ui.core.mvc"
     xmlns="sap.m"
     xmlns:core="sap.ui.core" >
-    <Page id= "Page" title="Pricelist System123" enableScrolling="true">
+    <Page id= "Page" enableScrolling="true">
+    <!-- <Page id= "Page" title="Pricelist System123" enableScrolling="true">
         <customHeader>
             <Bar id="headerBar" class="barLogo">
                 <contentMiddle> 
@@ -13,14 +14,14 @@
                         alt="Company Logo"/> 
                 </contentMiddle>    
             </Bar>       
-        </customHeader>        
+        </customHeader>         -->
         <content>          
             <IconTabBar id="idIconTabBar" expanded="true" class="sapUiResponsiveContentPadding IconTabColor">
                 <items>
                     <IconTabFilter id="Home" text="Home" key="All">
                         <VBox class="sapUiSmallMargin" id="VBox"> 
                             <items> 
-                                <Title id="TitleLatestUpd" text="Pricelist Page" titleStyle="H2" class="sapUiTinyMarginBottom" />
+                                <Title id="TitleLatestUpd" text="Gallagher Pricelist" titleStyle="H2" class="sapUiTinyMarginBottom" />
    
                                 <VBox id="VBox1" class="sapUiSmallsapUiTinyMarginBottom sapUiSmallPadding welcomeBox" >
                                     <Text id="IdTextDate" text="{home>/currentDate}" class="sapUiTinyMarginTop sapUiTinyMarginBottom sapUiTinyMarginBegin" />
@@ -29,11 +30,10 @@
   
                                 <VBox id="CardNews_All" class="sapUiTinyMarginTop sapUiSmallMarginBottom newsCardStyle">
                                     <Image id="ImageNews"
-                                        src="./images/TrendsBanenrBG.jpg"
+                                        src="{imgModel>/banner}"
                                         width="100%"
                                         height="10rem"
                                         class="sapUiTinyMarginBottom newsCardImage" />
-
                                     <VBox id="VBox2" class="sapUiTinyMarginBeginEnd sapUiTinyMarginBottom">
                                         <Title id="TitleGallagher" text="Gallagher New Zealand Pricelist" titleStyle="H3" class="sapUiTinyMarginBottom" />
                                         <Text id="TitleAccess" text="Access the official Gallagher New Zealand pricing information." class="sapUiSmallMarginBottom" />

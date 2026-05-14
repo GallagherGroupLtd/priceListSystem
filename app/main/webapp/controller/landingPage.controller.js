@@ -8,7 +8,7 @@ sap.ui.define([
 ], function (Controller, MessageToast, JSONModel, DateFormat, MessageBox, mobileLibrary) {
     "use strict";
     var URLHelper = mobileLibrary.URLHelper;
-    
+
     return Controller.extend("pricelistapp.main.controller.landingPage", {
         onInit: function () {
             //Create a JSON Model to hold display data.
@@ -25,6 +25,9 @@ sap.ui.define([
 
             //Fetch real user name if running in Fiori Launchpad.
             this._setUserName(oViewModel);
+
+            //Set Picture using UI module path to ensure it works in both local and Fiori environments.
+            this._setImagePath();
         },
 
         _setFormattedDate: function (oModel) {
@@ -45,57 +48,65 @@ sap.ui.define([
             }
         },
 
+        _setImagePath: function () {
+            // Use UI5 module path to ensure it works in both local and Fiori environments.
+            const sRootPath = sap.ui.require.toUrl("pricelistapp/main");
+            const oImageModel = new sap.ui.model.json.JSONModel({ banner: sRootPath + "/images/TrendsBanenrBG.jpg" });
+            this.getView().setModel(oImageModel, "imgModel");
+        },
+
         onNavigationAppPress: function (oEvent) {
-            /* // Get the clicked tile and its target intent.
-            const oTile = oEvent.getSource();
-            const sTargetIntent = oTile.data("target") || "";
+            // Get the clicked tile and its target intent.
+            // const oTile = oEvent.getSource();
+            // const sTargetIntent = oTile.data("target") || "";
 
             // Split semantic object and action safely
-            const [sSemanticObject, sAction] = sTargetIntent.split("-");
+            // const [sSemanticObject, sAction] = sTargetIntent.split("-");
 
-            if (!sSemanticObject || !sAction) { return; }
+            // if (!sSemanticObject || !sAction) { return; }
 
-            if (!sap.ushell || !sap.ushell.Container) {
-                // Base URL for local navigation
-                const sBaseUrl = window.location.origin;
-                switch (sTargetIntent) {
-                    case "Pricelist-display":
-                        window.location.href = "/pricelistapppricelistdisplay/index.html";
-                        break;
-                    case "PricelistMaintain-manage":
-                        window.location.href = "/pricelistapppricelistmaintain/index.html";
-                        break;
-                    case "DataMaintain-manage":
-                        window.location.href = "/pricelistappdatamaintain/index.html";
-                        break;
-                    case "AppLog-display":
-                        window.location.href = "/pricelistappapplicationlog/index.html";
-                        break;
-                    default:
-                        MessageToast.show("No navigation defined for: " + sTargetIntent);
-                        break; 
-                }
-                return;
-            }
+            // if (!sap.ushell || !sap.ushell.Container) {
+            //     // Base URL for local navigation
+            //     const sBaseUrl = window.location.origin;
+            //     switch (sTargetIntent) {
+            //         case "Pricelist-display":
+            //             window.location.href = "/pricelistapp.pricelistdisplay/index.html";
+            //             break;
+            //         case "PriceMaintain-manage":
+            //         case "PricelistMaintain-manage":
+            //             window.location.href = "/pricelistapp.pricelistmaintain/index.html";
+            //             break;
+            //         case "DataMaintain-manage":
+            //             window.location.href = "/pricelistapp.datamaintain/index.html";
+            //             break;
+            //         case "AppLog-display":
+            //             window.location.href = "/pricelistapp.applicationlog/index.html";
+            //             break;
+            //         default:
+            //             MessageToast.show("No navigation defined for: " + sTargetIntent);
+            //             break;
+            //     }
+            //     return;
+            // }
 
-            // Get the CrossApplicationNavigation service
-            sap.ushell.Container.getServiceAsync("CrossApplicationNavigation").then(function (oCrossAppNavigator) {
-                // Define the navigation target
-                var oTarget = {
-                    target: {
-                        semanticObject: sSemanticObject,
-                        action: sAction
-                    }
-                };
+            // // Get the CrossApplicationNavigation service
+            // sap.ushell.Container.getServiceAsync("CrossApplicationNavigation").then(function (oCrossAppNavigator) {
+            //     // Define the navigation target
+            //     var oTarget = {
+            //         target: {
+            //             semanticObject: sSemanticObject,
+            //             action: sAction
+            //         }
+            //     };
 
-                // Navigate to the target application
-                oCrossAppNavigator.toExternal(oTarget);
-            }).catch(function (oError) {
-                MessageToast.show("Navigation failed: " + oError.message);
-            }); */
+            //     // Navigate to the target application
+            //     oCrossAppNavigator.toExternal(oTarget);
+            // }).catch(function (oError) {
+            //     MessageToast.show("Navigation failed: " + oError.message);
+            // });
 
-            // Exact match for your HANA DB strings
-            // Get the clicked tile and its target intent.
+            // // Exact match for your HANA DB strings
+            // // Get the clicked tile and its target intent.
             const oTile = oEvent.getSource();
             const sTargetIntent = oTile.data("target") || "";
 
@@ -116,8 +127,8 @@ sap.ui.define([
                     break; */
             }
 
-            //Navigate to Link
-            debugger;
+            // //Navigate to Link
+            // debugger;
             let oModel = this.getView().getModel();
             let sUrl = oModel.sServiceUrl;
             sUrl = sUrl + "User";
@@ -125,14 +136,13 @@ sap.ui.define([
             $.ajax({
                 url: sUrl,
                 type: 'GET',
-                async: false,
                 contentType: 'application/json',
                 success: function (data) {
                     let response1 = data.value;
                     let targetUrl = response1[0][sRouteName];
 
                     if (targetUrl) {
-                        URLHelper.redirect(targetUrl, false);
+                        URLHelper.redirect(targetUrl, true);
                     } else {
                         MessageBox.error('No redirect URL found. Please contact technical support.');
                     }
@@ -143,6 +153,10 @@ sap.ui.define([
                     MessageBox.error('No redirect URL found. Please contact technical support.');
                 }.bind(this)
             });
+        },
+
+        getImageSrc: function () {
+            return sap.ui.require.toUrl("pricelistapp/main/images/TrendsBanenrBG.jpg");
         }
     });
 });
