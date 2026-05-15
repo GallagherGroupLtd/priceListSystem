@@ -25,7 +25,7 @@ An SAP Fiori application.
 
 -   This app has been generated using the SAP Fiori tools - App Generator, as part of the SAP Fiori tools suite.  To launch the generated app, start your CAP project:  and navigate to the following location in your browser:
 
-http://localhost:4004/pricelistapp.myrequest.myrequest/index.html
+http://localhost:4004/pricelistapp.myrequest/index.html
 
 #### Pre-requisites:
 

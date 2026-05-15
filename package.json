@@ -14,6 +14,7 @@
   "devDependencies": {
     "@cap-js/sqlite": "^2",
     "@sap/cds-dk": "^9",
+    "@sap/ux-ui5-tooling": "^1.24.0",
     "cds-plugin-ui5": "^0.13.0",
     "mbt": "^1.2.29",
     "npm-run-all": "4.1.5",
@@ -41,7 +42,7 @@
     "watch-pricelistmaintain": "cds watch --open pricelistapp.pricelistmaintain/index.html?sap-ui-xx-viewCache=false --livereload false",
     "watch-pricelistdisplay": "cds watch --open pricelistapp.pricelistdisplay/index.html?sap-ui-xx-viewCache=false --livereload false",
     "watch-datamaintain_acctassign": "cds watch --open pricelistapp.datamaintainacctassign/index.html?sap-ui-xx-viewCache=false --livereload false",
-    "watch-myrequest": "cds watch --open pricelistapp.myrequest.myrequest/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "watch-myrequest": "cds watch --open pricelistapp.myrequest/index.html?sap-ui-xx-viewCache=false --livereload false"
   },
   "private": true,
   "cds": {
@@ -62,7 +63,7 @@
         },
         "[hanadev]": {
           "kind": "hana"
-        }        
+        }
       },
       "extdb": {
         "kind": "hana",

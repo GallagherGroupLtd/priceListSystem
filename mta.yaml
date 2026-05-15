@@ -111,8 +111,8 @@ modules:
           name: pricelistappdatamaintainacctassign
           target-path: resources/
         - artifacts:
-            - pricelistappmyrequestmyrequest.zip
-          name: pricelistappmyrequestmyrequest
+            - pricelistappmyrequest.zip
+          name: pricelistappmyrequest
           target-path: resources/          
   - name: pricelistappmain
     type: html5
@@ -307,7 +307,7 @@ modules:
         - npm run build
       supported-platforms:
         []
-  - name: pricelistappmyrequestmyrequest
+  - name: pricelistappmyrequest
     type: html5
     path: app/myrequest
     build-parameters:

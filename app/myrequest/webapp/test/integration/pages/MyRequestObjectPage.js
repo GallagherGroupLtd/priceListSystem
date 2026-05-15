@@ -15,7 +15,7 @@ sap.ui.define(['sap/fe/test/ObjectPage', 'sap/ui/test/actions/Press'], function(
 
     return new ObjectPage(
         {
-            appId: 'pricelistapp.myrequest.myrequest',
+            appId: 'pricelistapp.myrequest',
             componentId: 'MyRequestObjectPage',
             contextPath: '/MyRequest'
         },
