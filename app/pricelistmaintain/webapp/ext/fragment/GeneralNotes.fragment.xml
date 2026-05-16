@@ -1,7 +1,7 @@
 <core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m" xmlns:macros="sap.fe.macros">
 	<VBox id="VBox" core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/GeneralNotes'}">
 		<Title id="GeneralNotesTitle" text="General Notes" level="H4" class="sapUiSmallMarginTop sapUiTextBold"/>
-		<TextArea id="GeneralNotesText" value="{generalNotes>/Notes}" maxLength="5000" width="100%" class="sapUiSmallMarginTopBottom"/>
+		<TextArea id="GeneralNotesText" value="{generalNotes>/Notes}" enabled="false" maxLength="5000" width="100%" class="sapUiSmallMarginTopBottom"/>
 		<Title id="DisableTitle" text="Disable" level="H4" class="sapUiSmallMarginTop sapUiTextBold"/>
 		<HBox id="switchHBox" width="100%">
 			<HBox id="extUSerVBox">
