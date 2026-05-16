@@ -192,6 +192,8 @@ entity PricelistData : managed, cuid {
     MarketDisplay      : String      @title: 'Market Region'  @cds.persistence.skip; //Virtual Field
 
     TermsAndConditions : String      @title: 'Header Terms and Conditions';
+    
+    Notes              : String      @title: 'Notes';
 
     // Composition: Pricelist owns its items
     items              : Composition of many PricelistItemData

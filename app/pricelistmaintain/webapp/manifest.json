@@ -166,7 +166,21 @@
                     },
                     "TermsandConditions": {
                       "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsandConditions",
-                      "title": "Terms and Conditions"
+                      "title": "Terms and Conditions",
+                      "position": {
+                        "anchor": "ProductsTree",
+                        "placement": "After"
+                      }
+                    },
+                    "GeneralNotes": {
+                      "title": "General Notes",
+                      "template": "pricelistapp.pricelistmaintain.ext.fragment.GeneralNotes",
+                      "position": {
+                        "placement": "After",
+                        "anchor": "TermsandConditions"
+                      }
+          
+                      
                     }
                   }
                 }
