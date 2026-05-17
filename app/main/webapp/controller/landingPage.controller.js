@@ -122,6 +122,9 @@ sap.ui.define([
                 case "DataMaintain-manage":
                     sRouteName = "AppURL_DataMaintain";
                     break;
+                case "myrequest-maintain":
+                    sRouteName = "AppURL_MyRequest";
+                    break;                    
                 /* case "AppLog-display":
                     window.location.href = "/pricelistappapplicationlog/index.html";
                     break; */

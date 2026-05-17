@@ -23,8 +23,6 @@
   "scripts": {
     "start": "cds-serve",
     "start-hybrid": "cds watch --profile hybrid",
-    "start-hanadev": "cds watch --profile hanadev",
-    "all-hanadev": "npm-run-all --parallel start-approuter start-hanadev ",
     "start-approuter": "cds bind --exec -- npm start --prefix app/router",
     "all": "npm-run-all --parallel start-hybrid start-approuter",
     "watch-main": "cds watch --open pricelistapp.main/index.html?sap-ui-xx-viewCache=false --livereload false",
