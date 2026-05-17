@@ -490,6 +490,7 @@ module.exports = cds.service.impl(async function () {
                 AppURL_DataMaintain: process.env.AppURL_DataMaintain || "",
                 AppURL_PriceMaintain: process.env.AppURL_PriceMaintain || "",
                 AppURL_PriceDisplay: process.env.AppURL_PriceDisplay || "",
+                APPURL_MyRequest: process.env.APPURL_MyRequest || ""
             }];
         } catch (err) {
             console.error("User READ error:", err);

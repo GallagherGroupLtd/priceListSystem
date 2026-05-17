@@ -3,18 +3,19 @@ using {com.sap.pricelistsystem as my} from '../db/schema';
 service PriceListService {
     //For URLs
     entity User {
-        key email                  : String;
-            AppURL_DMTradeScenario : String;
-            AppURL_DMItemStructure : String;
-            AppURL_DMPartNumbers   : String;
-            AppURL_DMTermsandCond  : String;
-            AppURL_DMPricingParam  : String;
-            AppURL_DMTileContent   : String;
-            AppURL_DMContactInfo   : String;
-            AppURL_DMAcctAssign    : String;
-            AppURL_DataMaintain    : String;
-            AppURL_PriceMaintain   : String;
-            AppURL_PriceDisplay    : String;
+        key email                   : String;
+            AppURL_DMTradeScenario  : String;
+            AppURL_DMItemStructure  : String;
+            AppURL_DMPartNumbers    : String;
+            AppURL_DMTermsandCond   : String;
+            AppURL_DMPricingParam   : String;
+            AppURL_DMTileContent    : String;
+            AppURL_DMContactInfo    : String;
+            AppURL_DMAcctAssign     : String;
+            AppURL_DataMaintain     : String;
+            AppURL_PriceMaintain    : String;
+            AppURL_PriceDisplay     : String;
+            AppURL_MyRequest        : String;
     };
 
     //Data Maintenance Application
