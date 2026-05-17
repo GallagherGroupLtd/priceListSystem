@@ -5,50 +5,6 @@
                 "binding": {
                     "type": "cf",
                     "apiEndpoint": "https://api.cf.ap20.hana.ondemand.com",
-                    "org": "Gallagher Group (NZ)_WorkZoneDev",
-                    "space": "Adv_Event_Mesh",
-                    "instance": "priceListSystem-db",
-                    "key": "priceListSystem-db-key"
-                },
-                "kind": "hana-cloud",
-                "vcap": {
-                    "name": "db"
-                }
-            },
-            "destinations": {
-                "binding": {
-                    "type": "cf",
-                    "apiEndpoint": "https://api.cf.ap20.hana.ondemand.com",
-                    "org": "Gallagher Group (NZ)_WorkZoneDev",
-                    "space": "Adv_Event_Mesh",
-                    "instance": "priceListSystem-destination",
-                    "key": "priceListSystem-destination-key"
-                },
-                "kind": "destinations",
-                "vcap": {
-                    "name": "destinations"
-                }
-            },
-            "auth": {
-                "binding": {
-                    "type": "cf",
-                    "apiEndpoint": "https://api.cf.ap20.hana.ondemand.com",
-                    "org": "Gallagher Group (NZ)_WorkZoneDev",
-                    "space": "Adv_Event_Mesh",
-                    "instance": "priceListSystem-auth",
-                    "key": "priceListSystem-auth-key"
-                },
-                "kind": "xsuaa-auth",
-                "vcap": {
-                    "name": "auth"
-                }
-            }
-        },
-        "[hanadev]": {
-            "db": {
-                "binding": {
-                    "type": "cf",
-                    "apiEndpoint": "https://api.cf.ap20.hana.ondemand.com",
                     "org": "Gallagher Group (NZ)_hana-dev",
                     "space": "Hana_Dev_Pricing",
                     "instance": "priceListSystem-db",
@@ -80,7 +36,18 @@
                 }
             },
             "auth": {
-                "kind": "mocked"
+               "binding": {
+                    "type": "cf",
+                    "apiEndpoint": "https://api.cf.ap20.hana.ondemand.com",
+                    "org": "Gallagher Group (NZ)_WorkZoneDev",
+                    "space": "Adv_Event_Mesh",
+                    "instance": "priceListSystem-auth",
+                    "key": "priceListSystem-auth-key"
+                },
+                "kind": "xsuaa-auth",
+                "vcap": {
+                    "name": "auth"
+                }
             }
         }
     }
