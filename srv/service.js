@@ -586,8 +586,7 @@ module.exports = cds.service.impl(async function () {
     this.on('MassUploadTermsandCond', req =>
         handleMassUpload(req, cds.entities.TermsAndConditionDetermination,
             ["TradeScenario", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant",
-                "MainCategory", "Subcategory1", "Subcategory2", "Subcategory3", "Subcategory4", "Subcategory5",
-                "TermsAndConditionCategory", "PricelistFieldName", "PricelistDataLevel", "TermsAndConditionContent"],
+                "TermsAndCondition", "MainCategory", "Subcategory1", "Subcategory2", "Subcategory3", "Subcategory4", "Subcategory5"],
             r => ({
                 TradeScenario: r["Trade Scenario"] || r["TradeScenario"],
                 MarketScopeRegion: r["Market Scope Region"] || r["MarketScopeRegion"],
@@ -598,16 +597,13 @@ module.exports = cds.service.impl(async function () {
                 CustGroup1: r["Customer Group 1"] || r["CustGroup1"],
                 ErpCustomer: r["ERP Customer"] || r["ErpCustomer"],
                 DeliveringPlant: r["Plant"] || r["DeliveringPlant"],
+                TermsAndConditions: r["General Terms and Conditions"] || r["TermsAndCondition"],
                 MainCategory: r["Main Category"] || r["MainCategory"],
                 Subcategory1: r["Subcategory 1"] || r["Subcategory1"],
                 Subcategory2: r["Subcategory 2"] || r["Subcategory2"],
                 Subcategory3: r["Subcategory 3"] || r["Subcategory3"],
                 Subcategory4: r["Subcategory 4"] || r["Subcategory4"],
-                Subcategory5: r["Subcategory 5"] || r["Subcategory5"],
-                TermsAndConditionCategory: r["Terms and Conditions Category"] || r["TermsAndConditionCategory"],
-                PricelistFieldName: r["Pricelist Fieldname"] || r["PricelistFieldName"],
-                PricelistDataLevel: r["Pricelist Data Level"] || r["PricelistDataLevel"],
-                TermsAndConditionContent: r["Terms and Conditions Content"] || r["TermsAndConditionContent"]
+                Subcategory5: r["Subcategory 5"] || r["Subcategory5"]
             })
         )
     );
@@ -867,20 +863,6 @@ module.exports = cds.service.impl(async function () {
         return await extdb.run(q);
     });
 
-    // Distinct Sales Orgs filtered by Customer
-    // this.on('READ', 'SalesOrgVH', async (req) => {
-    //     const extdb = await cds.connect.to('extdb');
-    //     let q = SELECT.distinct.from('T_CUSTOMER_MASTER_DATA')
-    //         .columns('SALES_ORGANIZATION', 'DISTRIBUTION_CHANNEL', 'CUSTOMER');
-
-    //     if (req.query.SELECT.where) {
-    //         q.where(req.query.SELECT.where);
-    //     }
-    //     return await extdb.run(q);
-    // });
-
-    //     return await extdb.run(q);
-    // });
     this.on('READ', 'SalesOrgVH', async (req) => {
         const extdb = await cds.connect.to('extdb');
         let q = SELECT.distinct.from('ErpSalesOrg')
@@ -894,18 +876,6 @@ module.exports = cds.service.impl(async function () {
         return await extdb.run(q);
     });
 
-    // Distinct Dist Channels filtered by Customer + Sales Orgs
-    // this.on('READ', 'DistChannelVH', async (req) => {
-    //     const extdb = await cds.connect.to('extdb');
-    //     let q = SELECT.distinct.from('T_CUSTOMER_MASTER_DATA')
-    //         .columns('SALES_ORGANIZATION', 'DISTRIBUTION_CHANNEL', 'CUSTOMER');
-
-    //     if (req.query.SELECT.where) {
-    //         q.where(req.query.SELECT.where);
-    //     }
-
-    //     return await extdb.run(q);
-    // });
     this.on('READ', 'DistributionChannelVH', async (req) => {
         const extdb = await cds.connect.to('extdb');
         let q = SELECT.distinct.from('ErpDistributionChannel')
@@ -922,8 +892,9 @@ module.exports = cds.service.impl(async function () {
     // Distinct Plant filtered by Customer + Sales Orgs + Dist Channels
     this.on('READ', 'PlantVH', async (req) => {
         const extdb = await cds.connect.to('extdb');
-        let q = SELECT.distinct.from('T_CUSTOMER_MASTER_DATA')
-            .columns('CUSTOMER', 'SALES_ORGANIZATION', 'DISTRIBUTION_CHANNEL', 'DELIVERING_PLANT');
+        let q = SELECT.distinct.from('ErpPlant')
+            .columns('Code','Description')
+            .orderBy('Code');
 
         if (req.query.SELECT.where) {
             q.where(req.query.SELECT.where);
@@ -932,17 +903,124 @@ module.exports = cds.service.impl(async function () {
         return await extdb.run(q);
     });
 
-    // Distinct Cust. Pricelist filtered by Customer + Sales Orgs + Dist Channels + Plants
-    this.on('READ', 'CustPricelistVH', async (req) => {
+    // Distinct Cust. Pricelist
+    this.on('READ', 'PricelistVH', async (req) => {
         const extdb = await cds.connect.to('extdb');
-        let q = SELECT.distinct.from('T_CUSTOMER_MASTER_DATA')
-            .columns('CUSTOMER', 'SALES_ORGANIZATION', 'DISTRIBUTION_CHANNEL', 'DELIVERING_PLANT', 'PRICE_LIST_TYPE');
+        let q = SELECT.distinct.from('ErpPricelist')
+            .columns('Code','Description')
+            .orderBy('Code');
 
         if (req.query.SELECT.where) {
             q.where(req.query.SELECT.where);
         }
 
         return await extdb.run(q);
+    });
+
+    // Distinct Cust. Group1
+    this.on('READ', 'CustomerGroup1VH', async (req) => {
+        const extdb = await cds.connect.to('extdb');
+        let q = SELECT.distinct.from('ErpCustomerGroup1')
+            .columns('Code','Description')
+            .orderBy('Code');
+
+        if (req.query.SELECT.where) {
+            q.where(req.query.SELECT.where);
+        }
+
+        return await extdb.run(q);
+    });
+
+    //Pricing Parameters - Product Price Condition Type (Value Help)
+    this.on('READ', 'PriceConditionTypeVH', (req) => {
+        const data = [
+            { Code: 'PR00' },
+            { Code: 'PREX' },
+        ];
+
+        if (req.query.SELECT.count) {
+            data.$count = data.length;
+        }
+        
+        return data;
+    });
+
+    //Pricing Parameters - Product Price Access Sequence (Value Help)
+    this.on('READ', 'PriceAccessSequenceVH', (req) => {
+        const data = [
+            { Code: 'A304', Description: 'Material with release status' },
+            { Code: 'A305', Description: 'Customer/material with release status' },
+            { Code: 'A032', Description: 'Price group/Material' },
+            { Code: 'A503', Description: 'Sales org./Distr. Ch/Price list/Item/Material' },
+            { Code: 'A506', Description: 'Sales org./Distr. Ch/SalesDocTy/Function/Partner/Material' },
+            { Code: 'A916', Description: 'Sales org./Distr. Ch/Price list/Material' },
+            { Code: 'A917', Description: 'Sales org./Distr. Ch/Cust Grp1/Price list/Material' },
+            { Code: 'A918', Description: 'Sales org./Distr. Ch/Cust Grp1/Material' },
+            { Code: 'A930', Description: 'Sales org./Distr. Ch/SalesDocTy/Customer/Material' }
+        ];
+
+        if (req.query.SELECT.count) {
+            data.$count = data.length;
+        }
+        
+        return data;
+    });
+
+    //Pricing Parameters - Discount Condition Type (Value Help)
+    this.on('READ', 'DiscountConditionTypeVH', (req) => {
+        const data = [
+            { Code: 'K030' },
+            { Code: 'K029' },
+            { Code: 'To follow on other condition types' }
+        ];
+
+        if (req.query.SELECT.count) {
+            data.$count = data.length;
+        }
+        
+        return data;
+    });
+    
+    //Pricing Parameters - Discount Access Sequence (Value Help)
+    this.on('READ', 'DiscountAccessSequenceVH', (req) => {
+        const data = [
+            { Code: 'TBA' }
+        ];
+
+        if (req.query.SELECT.count) {
+            data.$count = data.length;
+        }
+        
+        return data;
+    });
+
+    //Account Assignment - Account Type (Value Help)
+    this.on('READ', 'AccountTypeVH', (req) => {
+        const data = [
+            { Code: 'Internal' },
+            { Code: 'External' }
+        ];
+
+        if (req.query.SELECT.count) {
+            data.$count = data.length;
+        }
+        
+        return data;
+    });
+
+    //Account Assignment - Account Scope (Value Help)
+    this.on('READ', 'AccountScopeVH', (req) => {
+        const data = [
+            { Code: 'Admin' },
+            { Code: 'Regional' },
+            { Code: 'Customer' }
+        ];
+
+        if (req.query.SELECT.count) {
+            data.$count = data.length;
+        }
+        
+        return data;
     });
 
     this.on('READ', 'StatusVH', (req) => {
