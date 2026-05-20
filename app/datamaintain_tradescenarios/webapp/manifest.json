@@ -127,7 +127,7 @@
           "options": {
             "settings": {
               "contextPath": "/TradeScenarios",
-              "variantManagement": "Page",
+              "variantManagement": "Control",
               "initialLoad": true,
               "navigation": {
                 "TradeScenarios": {
@@ -201,5 +201,5 @@
   "sap.cloud": {
     "public": true,
     "service": "priceListSystem.service"
-  } 
+  }
 }

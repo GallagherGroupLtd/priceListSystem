@@ -543,7 +543,38 @@ service PriceListService {
     @cds.persistence.skip
     entity StatusVH             as projection on StatusValues;    
     entity PriceStatusVH      as projection on my.ErpPriceStatus;
-                                                   
+
+    @cds.persistence.skip
+    entity PriceConditionTypeVH{
+        key Code : String(4);
+    }
+
+    @cds.persistence.skip
+    entity PriceAccessSequenceVH{
+        key Code        : String(4);
+            Description : String(255);
+    }
+
+    @cds.persistence.skip
+    entity DiscountConditionTypeVH{
+        key Code : String(4);
+    }
+
+    @cds.persistence.skip
+    entity DiscountAccessSequenceVH{
+        key Code : String(4);
+    }
+
+    @cds.persistence.skip
+    entity AccountTypeVH{
+        key Code : String(8);
+    }
+
+    @cds.persistence.skip
+    entity AccountScopeVH{
+        key Code : String(8);
+    }
+
     @odata.draft.enabled
     entity MyRequest
         as projection on my.MyRequest

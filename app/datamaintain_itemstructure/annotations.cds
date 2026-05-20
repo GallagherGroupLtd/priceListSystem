@@ -6,6 +6,47 @@ annotate service.ItemStructure with @(
         TypeNamePlural: 'Item Structure Components'
     },
 
+    // Header Section at the top
+    UI.HeaderInfo                 : {
+        ImageUrl      : 'sap-icon://sales-order-item'
+    },    
+    UI.HeaderFacets               : [
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'DatesFacet',
+            Target: '@UI.FieldGroup#CreateGroup'
+        },
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'UsersFacet',
+            Target: '@UI.FieldGroup#UpdateGroup'
+        }
+    ],
+    UI.FieldGroup #CreateGroup     : {
+        Data: [
+            {
+                Value: createdAt,
+                Label: 'Created On'
+            },
+            {
+                Value: createdBy,
+                Label: 'Created BY'
+            }
+        ]
+    },
+    UI.FieldGroup #UpdateGroup     : {
+        Data: [
+            {
+                Value: modifiedAt,
+                Label: 'Updated On'
+            },
+            {
+                Value: modifiedBy,
+                Label: 'Updated By'
+            }
+        ]
+    },
+
     // Selection Fields for Filtering
     UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
 
@@ -31,68 +72,81 @@ annotate service.ItemStructure with @(
             { $Type : 'UI.DataField', Value : DeliveringPlant }
         ]
     },
-
-    // Product Categories ---
-    UI.FieldGroup #ProductCategories : {
+    
+    UI.FieldGroup #TermsAndConditions : {
         Data: [
-            { $Type : 'UI.DataField', Value : MainCategory },
-            { $Type : 'UI.DataField', Value : Subcategory1 },
-            { $Type : 'UI.DataField', Value : Subcategory2 },
-            { $Type : 'UI.DataField', Value : Subcategory3 },
-            { $Type : 'UI.DataField', Value : Subcategory4 },
-            { $Type : 'UI.DataField', Value : Subcategory5 }
+            { $Type : 'UI.DataField', Value : TermsAndCondition }
         ]
     },
 
-    // UI.FieldGroup #ProductCategoriesLocal : {
-    //     Data: [
-    //         { $Type : 'UI.DataField', Value : MainCategoryLocal },
-    //         { $Type : 'UI.DataField', Value : Subcategory1Local },
-    //         { $Type : 'UI.DataField', Value : Subcategory2Local },
-    //         { $Type : 'UI.DataField', Value : Subcategory3Local },
-    //         { $Type : 'UI.DataField', Value : Subcategory4Local },
-    //         { $Type : 'UI.DataField', Value : Subcategory5Local }
-    //     ]
-    // },
-
     UI.FieldGroup #MainCategory : {
         Data: [
-            { $Type : 'UI.DataField', Value : MainCategory },
+            { $Type : 'UI.DataField', Value : MainCategory }
+        ]
+    },
+
+    UI.FieldGroup #MainCategoryLocal : {
+        Data: [
             { $Type : 'UI.DataField', Value : MainCategoryLocal }
         ]
     },
 
     UI.FieldGroup #Subcategory1 : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory1 },
+            { $Type : 'UI.DataField', Value : Subcategory1 }
+        ]
+    },
+
+    UI.FieldGroup #Subcategory1Local : {
+        Data: [
             { $Type : 'UI.DataField', Value : Subcategory1Local }
         ]
     },
 
     UI.FieldGroup #Subcategory2 : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory2 },
+            { $Type : 'UI.DataField', Value : Subcategory2 }
+        ]
+    },
+
+    UI.FieldGroup #Subcategory2Local : {
+        Data: [
             { $Type : 'UI.DataField', Value : Subcategory2Local }
         ]
     },
 
     UI.FieldGroup #Subcategory3 : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory3 },
+            { $Type : 'UI.DataField', Value : Subcategory3 }
+        ]
+    },
+
+    UI.FieldGroup #Subcategory3Local : {
+        Data: [
             { $Type : 'UI.DataField', Value : Subcategory3Local }
         ]
     },
 
     UI.FieldGroup #Subcategory4 : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory4 },
+            { $Type : 'UI.DataField', Value : Subcategory4 }
+        ]
+    },
+
+    UI.FieldGroup #Subcategory4Local : {
+        Data: [
             { $Type : 'UI.DataField', Value : Subcategory4Local }
         ]
     },
 
     UI.FieldGroup #Subcategory5 : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory5 },
+            { $Type : 'UI.DataField', Value : Subcategory5 }
+        ]
+    },
+
+    UI.FieldGroup #Subcategory5Local : {
+        Data: [
             { $Type : 'UI.DataField', Value : Subcategory5Local }
         ]
     },
@@ -101,28 +155,93 @@ annotate service.ItemStructure with @(
     UI.Facets : [
         {
             $Type : 'UI.ReferenceFacet',
-            ID    : 'FacetTradeParameters',
+            ID    : 'Facet1',
             Label : 'Trade Parameters',
             Target: '@UI.FieldGroup#TradeParameters'
         },
         {
             $Type : 'UI.ReferenceFacet',
-            ID    : 'FacetERPData',
+            ID    : 'Facet2',
             Label : 'ERP Data',
             Target: '@UI.FieldGroup#ERPData'
         },
         {
-            $Type : 'UI.CollectionFacet',
-            ID    : 'ProductCategories',
-            Label : 'Product Categories',
-            Facets: [
-                { $Type : 'UI.ReferenceFacet', Label : 'Main Category', Target: '@UI.FieldGroup#MainCategory' },
-                { $Type : 'UI.ReferenceFacet', Label : 'Subcategory 1', Target: '@UI.FieldGroup#Subcategory1' },
-                { $Type : 'UI.ReferenceFacet', Label : 'Subcategory 2', Target: '@UI.FieldGroup#Subcategory2' },
-                { $Type : 'UI.ReferenceFacet', Label : 'Subcategory 3', Target: '@UI.FieldGroup#Subcategory3' },
-                { $Type : 'UI.ReferenceFacet', Label : 'Subcategory 4', Target: '@UI.FieldGroup#Subcategory4' },
-                { $Type : 'UI.ReferenceFacet', Label : 'Subcategory 5', Target: '@UI.FieldGroup#Subcategory5' }
-            ]
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet3',
+            Label  : 'General Terms and Conditions',
+            Target : '@UI.FieldGroup#TermsAndConditions'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet4',
+            Label  : 'Main Category',
+            Target : '@UI.FieldGroup#MainCategory'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet5',
+            Label  : 'Main Category Translation',
+            Target : '@UI.FieldGroup#MainCategoryLocal'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet6',
+            Label  : 'Subcategory1',
+            Target : '@UI.FieldGroup#Subcategory1'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet7',
+            Label  : 'Subcategory1 Translation',
+            Target : '@UI.FieldGroup#Subcategory1Local'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet8',
+            Label  : 'Subcategory2',
+            Target : '@UI.FieldGroup#Subcategory2'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet9',
+            Label  : 'Subcategory2 Translation',
+            Target : '@UI.FieldGroup#Subcategory2Local'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet10',
+            Label  : 'Subcategory3',
+            Target : '@UI.FieldGroup#Subcategory3'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet11',
+            Label  : 'Subcategory3 Translation',
+            Target : '@UI.FieldGroup#Subcategory3Local'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet12',
+            Label  : 'Subcategory4',
+            Target : '@UI.FieldGroup#Subcategory4'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet13',
+            Label  : 'Subcategory4 Translation',
+            Target : '@UI.FieldGroup#Subcategory4Local'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet14',
+            Label  : 'Subcategory5',
+            Target : '@UI.FieldGroup#Subcategory5'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet15',
+            Label  : 'Subcategory5 Translation',
+            Target : '@UI.FieldGroup#Subcategory5Local'
         }
     ],
 
@@ -136,37 +255,13 @@ annotate service.ItemStructure with @(
         { Value: CustGroup1 },
         { Value: ErpCustomer },
         { Value: DeliveringPlant },
+        { Value: TermsAndConditions },
         { Value: MainCategory },
         { Value: Subcategory1 },
         { Value: Subcategory2 },
         { Value: Subcategory3 },
         { Value: Subcategory4 },
-        { Value: Subcategory5 },
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.uploadData',
-            Label : 'Upload Files',
-            InvocationGrouping : #ChangeSet
-        },   
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.duplicateRecord',
-            Label : 'Duplicate Record',
-            InvocationGrouping : #ChangeSet
-        },         
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.copy',
-            Label : 'Copy',
-            InvocationGrouping : #ChangeSet
-        },       
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.exportExcel',
-            Label : 'Export as Excel',
-            InvocationGrouping : #ChangeSet,
-            criticality: #CRITICAL
-        }         
+        { Value: Subcategory5 }
     ],
 
     UI.PresentationVariant : {
@@ -183,49 +278,7 @@ annotate service.ItemStructure with @(
             }
         ],
         Visualizations : ['@UI.LineItem']
-    },
-
-    // Header Section at the top
-    UI.HeaderInfo                 : {
-        ImageUrl      : 'sap-icon://sales-order-item'
-    },    
-    UI.HeaderFacets               : [
-        {
-            $Type : 'UI.ReferenceFacet',
-            ID    : 'DatesFacet',
-            Target: '@UI.FieldGroup#DatesGroup'
-        },
-        {
-            $Type : 'UI.ReferenceFacet',
-            ID    : 'UsersFacet',
-            Target: '@UI.FieldGroup#UsersGroup'
-        }
-    ],
-    UI.FieldGroup #DatesGroup     : {
-        Data: [
-            {
-                Value: createdAt,
-                Label: 'Created On'
-            },
-            {
-                Value: modifiedAt,
-                Label: 'Updated On'
-            }
-        ]
-    },
- 
-    UI.FieldGroup #UsersGroup     : {
-        Data: [
-            {
-                Value: createdBy,
-                Label: 'Created By'
-            },
-            {
-                Value: modifiedBy,
-                Label: 'Updated By'
-            }
-        ]
-    }       
+    },     
 );
 
 annotate service.ItemStructure with {
@@ -261,10 +314,11 @@ annotate service.ItemStructure with {
             ]
         }
     );
+
     SalesOrg @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListParameterInOut',
+            $Type         : 'Common.ValueList',
             CollectionPath: 'SalesOrgVH',
             Parameters: [
                 { 
@@ -273,8 +327,7 @@ annotate service.ItemStructure with {
                     ValueListProperty: 'Code' 
                 },
                 { 
-                    $Type: 'Common.ValueListParameterInOut', 
-                    LocalDataProperty: 'Description', 
+                    $Type: 'Common.ValueListParameterDisplayOnly',
                     ValueListProperty: 'Description' 
                 }
             ]            
@@ -284,17 +337,16 @@ annotate service.ItemStructure with {
     DistChannel @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListParameterInOut',
+            $Type         : 'Common.ValueList',
             CollectionPath: 'DistributionChannelVH',
             Parameters: [
                 { 
                     $Type: 'Common.ValueListParameterInOut', 
-                    LocalDataProperty: 'DistributionChannel', 
+                    LocalDataProperty: 'DistChannel', 
                     ValueListProperty: 'Code' 
                 },
                 { 
-                    $Type: 'Common.ValueListParameterInOut', 
-                    LocalDataProperty: 'Description2', 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
                     ValueListProperty: 'Description' 
                 }
             ]              
@@ -304,23 +356,86 @@ annotate service.ItemStructure with {
     CustPriceList @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'PricelistVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'CustPriceList', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
         }        
     );
 
     CustGroup1 @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'CustomerGroup1VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'CustGroup1', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
         }        
     );
-        
+
+    DeliveringPlant @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'PlantVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'DeliveringPlant', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
+        }        
+    );    
+
     ErpCustomer @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'Test123VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'ErpCustomer', 
+                    ValueListProperty: 'code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'name' 
+                }
+            ]              
         }        
-    );
+    );  
+
+    TermsAndCondition  @UI.MultiLineText;
+    MainCategory       @UI.MultiLineText;
+    Subcategory1       @UI.MultiLineText;
+    Subcategory2       @UI.MultiLineText;
+    Subcategory3       @UI.MultiLineText;
+    Subcategory4       @UI.MultiLineText;
+    Subcategory5       @UI.MultiLineText;
     MainCategoryLocal  @UI.MultiLineText;
     Subcategory1Local  @UI.MultiLineText;
     Subcategory2Local  @UI.MultiLineText;

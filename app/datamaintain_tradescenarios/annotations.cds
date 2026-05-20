@@ -50,57 +50,9 @@ annotate PriceListService.TradeScenarios with @(
             Target : '@UI.FieldGroup#GeneratedGroup',
         },
     ],
-    UI.HeaderInfo: {
-        TypeName      : 'Data Maintenance: Trade Scenario',
-        TypeNamePlural: 'Data Maintenance: Trade Scenario',
-    },
-    UI.LineItem: [
-        {
-            $Type : 'UI.DataField',
-            Value: TradeScenario,
-            Label: 'Trade Scenario'
-        },
-        {
-            $Type : 'UI.DataField',
-            Value: MarketScopeRegion,
-            Label: 'Region'
-        },
-        {
-            $Type : 'UI.DataField',
-            Value: MarketScopeCountry,
-            Label: 'Country'
-        },
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.uploadData',
-            Label : 'Upload Files',
-            InvocationGrouping : #ChangeSet
-        },   
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.duplicateRecord',
-            Label : 'Duplicate Record',
-            InvocationGrouping : #ChangeSet
-        },         
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.copy',
-            Label : 'Copy',
-            InvocationGrouping : #ChangeSet
-        },       
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.exportExcel',
-            Label : 'Export as Excel',
-            InvocationGrouping : #ChangeSet,
-            criticality: #CRITICAL
-        }         
-    ],
-
-    // Header Section at the top
     UI.HeaderInfo                 : {
         ImageUrl      : 'sap-icon://sales-order-item'
-    },    
+    },     
     UI.HeaderFacets               : [
         {
             $Type : 'UI.ReferenceFacet',
@@ -120,33 +72,48 @@ annotate PriceListService.TradeScenarios with @(
                 Label: 'Created On'
             },
             {
-                Value: modifiedAt,
-                Label: 'Updated On'
-            }
+                Value: createdBy,
+                Label: 'Created By'
+            },            
         ]
     },
  
     UI.FieldGroup #UsersGroup     : {
         Data: [
             {
-                Value: createdBy,
-                Label: 'Created By'
-            },
+                Value: modifiedAt,
+                Label: 'Updated On'
+            },            
             {
                 Value: modifiedBy,
                 Label: 'Updated By'
-            }
+            },
         ]
-    }       
+    },
+    UI.LineItem: [
+        {
+            $Type : 'UI.DataField',
+            Value: TradeScenario,
+            Label: 'Trade Scenario'
+        },
+        {
+            $Type : 'UI.DataField',
+            Value: MarketScopeRegion,
+            Label: 'Region'
+        },
+        {
+            $Type : 'UI.DataField',
+            Value: MarketScopeCountry,
+            Label: 'Country'
+        }
+    ]     
 );
 
 annotate PriceListService.TradeScenarios with {
 
     TradeScenario @(
-        Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'TradeScenarioVH',
             Parameters: [
                 { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
             ]

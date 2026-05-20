@@ -6,9 +6,6 @@ annotate service.PricingParameters with @(
         TypeNamePlural: 'Pricing Parameters'
     },
 
-    // Selection Fields for Filtering
-    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
-
     // Header Section at the top
     UI.HeaderInfo                 : {
         ImageUrl      : 'sap-icon://sales-order-item'
@@ -17,32 +14,31 @@ annotate service.PricingParameters with @(
         {
             $Type : 'UI.ReferenceFacet',
             ID    : 'DatesFacet',
-            Target: '@UI.FieldGroup#DatesGroup'
+            Target: '@UI.FieldGroup#CreateGroup'
         },
         {
             $Type : 'UI.ReferenceFacet',
             ID    : 'UsersFacet',
-            Target: '@UI.FieldGroup#UsersGroup'
+            Target: '@UI.FieldGroup#UpdateGroup'
         }
     ],
-    UI.FieldGroup #DatesGroup     : {
+    UI.FieldGroup #CreateGroup     : {
         Data: [
             {
                 Value: createdAt,
                 Label: 'Created On'
             },
             {
-                Value: modifiedAt,
-                Label: 'Updated On'
+                Value: createdBy,
+                Label: 'Created BY'
             }
         ]
     },
- 
-    UI.FieldGroup #UsersGroup     : {
+    UI.FieldGroup #UpdateGroup     : {
         Data: [
             {
-                Value: createdBy,
-                Label: 'Created By'
+                Value: modifiedAt,
+                Label: 'Updated On'
             },
             {
                 Value: modifiedBy,
@@ -50,6 +46,9 @@ annotate service.PricingParameters with @(
             }
         ]
     },
+
+    // Selection Fields for Filtering
+    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
 
     UI.LineItem                  : [
         {Value: TradeScenario},
@@ -63,32 +62,7 @@ annotate service.PricingParameters with @(
         {Value: DeliveringPlant},
         {Value: ErpPriceCondition},
         {Value: ErpSequence},
-        {Value: ErpPricingAccessSequence},
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.uploadData',
-            Label : 'Upload Files',
-            InvocationGrouping : #ChangeSet
-        },   
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.duplicateRecord',
-            Label : 'Duplicate Record',
-            InvocationGrouping : #ChangeSet
-        },         
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.copy',
-            Label : 'Copy',
-            InvocationGrouping : #ChangeSet
-        },       
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.exportExcel',
-            Label : 'Export as Excel',
-            InvocationGrouping : #ChangeSet,
-            criticality: #CRITICAL
-        } 
+        {Value: ErpPricingAccessSequence}
     ],
     UI.PresentationVariant       : {
         SortOrder     : [
@@ -118,7 +92,14 @@ annotate service.PricingParameters with @(
             ID    : 'Section2',
             Label : 'ERP Data',
             Target: '@UI.FieldGroup#ERPData',
-        }        
+        }, 
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'Section3',
+            Label : 'Pricing Parameters',
+            Target: '@UI.FieldGroup#PricingParameter',
+        }   
+
     ],     
     UI.FieldGroup #TradeParameters: {
         $Type: 'UI.FieldGroupType',
@@ -135,7 +116,7 @@ annotate service.PricingParameters with @(
                 $Type: 'UI.DataField',
                 Value: MarketScopeCountry,
             }
-        ],
+        ]
     },
     UI.FieldGroup #ERPData: {
         $Type: 'UI.FieldGroupType',
@@ -164,68 +145,30 @@ annotate service.PricingParameters with @(
                 $Type: 'UI.DataField',
                 Value: DeliveringPlant,
             }
-        ],
-    }    
+        ]
+    },
    
-    // UI.FieldGroup #GeneratedGroup: {
-    //     $Type: 'UI.FieldGroupType',
-    //     Data : [
-    //         {
-    //             $Type: 'UI.DataField',
-    //             Value: TradeScenario,
-    //         },
-    //         {
-    //             $Type: 'UI.DataField',
-    //             Value: MarketScopeRegion,
-    //         },
-    //         {
-    //             $Type: 'UI.DataField',
-    //             Value: MarketScopeCountry,
-    //         },
-    //         {
-    //             $Type: 'UI.DataField',
-    //             Value: SalesOrg,
-    //         },
-    //         {
-    //             $Type: 'UI.DataField',
-    //             Value: DistChannel,
-    //         },
-    //         {
-    //             $Type: 'UI.DataField',
-    //             Value: CustPriceList,
-    //         },
-    //         {
-    //             $Type: 'UI.DataField',
-    //             Value: CustGroup1,
-    //         },
-    //         {
-    //             $Type: 'UI.DataField',
-    //             Value: ErpCustomer,
-    //         },
-    //         {
-    //             $Type: 'UI.DataField',
-    //             Value: DeliveringPlant,
-    //         },
-    //         {
-    //             $Type: 'UI.DataField',
-    //             Value: ErpPriceCondition,
-    //         },
-    //         {
-    //             @Type: 'UI.DataField',
-    //             Value: ErpSequence,
-    //         },
-    //         {
-    //             $Type: 'UI.DataField',
-    //             Value: ErpPricingAccessSequence,
-    //         }
-    //     ],
-    // },
-    // UI.Facets                    : [{
-    //     $Type : 'UI.ReferenceFacet',
-    //     ID    : 'GeneratedFacet1',
-    //     Label : 'General Information',
-    //     Target: '@UI.FieldGroup#GeneratedGroup',
-    // }, ]
+    UI.FieldGroup #PricingParameter: {
+        $Type: 'UI.FieldGroupType',
+        Data : [
+            {
+                $Type: 'UI.DataField',
+                Value: ConditionType,
+            },
+            {
+                $Type: 'UI.DataField',
+                Value: AccessSequence,
+            },
+            {
+                $Type: 'UI.DataField',
+                Value: DiscountConditionType,
+            },
+            {
+                $Type: 'UI.DataField',
+                Value: DiscountAccessSequence,
+            }
+        ]
+    }
 );
 
 annotate service.PricingParameters with {
@@ -246,7 +189,6 @@ annotate service.PricingParameters with {
             $Type         : 'Common.ValueListType',
             CollectionPath: 'MarketRegionVH',
             Parameters: [
-                // { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' },
                 { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeRegion', ValueListProperty: 'MarketScopeRegion' }
             ]
         }
@@ -258,8 +200,6 @@ annotate service.PricingParameters with {
             $Type         : 'Common.ValueListType',
             CollectionPath: 'MarketCountryVH',
             Parameters: [
-                // { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' },
-                // { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeRegion', ValueListProperty: 'MarketScopeRegion' },
                 { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeCountry', ValueListProperty: 'MarketScopeCountry' }
             ]
         }
@@ -268,111 +208,159 @@ annotate service.PricingParameters with {
     SalesOrg @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'SalesOrgVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SalesOrg', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly',
+                    ValueListProperty: 'Description' 
+                }
+            ]            
         }        
     );
 
     DistChannel @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'DistributionChannelVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'DistChannel', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
         }        
     );
 
     CustPriceList @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'PricelistVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'CustPriceList', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
         }        
     );
 
     CustGroup1 @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'CustomerGroup1VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'CustGroup1', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
         }        
     );
-        
-    ErpCustomer @(
-        Common.ValueListWithFixedValues : true,
-        Common.ValueList: {
-            $Type         : 'Common.ValueListType',
-        }        
-    );
-
-    // ErpCustomer @(
-    //     Common.ValueList: {
-    //         $Type         : 'Common.ValueListType',
-    //         CollectionPath: 'CustomerVH',
-    //         Parameters: [
-    //             { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'CustomerNumber', ValueListProperty: 'CUSTOMER' }
-    //         ]
-    //     }
-    // );
-    // SalesOrg @(
-    //     Common.ValueList: {
-    //         Common.ValueListWithFixedValues : true,
-    //         $Type         : 'Common.ValueListType',
-    //         CollectionPath: 'SalesOrgVH',
-    //         Parameters: [
-    //             { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'CustomerNumber', ValueListProperty: 'CUSTOMER' },
-    //             { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'SalesOrg', ValueListProperty: 'SALES_ORGANIZATION' }
-    //         ]
-    //     }
-    // );
-    // DistChannel @(
-    //     Common.ValueList: {
-    //         Common.ValueListWithFixedValues : true,
-    //         $Type         : 'Common.ValueListType',
-    //         CollectionPath: 'DistChannelVH',
-    //         Parameters: [
-    //             { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'ErpCustomer', ValueListProperty: 'CUSTOMER' },
-    //             { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'SalesOrg', ValueListProperty: 'SALES_ORGANIZATION' },
-    //             { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'DistChannel', ValueListProperty: 'DISTRIBUTION_CHANNEL' }
-    //         ]
-    //     }
-    // );
-    // CustGroup1 @(
-    //     Common.ValueListWithFixedValues : true,
-    //     Common.ValueList: {
-    //         $Type         : 'Common.ValueListType',
-    //     }        
-    // );
-        
-    // ErpCustomer @(
-    //     Common.ValueListWithFixedValues : true,
-    //     Common.ValueList: {
-    //         $Type         : 'Common.ValueListType',
-    //     }        
-    // );
 
     DeliveringPlant @(
+        Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
             CollectionPath: 'PlantVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'CustomerNumber', ValueListProperty: 'CUSTOMER' },
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'SalesOrg', ValueListProperty: 'SALES_ORGANIZATION' },
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'DistChannel', ValueListProperty: 'DISTRIBUTION_CHANNEL' },
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'DeliveringPlant', ValueListProperty: 'DELIVERING_PLANT' }
-            ]
-        }
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'DeliveringPlant', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
+        }        
+    ); 
+
+    ConditionType @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'PriceConditionTypeVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'ConditionType', 
+                    ValueListProperty: 'Code' 
+                }
+            ]              
+        }        
+    ); 
+
+    AccessSequence @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'PriceAccessSequenceVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'AccessSequence', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
+        }        
+    );  
+
+    DiscountConditionType @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'DiscountConditionTypeVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'DiscountConditionType', 
+                    ValueListProperty: 'Code' 
+                }
+            ]              
+        }        
     );
 
-    // ErpPricingAccessSequence @(Common.ValueList: {
-    //     $Type         : 'Common.ValueListType',
-    //     CollectionPath : 'PricingCondType',
-    //     SearchSupported: true,
-    //     Parameters     : [
-    //         {
-    //             $Type            : 'Common.ValueListParameterInOut',
-    //             LocalDataProperty: 'ErpPricingAccessSequence',
-    //             ValueListProperty: 'ErpPricingAccessSequence'
-    //         },
-    //         {
-    //             $Type            : 'Common.ValueListParameterDisplayOnly',
-    //             ValueListProperty: 'SequenceDescription'
-    //         }
-    //     ]
-    // });
+    DiscountAccessSequence @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'DiscountAccessSequenceVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'DiscountAccessSequence', 
+                    ValueListProperty: 'Code' 
+                }
+            ]              
+        }        
+    );           
 }
