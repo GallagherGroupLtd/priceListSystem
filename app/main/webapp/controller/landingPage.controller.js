@@ -57,81 +57,80 @@ sap.ui.define([
 
         onNavigationAppPress: function (oEvent) {
             // Get the clicked tile and its target intent.
-            // const oTile = oEvent.getSource();
-            // const sTargetIntent = oTile.data("target") || "";
-
-            // Split semantic object and action safely
-            // const [sSemanticObject, sAction] = sTargetIntent.split("-");
-
-            // if (!sSemanticObject || !sAction) { return; }
-
-            // if (!sap.ushell || !sap.ushell.Container) {
-            //     // Base URL for local navigation
-            //     const sBaseUrl = window.location.origin;
-            //     switch (sTargetIntent) {
-            //         case "Pricelist-display":
-            //             window.location.href = "/pricelistapp.pricelistdisplay/index.html";
-            //             break;
-            //         case "PriceMaintain-manage":
-            //         case "PricelistMaintain-manage":
-            //             window.location.href = "/pricelistapp.pricelistmaintain/index.html";
-            //             break;
-            //         case "DataMaintain-manage":
-            //             window.location.href = "/pricelistapp.datamaintain/index.html";
-            //             break;
-            //         case "AppLog-display":
-            //             window.location.href = "/pricelistapp.applicationlog/index.html";
-            //             break;
-            //         default:
-            //             MessageToast.show("No navigation defined for: " + sTargetIntent);
-            //             break;
-            //     }
-            //     return;
-            // }
-
-            // // Get the CrossApplicationNavigation service
-            // sap.ushell.Container.getServiceAsync("CrossApplicationNavigation").then(function (oCrossAppNavigator) {
-            //     // Define the navigation target
-            //     var oTarget = {
-            //         target: {
-            //             semanticObject: sSemanticObject,
-            //             action: sAction
-            //         }
-            //     };
-
-            //     // Navigate to the target application
-            //     oCrossAppNavigator.toExternal(oTarget);
-            // }).catch(function (oError) {
-            //     MessageToast.show("Navigation failed: " + oError.message);
-            // });
-
-            // // Exact match for your HANA DB strings
-            // // Get the clicked tile and its target intent.
             const oTile = oEvent.getSource();
             const sTargetIntent = oTile.data("target") || "";
 
-            let sRouteName = "";
+            // Split semantic object and action safely
+            const [sSemanticObject, sAction] = sTargetIntent.split("-");
 
-            switch (sTargetIntent) {
-                case "PriceMaintain-display":
-                    sRouteName = "AppURL_PriceDisplay";
-                    break;
-                case "PriceMaintain-manage":
-                    sRouteName = "AppURL_PriceMaintain";
-                    break;
-                case "DataMaintain-manage":
-                    sRouteName = "AppURL_DataMaintain";
-                    break;
-                case "MyRequest-manage":
-                    sRouteName = "AppURL_MyRequest";
-                    break;                    
-                /* case "AppLog-display":
-                    window.location.href = "/pricelistappapplicationlog/index.html";
-                    break; */
+            if (!sSemanticObject || !sAction) { return; }
+
+            if (!sap.ushell || !sap.ushell.Container) {
+                // Base URL for local navigation
+                const sBaseUrl = window.location.origin;
+                switch (sTargetIntent) {
+                    case "Pricelist-display":
+                        window.location.href = "/pricelistapp.pricelistdisplay/index.html";
+                        break;
+                    case "PriceMaintain-manage":
+                    case "PricelistMaintain-manage":
+                        window.location.href = "/pricelistapp.pricelistmaintain/index.html";
+                        break;
+                    case "DataMaintain-manage":
+                        window.location.href = "/pricelistapp.datamaintain/index.html";
+                        break;
+                    case "AppLog-display":
+                        window.location.href = "/pricelistapp.applicationlog/index.html";
+                        break;
+                    default:
+                        MessageToast.show("No navigation defined for: " + sTargetIntent);
+                        break;
+                }
+                return;
             }
 
-            // //Navigate to Link
-            // debugger;
+            // Get the CrossApplicationNavigation service
+            sap.ushell.Container.getServiceAsync("CrossApplicationNavigation").then(function (oCrossAppNavigator) {
+                // Define the navigation target
+                var oTarget = {
+                    target: {
+                        semanticObject: sSemanticObject,
+                        action: sAction
+                    }
+                };
+
+                // Navigate to the target application
+                oCrossAppNavigator.toExternal(oTarget);
+            }).catch(function (oError) {
+                MessageToast.show("Navigation failed: " + oError.message);
+            });
+
+            // // Exact match for your HANA DB strings
+            // // Get the clicked tile and its target intent.
+            // const oTile = oEvent.getSource();
+            // const sTargetIntent = oTile.data("target") || "";
+
+            // let sRouteName = "";
+
+            // switch (sTargetIntent) {
+            //     case "PriceMaintain-display":
+            //         sRouteName = "AppURL_PriceDisplay";
+            //         break;
+            //     case "PriceMaintain-manage":
+            //         sRouteName = "AppURL_PriceMaintain";
+            //         break;
+            //     case "DataMaintain-manage":
+            //         sRouteName = "AppURL_DataMaintain";
+            //         break;
+            //     case "MyRequest-manage":
+            //         sRouteName = "AppURL_MyRequest";
+            //         break;                    
+            //     /* case "AppLog-display":
+            //         window.location.href = "/pricelistappapplicationlog/index.html";
+            //         break; */
+            // }
+
+            //Navigate to Link
             let oModel = this.getView().getModel();
             let sUrl = oModel.sServiceUrl;
             sUrl = sUrl + "User";
