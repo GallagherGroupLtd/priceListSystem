@@ -57,13 +57,13 @@ sap.ui.define([
 
         onNavigationAppPress: function (oEvent) {
             // Get the clicked tile and its target intent.
-            // const oTile = oEvent.getSource();
-            // const sTargetIntent = oTile.data("target") || "";
+            const oTile = oEvent.getSource();
+            const sTargetIntent = oTile.data("target") || "";
 
             // Split semantic object and action safely
-            // const [sSemanticObject, sAction] = sTargetIntent.split("-");
+            const [sSemanticObject, sAction] = sTargetIntent.split("-");
 
-            // if (!sSemanticObject || !sAction) { return; }
+            if (!sSemanticObject || !sAction) { return; }
 
             // if (!sap.ushell || !sap.ushell.Container) {
             //     // Base URL for local navigation
@@ -89,73 +89,72 @@ sap.ui.define([
             //     return;
             // }
 
-            // // Get the CrossApplicationNavigation service
-            // sap.ushell.Container.getServiceAsync("CrossApplicationNavigation").then(function (oCrossAppNavigator) {
-            //     // Define the navigation target
-            //     var oTarget = {
-            //         target: {
-            //             semanticObject: sSemanticObject,
-            //             action: sAction
-            //         }
-            //     };
+            // Get the CrossApplicationNavigation service
+            sap.ushell.Container.getServiceAsync("CrossApplicationNavigation").then(function (oCrossAppNavigator) {
+                // Define the navigation target
+                var oTarget = {
+                    target: {
+                        semanticObject: sSemanticObject,
+                        action: sAction
+                    }
+                };
 
-            //     // Navigate to the target application
-            //     oCrossAppNavigator.toExternal(oTarget);
-            // }).catch(function (oError) {
-            //     MessageToast.show("Navigation failed: " + oError.message);
-            // });
+                // Navigate to the target application
+                oCrossAppNavigator.toExternal(oTarget);
+            }).catch(function (oError) {
+                MessageToast.show("Navigation failed: " + oError.message);
+            });
 
             // // Exact match for your HANA DB strings
             // // Get the clicked tile and its target intent.
-            const oTile = oEvent.getSource();
-            const sTargetIntent = oTile.data("target") || "";
+            // const oTile = oEvent.getSource();
+            // const sTargetIntent = oTile.data("target") || "";
 
-            let sRouteName = "";
+            // let sRouteName = "";
 
-            switch (sTargetIntent) {
-                case "PriceMaintain-display":
-                    sRouteName = "AppURL_PriceDisplay";
-                    break;
-                case "PriceMaintain-manage":
-                    sRouteName = "AppURL_PriceMaintain";
-                    break;
-                case "DataMaintain-manage":
-                    sRouteName = "AppURL_DataMaintain";
-                    break;
-                case "MyRequest-manage":
-                    sRouteName = "AppURL_MyRequest";
-                    break;                    
-                /* case "AppLog-display":
-                    window.location.href = "/pricelistappapplicationlog/index.html";
-                    break; */
-            }
+            // switch (sTargetIntent) {
+            //     case "PriceMaintain-display":
+            //         sRouteName = "AppURL_PriceDisplay";
+            //         break;
+            //     case "PriceMaintain-manage":
+            //         sRouteName = "AppURL_PriceMaintain";
+            //         break;
+            //     case "DataMaintain-manage":
+            //         sRouteName = "AppURL_DataMaintain";
+            //         break;
+            //     case "MyRequest-manage":
+            //         sRouteName = "AppURL_MyRequest";
+            //         break;                    
+            //     /* case "AppLog-display":
+            //         window.location.href = "/pricelistappapplicationlog/index.html";
+            //         break; */
+            // }
 
-            // //Navigate to Link
-            // debugger;
-            let oModel = this.getView().getModel();
-            let sUrl = oModel.sServiceUrl;
-            sUrl = sUrl + "User";
+            //Navigate to Link
+            // let oModel = this.getView().getModel();
+            // let sUrl = oModel.sServiceUrl;
+            // sUrl = sUrl + "User";
 
-            $.ajax({
-                url: sUrl,
-                type: 'GET',
-                contentType: 'application/json',
-                success: function (data) {
-                    let response1 = data.value;
-                    let targetUrl = response1[0][sRouteName];
+            // $.ajax({
+            //     url: sUrl,
+            //     type: 'GET',
+            //     contentType: 'application/json',
+            //     success: function (data) {
+            //         let response1 = data.value;
+            //         let targetUrl = response1[0][sRouteName];
 
-                    if (targetUrl) {
-                        URLHelper.redirect(targetUrl, true);
-                    } else {
-                        MessageBox.error('No redirect URL found. Please contact technical support.');
-                    }
+            //         if (targetUrl) {
+            //             URLHelper.redirect(targetUrl, true);
+            //         } else {
+            //             MessageBox.error('No redirect URL found. Please contact technical support.');
+            //         }
 
-                }.bind(this),
-                error: function (dataError) {
-                    this.getView().setBusy(false);
-                    MessageBox.error('No redirect URL found. Please contact technical support.');
-                }.bind(this)
-            });
+            //     }.bind(this),
+            //     error: function (dataError) {
+            //         this.getView().setBusy(false);
+            //         MessageBox.error('No redirect URL found. Please contact technical support.');
+            //     }.bind(this)
+            // });
         },
 
         getImageSrc: function () {
