@@ -318,14 +318,14 @@ module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
     const { User, TradeScenarios, ItemStructure, PartNumbers, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, PricingCondType,
         PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem } = this.entities;
-    
+
     //Selection of Materials
     async function resolveItems(filters, db, extdb) {
         const filterNew = Object.fromEntries(
             Object.entries(filters).filter(([_, v]) => {
-                if (v === undefined || v === null) 
+                if (v === undefined || v === null)
                     return false;
-                if (typeof v === "string" && v.trim() === "") 
+                if (typeof v === "string" && v.trim() === "")
                     return false;
                 return true;
             })
@@ -441,21 +441,21 @@ module.exports = cds.service.impl(async function () {
 
             resolvedItems.push({
                 PricelistPartNumber: safe(mat.MATERIAL),
-                PartNumberDescr         : safe(mat.MATERIAL_DESCRIPTION),
-                MainCategory            : safe(mat.MAIN_CATEGORY),
-                Subcategory1            : safe(mat.SUBCATEGORY_1),
-                Subcategory2            : safe(mat.SUBCATEGORY_2),
-                Subcategory3            : safe(mat.SUBCATEGORY_3),
-                Subcategory4            : safe(mat.SUBCATEGORY_4),
-                Subcategory5            : safe(mat.SUBCATEGORY_5),
-                Price                   : safe(price),
-                PriceUnit               : safe(currency),
-                PriceValidFrom          : safe(pricevalidfr),
-                PriceValidTo            : safe(pricevalidto),
-                DiscountRate            : safe(discount),
-                DiscountEffectiveDate   : safe(discounteffdate),
-                MaterialStatus          : safe(mat.MATERIAL_STATUS),
-                MaterialStatusEffecDate : safe(mat.STATUS_EFF_DATE),
+                PartNumberDescr: safe(mat.MATERIAL_DESCRIPTION),
+                MainCategory: safe(mat.MAIN_CATEGORY),
+                Subcategory1: safe(mat.SUBCATEGORY_1),
+                Subcategory2: safe(mat.SUBCATEGORY_2),
+                Subcategory3: safe(mat.SUBCATEGORY_3),
+                Subcategory4: safe(mat.SUBCATEGORY_4),
+                Subcategory5: safe(mat.SUBCATEGORY_5),
+                Price: safe(price),
+                PriceUnit: safe(currency),
+                PriceValidFrom: safe(pricevalidfr),
+                PriceValidTo: safe(pricevalidto),
+                DiscountRate: safe(discount),
+                DiscountEffectiveDate: safe(discounteffdate),
+                MaterialStatus: safe(mat.MATERIAL_STATUS),
+                MaterialStatusEffecDate: safe(mat.STATUS_EFF_DATE),
                 MainCategoryTermsandCond: safe(mainCatTerms),
                 SubCategory1TermsandCond: safe(subCat1Terms),
                 SubCategory2TermsandCond: safe(subCat2Terms),
@@ -731,23 +731,23 @@ module.exports = cds.service.impl(async function () {
                 console.log(">>>resolved", resolved);
 
                 if (!resolved) {
-                    rowErrors.push(`Row ${idx+2}: PartNumber ${partNumber} not found`);
+                    rowErrors.push(`Row ${idx + 2}: PartNumber ${partNumber} not found`);
                     continue;
                 }
 
                 // Validate all non‑T&C fields
                 const fieldsToValidate = [
-                    "MainCategory", 
-                    "Subcategory1", 
-                    "Subcategory2", 
-                    "Subcategory3", 
-                    "Subcategory4", 
+                    "MainCategory",
+                    "Subcategory1",
+                    "Subcategory2",
+                    "Subcategory3",
+                    "Subcategory4",
                     "Subcategory5",
-                    "Price", 
-                    "PriceUnit", 
-                    "MaterialStatus", 
+                    "Price",
+                    "PriceUnit",
+                    "MaterialStatus",
                     "MaterialStatusEffecDate",
-                    "DiscountRate", 
+                    "DiscountRate",
                     "DiscountEffectiveDate"
                 ];
 
@@ -755,7 +755,7 @@ module.exports = cds.service.impl(async function () {
                     const uploadedVal = String(row[field] || "").trim();
                     const expectedVal = String(resolved[field] || "").trim();
                     if (uploadedVal !== expectedVal) {
-                        rowErrors.push(`Row ${idx+2}, Column ${field}: mismatch (uploaded="${uploadedVal}", expected="${expectedVal}")`);
+                        rowErrors.push(`Row ${idx + 2}, Column ${field}: mismatch (uploaded="${uploadedVal}", expected="${expectedVal}")`);
                     }
                     console.log(">>>", field, uploadedVal, expectedVal);
                 }
@@ -783,10 +783,10 @@ module.exports = cds.service.impl(async function () {
                 return req.error(400, "Upload failed:\n" + errors.join("\n"));
             }
 
-            return { 
+            return {
                 message: "Terms & Conditions upload successful",
                 items: validatedRecords
-             };
+            };
 
         } catch (err) {
             console.error(err);
@@ -796,29 +796,32 @@ module.exports = cds.service.impl(async function () {
 
     //Value Help Population
     // Distinct Trade Scenarios
-    this.on('READ', 'TradeScenarioVH', async (req) => {
-        const db = cds.transaction(req);
-        return await db.run(
-            SELECT.distinct.from(TradeScenarios)
-                // .columns('TradeScenario', 'MarketScopeRegion', 'MarketScopeCountry')
-                .columns('TradeScenario')
-                .orderBy('TradeScenario')
-        );
-    });
+    // this.on('READ', 'TradeScenarioVH', async (req) => {
+    //     const db = cds.transaction(req);
+    //     return await db.run(
+    //         SELECT.distinct.from(TradeScenarios)
+    //             // .columns('TradeScenario', 'MarketScopeRegion', 'MarketScopeCountry')
+    //             .columns('TradeScenario')
+    //             .orderBy('TradeScenario')
+    //     );
+    // });
 
-    // Distinct Regions filtered by TradeScenario
-    this.on('READ', 'MarketRegionVH', async (req) => {
-        const db = cds.transaction(req);
-        let q = SELECT.distinct.from(TradeScenarios)
-            // .columns('TradeScenario', 'MarketScopeRegion', 'MarketScopeCountry');
-            .columns('MarketScopeRegion');
+    // // Distinct Regions filtered by TradeScenario
+    // this.on('READ', 'MarketRegionVH', async (req) => {
+    //     const db = cds.transaction(req);
+    //     let q = SELECT.distinct.from(TradeScenarios)
+    //         // .columns('TradeScenario', 'MarketScopeRegion', 'MarketScopeCountry');
+    //         .columns('MarketScopeRegion');
 
-        if (req.query.SELECT.where) {
-            q.where(req.query.SELECT.where);
-        }
+    //     if (req.query.SELECT.where) {
+    //         q.where(req.query.SELECT.where);
+    //     }
 
-        return await db.run(q);
-    });
+    //     return await db.run(q);
+
+    this.on('READ', 'TradeScenarioVH', () => cds.run(SELECT.distinct.from('TradeAndMarketScenarioDetermination').columns('TradeScenario').orderBy('TradeScenario')));
+    this.on('READ', 'MarketRegionVH', () => cds.run(SELECT.distinct.from('TradeAndMarketScenarioDetermination').columns('MarketScopeRegion').orderBy('MarketScopeRegion')));
+
 
     // Distinct Countries filtered by TradeScenario + Region
     this.on('READ', 'MarketCountryVH', async (req) => {
@@ -864,73 +867,36 @@ module.exports = cds.service.impl(async function () {
         return await extdb.run(q);
     });
 
-    this.on('READ', 'SalesOrgVH', async (req) => {
+
+
+    // ─── Helper ──────────────────────────────────────────────────────────────────
+    const readVH = async (req, table, { codeCol = 'Code', descCol = 'Description' } = {}) => {
         const extdb = await cds.connect.to('extdb');
-        let q = SELECT.distinct.from('ErpSalesOrg')
-            .columns('Code','Description')
-            .orderBy('Code');
+
+        let q = SELECT.distinct.from(table)
+            .columns(codeCol, descCol)
+            .orderBy(codeCol);
 
         if (req.query.SELECT.where) {
             q.where(req.query.SELECT.where);
         }
 
-        return await extdb.run(q);
-    });
+        const result = await extdb.run(q);
+        return result.map(r => ({
+            Code: r[codeCol],
+            Description: r[descCol]
+        }));
+    };
 
-    this.on('READ', 'DistributionChannelVH', async (req) => {
-        const extdb = await cds.connect.to('extdb');
-        let q = SELECT.distinct.from('ErpDistributionChannel')
-            .columns('Code','Description')
-            .orderBy('Code');
+    // ─── Value Help Handlers ──────────────────────────────────────────────────────
+    this.on('READ', 'SalesOrgVH', req => readVH(req, 'ERP_SALES_ORG', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
+    this.on('READ', 'DistributionChannelVH', req => readVH(req, 'ERP_DIST_CHANNEL', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
+    this.on('READ', 'PlantVH', req => readVH(req, 'ERP_PLANT', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
 
-        if (req.query.SELECT.where) {
-            q.where(req.query.SELECT.where);
-        }
+    this.on('READ', 'PricelistVH', req => readVH(req, 'ERP_CUSTPRICELIST', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
+    this.on('READ', 'CustomerGroup1VH', req => readVH(req, 'ERP_CUSTGRP1', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
 
-        return await extdb.run(q);
-    });
 
-    // Distinct Plant filtered by Customer + Sales Orgs + Dist Channels
-    this.on('READ', 'PlantVH', async (req) => {
-        const extdb = await cds.connect.to('extdb');
-        let q = SELECT.distinct.from('ErpPlant')
-            .columns('Code','Description')
-            .orderBy('Code');
-
-        if (req.query.SELECT.where) {
-            q.where(req.query.SELECT.where);
-        }
-
-        return await extdb.run(q);
-    });
-
-    // Distinct Cust. Pricelist
-    this.on('READ', 'PricelistVH', async (req) => {
-        const extdb = await cds.connect.to('extdb');
-        let q = SELECT.distinct.from('ErpPricelist')
-            .columns('Code','Description')
-            .orderBy('Code');
-
-        if (req.query.SELECT.where) {
-            q.where(req.query.SELECT.where);
-        }
-
-        return await extdb.run(q);
-    });
-
-    // Distinct Cust. Group1
-    this.on('READ', 'CustomerGroup1VH', async (req) => {
-        const extdb = await cds.connect.to('extdb');
-        let q = SELECT.distinct.from('ErpCustomerGroup1')
-            .columns('Code','Description')
-            .orderBy('Code');
-
-        if (req.query.SELECT.where) {
-            q.where(req.query.SELECT.where);
-        }
-
-        return await extdb.run(q);
-    });
 
     //Pricing Parameters - Product Price Condition Type (Value Help)
     this.on('READ', 'PriceConditionTypeVH', (req) => {
@@ -942,7 +908,7 @@ module.exports = cds.service.impl(async function () {
         if (req.query.SELECT.count) {
             data.$count = data.length;
         }
-        
+
         return data;
     });
 
@@ -963,7 +929,7 @@ module.exports = cds.service.impl(async function () {
         if (req.query.SELECT.count) {
             data.$count = data.length;
         }
-        
+
         return data;
     });
 
@@ -978,10 +944,10 @@ module.exports = cds.service.impl(async function () {
         if (req.query.SELECT.count) {
             data.$count = data.length;
         }
-        
+
         return data;
     });
-    
+
     //Pricing Parameters - Discount Access Sequence (Value Help)
     this.on('READ', 'DiscountAccessSequenceVH', (req) => {
         const data = [
@@ -991,7 +957,7 @@ module.exports = cds.service.impl(async function () {
         if (req.query.SELECT.count) {
             data.$count = data.length;
         }
-        
+
         return data;
     });
 
@@ -1005,7 +971,7 @@ module.exports = cds.service.impl(async function () {
         if (req.query.SELECT.count) {
             data.$count = data.length;
         }
-        
+
         return data;
     });
 
@@ -1020,7 +986,7 @@ module.exports = cds.service.impl(async function () {
         if (req.query.SELECT.count) {
             data.$count = data.length;
         }
-        
+
         return data;
     });
 
@@ -1034,7 +1000,7 @@ module.exports = cds.service.impl(async function () {
         if (req.query.SELECT.count) {
             data.$count = data.length;
         }
-        
+
         return data;
     });
 
@@ -1146,7 +1112,7 @@ module.exports = cds.service.impl(async function () {
         console.log('>>> Filters:', filters);
 
         const resolvedItems = await resolveItems(filters, db, extdb);
-        return resolvedItems;        
+        return resolvedItems;
     });
 
     //PDF Export
@@ -1196,7 +1162,7 @@ module.exports = cds.service.impl(async function () {
             .where({ ID: pricelistId })
             .expand("items")   // <-- expand composition
         );
-
+    
         const detailTerms = headerWithItems?.items || []; */
         const itemCandidates = await tx.run(
             SELECT.from(PricelistItemData)

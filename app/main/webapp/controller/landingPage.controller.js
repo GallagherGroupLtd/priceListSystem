@@ -65,29 +65,29 @@ sap.ui.define([
 
             if (!sSemanticObject || !sAction) { return; }
 
-            if (!sap.ushell || !sap.ushell.Container) {
-                // Base URL for local navigation
-                const sBaseUrl = window.location.origin;
-                switch (sTargetIntent) {
-                    case "Pricelist-display":
-                        window.location.href = "/pricelistapp.pricelistdisplay/index.html";
-                        break;
-                    case "PriceMaintain-manage":
-                    case "PricelistMaintain-manage":
-                        window.location.href = "/pricelistapp.pricelistmaintain/index.html";
-                        break;
-                    case "DataMaintain-manage":
-                        window.location.href = "/pricelistapp.datamaintain/index.html";
-                        break;
-                    case "AppLog-display":
-                        window.location.href = "/pricelistapp.applicationlog/index.html";
-                        break;
-                    default:
-                        MessageToast.show("No navigation defined for: " + sTargetIntent);
-                        break;
-                }
-                return;
-            }
+            // if (!sap.ushell || !sap.ushell.Container) {
+            //     // Base URL for local navigation
+            //     const sBaseUrl = window.location.origin;
+            //     switch (sTargetIntent) {
+            //         case "Pricelist-display":
+            //             window.location.href = "/pricelistapp.pricelistdisplay/index.html";
+            //             break;
+            //         case "PriceMaintain-manage":
+            //         case "PricelistMaintain-manage":
+            //             window.location.href = "/pricelistapp.pricelistmaintain/index.html";
+            //             break;
+            //         case "DataMaintain-manage":
+            //             window.location.href = "/pricelistapp.datamaintain/index.html";
+            //             break;
+            //         case "AppLog-display":
+            //             window.location.href = "/pricelistapp.applicationlog/index.html";
+            //             break;
+            //         default:
+            //             MessageToast.show("No navigation defined for: " + sTargetIntent);
+            //             break;
+            //     }
+            //     return;
+            // }
 
             // Get the CrossApplicationNavigation service
             sap.ushell.Container.getServiceAsync("CrossApplicationNavigation").then(function (oCrossAppNavigator) {
@@ -131,30 +131,30 @@ sap.ui.define([
             // }
 
             //Navigate to Link
-            let oModel = this.getView().getModel();
-            let sUrl = oModel.sServiceUrl;
-            sUrl = sUrl + "User";
+            // let oModel = this.getView().getModel();
+            // let sUrl = oModel.sServiceUrl;
+            // sUrl = sUrl + "User";
 
-            $.ajax({
-                url: sUrl,
-                type: 'GET',
-                contentType: 'application/json',
-                success: function (data) {
-                    let response1 = data.value;
-                    let targetUrl = response1[0][sRouteName];
+            // $.ajax({
+            //     url: sUrl,
+            //     type: 'GET',
+            //     contentType: 'application/json',
+            //     success: function (data) {
+            //         let response1 = data.value;
+            //         let targetUrl = response1[0][sRouteName];
 
-                    if (targetUrl) {
-                        URLHelper.redirect(targetUrl, true);
-                    } else {
-                        MessageBox.error('No redirect URL found. Please contact technical support.');
-                    }
+            //         if (targetUrl) {
+            //             URLHelper.redirect(targetUrl, true);
+            //         } else {
+            //             MessageBox.error('No redirect URL found. Please contact technical support.');
+            //         }
 
-                }.bind(this),
-                error: function (dataError) {
-                    this.getView().setBusy(false);
-                    MessageBox.error('No redirect URL found. Please contact technical support.');
-                }.bind(this)
-            });
+            //     }.bind(this),
+            //     error: function (dataError) {
+            //         this.getView().setBusy(false);
+            //         MessageBox.error('No redirect URL found. Please contact technical support.');
+            //     }.bind(this)
+            // });
         },
 
         getImageSrc: function () {
