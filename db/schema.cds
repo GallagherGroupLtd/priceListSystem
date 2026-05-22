@@ -226,6 +226,8 @@ entity PricelistData : managed, cuid {
     TermsAndConditions : String      @title: 'Header Terms and Conditions';
     
     Notes              : String      @title: 'Notes';
+    ExtUserDisable     : Boolean     @title: 'External User Disable Flag';
+    IntUserDisable     : Boolean     @title: 'Internal User Disable Flag';
 
     // Composition: Pricelist owns its items
     items              : Composition of many PricelistItemData
