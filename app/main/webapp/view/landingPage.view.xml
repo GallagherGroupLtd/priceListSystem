@@ -74,7 +74,7 @@
                                                 </TileContent>
                                             </tileContent>
                                             <customData>
-                                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="MyRequest-display" />
+                                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="Myrequest-maintain" />
                                             </customData>
                                         </GenericTile>
 

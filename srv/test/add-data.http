@@ -1,0 +1,26 @@
+@server = http://localhost:4004
+@path = 'priceListService'
+
+@token = R0dMVEVDSDoyMDI2UX5aam9ZQ0REeDNW
+
+@me = Authorization: Basic GGLTECH 2026Q~ZjoYCDDx3V
+
+### --------------------------------------------------------------
+### Fetch CSRF token
+HEAD {{server}}/{{path}}/
+X-CSRF-Token: Fetch
+Content-Type: application/json;IEEE754Compatible=true
+{{me}}
+
+### --------------------------------------------------------------
+#metadata
+GET {{server}}/{{path}}/$metadata
+Content-Type: application/json;IEEE754Compatible=true
+
+### --------------------------------------------------------------
+GET {{server}}/priceListService/AccountAssignment
+Content-Type: application/json;IEEE754Compatible=true
+
+### --------------------------------------------------------------
+GET {{server}}/priceListService/ErpDivision
+Content-Type: application/json;IEEE754Compatible=true

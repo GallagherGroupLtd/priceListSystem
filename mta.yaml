@@ -10,7 +10,7 @@ modules:
       - name: priceListSystem-auth
       - name: priceListSystem-db
       - name: priceListSystem-destination
-      - name: ups-sapecc
+      - name: extdb
     provides:
       - name: srv-api
         properties:
@@ -359,8 +359,10 @@ resources:
     parameters:
       service: html5-apps-repo
       service-plan: app-runtime
-  - name: ups-sapecc
+  - name: extdb
     type: org.cloudfoundry.existing-service
+    parameters:
+      service-name: ups-sapecc
 parameters:
   deploy_mode: html5-repo
   enable-parallel-deployments: true

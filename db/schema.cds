@@ -29,6 +29,7 @@ entity PricelistItemStructureComponents : managed, cuid {
     CustGroup1         : String(255) @title: 'Customer Group 1';
     ErpCustomer        : String(255) @title: 'ERP Customer';
     DeliveringPlant    : String(255) @title: 'Plant';
+    TermsAndCondition  : String(255) @title: 'GeneralTerms and Conditions';
     MainCategory       : String(255) @title: 'Main Category';
     Subcategory1       : String(255) @title: 'Subcategory 1';
     Subcategory2       : String(255) @title: 'Subcategory 2';
@@ -94,11 +95,10 @@ entity PricingParameterDetermination : managed, cuid {
     CustGroup1               : String(255) @title : 'Customer Group 1';
     ErpCustomer              : String(255) @title : 'ERP Customer Code';
     DeliveringPlant          : String(255) @title : 'Plant';
-    ErpPriceCondition        : String(20)  @title : 'ERP Price Condition';
-    ErpSequence              : String(20)  @title : 'ERP Sequence';
-    ErpPricingAccessSequence : String(255) @title : 'ERP Pricing Access Sequence';
-    SequenceDescription      : String(255) @tittle: 'ERP Pricing Access Description';
-    TechnicalFilter          : String(255) @title : 'ERP Pricing Sequence Filter';
+    ConditionType            : String(4)   @title : 'Product Price Condition Type';
+    AccessSequence           : String(255) @title : 'Product Pricing Access Sequence';
+    DiscountConditionType    : String(4)   @title : 'Product Discount Condition Type';
+    DiscountAccessSequence   : String(255) @title : 'Product Discount Access Sequence';
 }
 
 /** Information Tile Content **/
@@ -110,10 +110,11 @@ entity InformationTileContent : managed, cuid {
     DistChannel        : String(2)   @title : 'Distribution Channel';
     CustPriceList      : String(20)  @title : 'Customer Pricelist';
     CustGroup1         : String(255) @title : 'Customer Group 1';
-    ErpCustomer        : String(255) @title : 'ERP Customer Code';    
-    InformationHeading : String(30)  @title: 'Information Heading';
-    InformationDetails : String(100) @title: 'Information Details';
-    ImageLink          : String(255) @title: 'Image Link';
+    ErpCustomer        : String(255) @title : 'ERP Customer Code';   
+    DeliveringPlant    : String(255) @title : 'Plant'; 
+    InformationHeading : String(30)  @title : 'Information Heading';
+    InformationDetails : String(100) @title : 'Information Details';
+    ImageLink          : String(255) @title : 'Image Link' default 'https://gallagher.com/-/media/Project/Security-Business/Security-Public-Site/Images/gallagherlogocorp.png';
 }
 
 /** Contact Information **/
@@ -121,22 +122,53 @@ entity ContactInformation : managed, cuid {
     TradeScenario      : String(255) @title: 'Trade Scenario';
     MarketScopeRegion  : String(255) @title: 'Region';
     MarketScopeCountry : String(255) @title: 'Country';
+    InternalAccount    : Boolean     @title: 'Internal Account';
+    ExternalAccount    : Boolean     @title: 'External Account';
     ContactEmail       : String(255) @title: 'Contact E-Mail';
     ContactNumber      : String(30)  @title: 'Contact Number';
 }
 
 /** Account Information **/
 entity AccountAssignment : managed, cuid {
-    FirstName          : String(255) @title: 'First Name';
-    LastName           : String(255) @title: 'Last Name';
-    Type               : String(255) @title: 'Type';
-    Email              : String(255) @title: 'E-Mail';
-    TradeScenario      : String(255) @title: 'Trade Scenario';
-    MarketScopeRegion  : String(255) @title: 'Region';
-    MarketScopeCountry : String(255) @title: 'Country';
-    CustomerNumber     : String(255) @title: 'Customer Number';
-    SalesOrg           : String(4)   @title: 'Sales Organization';
-    DistChannel        : String(2)   @title: 'Distribution Channel';
+    FirstName            :               String(255) @title: 'First Name';
+    LastName             :               String(255) @title: 'Last Name';
+    Email                :               String(255) @title: 'E-Mail';
+    AccountType          :               String(255) @title: 'Account Type';    
+    AccountScope         :               String(255) @title: 'Account Scope';
+    CommercialScope      :               String(255) @title: 'Commercial Scope';
+    CustomerNumber       :               String(255) @title: 'Customer Code';
+    TradeScenario        :               String(255) @title: 'Trade Scenario';
+    MarketScopeRegion    :               String(255) @title: 'Region';
+    MarketScopeCountry   :               String(255) @title: 'Country';    
+    SalesOrg             :               String(4)   @title: 'Sales Organization';
+    DistChannel          :               String(2)   @title: 'Distribution Channel';
+    CustPriceList        :               String(20)  @title : 'Customer Pricelist';
+    CustGroup1           :               String(255) @title : 'Customer Group 1';    
+    DeliveringPlant      :               String(255) @title: 'Plant';
+    ControlPriceListView :               Boolean     @title: 'Pricelist View';
+    ControlPriceView     :               Boolean     @title: 'Price View';
+    ControlDiscountIndicator :           Boolean     @title: 'Discount Indicator';
+    ControlDiscountRate :                Boolean     @title: 'Discount Rate';
+    ControlWorkflowTile       :          Boolean     @title: 'Workflow Tile';
+    ContorlPriceListReviewScheduleTile : Boolean     @title: 'Pricelist Review Schedule Tile';
+    ControlPricelistMaintenance :        Boolean     @title: 'Pricelist Maintenance';
+    ControlDataMaintenance :             Boolean     @title: 'Data Maintenance';
+    ControlMyRequestTile :               Boolean     @title: 'My Requests Tile';
+    ControlApplicationLogTile :          Boolean     @title: 'Application Log Tile';
+}
+
+/** Product Maintenance **/
+entity ProductMaintenance : managed, cuid {
+    ProductID                       : String(30)  @title: 'Product ID';
+    ProductDescription              : String(255) @title: 'Product Description';
+    SalesOrg                        : String(255) @title: 'Sales Organization';
+    DistChannel                     : String(2)   @title: 'Distribution Channel';
+    MaterialClassification1         : String(255) @title: 'Material Classification';
+    DetailsTranslation              : String(255) @title: 'Product Details Translation';
+    MaterialClassification2         : String(255) @title: 'Material Classification';
+    PricelistMaterialClassification : String(255) @title: 'Pricelist Material Classification';
+    ProductStatus                   : String(255) @title: 'Product Status';
+    StatusValidity                  : Date        @title: 'Status Validity';
 }
 
 /** Pricing Condition Description **/
@@ -297,15 +329,6 @@ entity ErpPriceStatus : managed, cuid {
     Code        : String(4);
     Description : String(255);
 }
-//entity MyRequest {
-//  key ID            : UUID;
-//  AccountName       : String(100);
-//  ReqDate           : Date;
-//  ReqTime           : Time;
-//  ReqStatus         : String(20);
-//  ReqSubject        : String(200);
-//  RequestDetails    : String(1000);
-//}
 
 entity MyRequest {
   key ID            : UUID;

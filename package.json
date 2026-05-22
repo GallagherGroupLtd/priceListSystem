@@ -22,9 +22,7 @@
   },
   "scripts": {
     "start": "cds-serve",
-    "start-hybrid": "cds watch --profile hybrid",
-    "start-hanadev": "cds watch --profile hanadev",
-    "all": "npm-run-all --parallel start-approuter start-hanadev ",
+    "start-hybrid": "cds watch --profile hybrid-new",
     "start-approuter": "cds bind --exec -- npm start --prefix app/router",
     "all-wz": "npm-run-all --parallel start-hybrid start-approuter",
     "watch-main": "cds watch --open pricelistapp.main/index.html?sap-ui-xx-viewCache=false --livereload false",
@@ -56,34 +54,15 @@
       "destinations": true,
       "html5-repo": true,
       "db": {
-        "kind": "sql",
-        "model": "db",
-        "[hybrid]": {
-          "kind": "hana"
-        },
-        "[hanadev]": {
-          "kind": "hana"
-        }
+        "kind": "hana"
       },
       "extdb": {
         "kind": "hana",
         "vcap": {
-          "name": "ups-sapecc"
+          "label": "user-provided"
         }
       },
-      "[production]": {
-        "auth": "xsuaa",
-        "db": {
-          "kind": "hana"
-        },
-        "extdb": {
-          "kind": "hana",
-          "credentials": {
-            "service": "ups-sapecc"
-          }
-        },
-        "data": false
-      }
+      "data": false
     },
     "features": {
       "fiori_filter_ignore_case": true

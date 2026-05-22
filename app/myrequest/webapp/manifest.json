@@ -28,7 +28,7 @@
     "crossNavigation": {
       "inbounds": {
         "myrequest-maintain": {
-          "semanticObject": "myrequest",
+          "semanticObject": "Myrequest",
           "action": "maintain",
           "title": "{{myrequest-maintain.flpTitle}}",
           "signature": {

@@ -92,7 +92,11 @@
       }
     },
     "resources": {
-      "css": []
+      "css": [
+      {
+        "uri": "css/style.css"
+      }
+    ]
     },
     "routing": {
       "config": {
@@ -160,7 +164,8 @@
                     }
                   }
                 }
-              }
+              },
+              "initialLoad": "Enabled"
             }
           },
           "controlAggregation": "beginColumnPages",
