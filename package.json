@@ -24,7 +24,7 @@
     "start": "cds-serve",
     "start-hybrid": "cds watch --profile hybrid-new",
     "start-approuter": "cds bind --exec -- npm start --prefix app/router",
-    "all": "npm-run-all --parallel start-hybrid start-approuter",
+    "all-wz": "npm-run-all --parallel start-hybrid start-approuter",
     "watch-main": "cds watch --open pricelistapp.main/index.html?sap-ui-xx-viewCache=false --livereload false",
     "undeploy": "cf undeploy priceListSystem --delete-services --delete-service-keys --delete-service-brokers",
     "build": "rimraf resources mta_archives && mbt build --mtar archive",
