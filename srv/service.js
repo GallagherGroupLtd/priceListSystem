@@ -897,7 +897,6 @@ module.exports = cds.service.impl(async function () {
     this.on('READ', 'CustomerGroup1VH', req => readVH(req, 'ERP_CUSTGRP1', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
 
 
-
     //Pricing Parameters - Product Price Condition Type (Value Help)
     this.on('READ', 'PriceConditionTypeVH', (req) => {
         const data = [

@@ -270,6 +270,20 @@ entity PricelistItemData : managed, cuid {
     SubCategory5TermsandCond  : String @title : 'Sucategory 5 Terms and Conditions';
 }
 
+/** Product Maintenance **/
+entity PricelistProduct : managed, cuid {
+    ProductID                       : String(30)  @title: 'Product ID';
+    ProductDescription              : String(255) @title: 'Product Description';
+    SalesOrg                        : String(255) @title: 'Sales Organization';
+    DistChannel                     : String(2)   @title: 'Distribution Channel';
+    MaterialClassification1         : String(255) @title: 'Material Classification';
+    ProductDescription2             : String(255) @title: 'Pricelist Product Description';
+    MaterialClassification2         : String(255) @title: 'Translation Material Classification';
+    PricelistMaterialClassification : String(255) @title: 'Pricelist Material Classification';
+    ProductStatus                   : String(255) @title: 'Product Status';
+    StatusValidity                  : Date        @title: 'Status Validity';
+}
+
 /* -------------------------------------- Value Help -------------------------------------- */
 
 /* Sales Org Table */
