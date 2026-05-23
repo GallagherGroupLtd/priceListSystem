@@ -148,6 +148,13 @@ service PriceListService {
 
     annotate ErpPriceStatus with @odata.draft.enabled;
 
+    entity PricelistProduct    as projection on my.PricelistProduct
+        actions {
+            action copyRow() returns PricelistProduct;
+        };
+
+    annotate PricelistProduct with @odata.draft.enabled;
+    
     //File Upload Functions
     action MassUploadTradeScenarios(file: String)                    returns String;
     action MassUploadItemStructure(file: String)                     returns String;
