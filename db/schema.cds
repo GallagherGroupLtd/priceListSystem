@@ -28,8 +28,7 @@ entity PricelistItemStructureComponents : managed, cuid {
     CustPriceList      : String(20)  @title: 'Customer Pricelist';
     CustGroup1         : String(255) @title: 'Customer Group 1';
     ErpCustomer        : String(255) @title: 'ERP Customer';
-    DeliveringPlant    : String(255) @title: 'Plant';
-    TermsAndCondition  : String(255) @title: 'GeneralTerms and Conditions';
+    DeliveringPlant    : String(255) @title: 'Plant';    
     MainCategory       : String(255) @title: 'Main Category';
     Subcategory1       : String(255) @title: 'Subcategory 1';
     Subcategory2       : String(255) @title: 'Subcategory 2';
@@ -66,6 +65,7 @@ entity TermsAndConditionDetermination : managed, cuid {
     CustGroup1                : String(255) @title: 'Customer Group 1';
     ErpCustomer               : String(255) @title: 'ERP Customer';
     DeliveringPlant           : String(255) @title: 'Plant';
+    TermsAndCondition         : String(255) @title: 'GeneralTerms and Conditions';
     MainCategory              : String(255) @title: 'Main Category';
     Subcategory1              : String(255) @title: 'Subcategory 1';
     Subcategory2              : String(255) @title: 'Subcategory 2';

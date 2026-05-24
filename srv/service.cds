@@ -567,6 +567,13 @@ service PriceListService {
 
     entity PriceStatusVH          as projection on my.ErpPriceStatus;
 
+    @odata.draft.enabled
+    entity MyRequest              as projection on my.MyRequest
+        actions {
+            action SubmitRequest();
+        };
+    }
+
     @cds.persistence.skip
     entity PriceConditionTypeVH {
         key Code : String(4);
@@ -598,10 +605,12 @@ service PriceListService {
         key Code : String(8);
     }
 
-    @odata.draft.enabled
-    entity MyRequest              as projection on my.MyRequest
-        actions {
-            action SubmitRequest();
-        };
+    @cds.persistence.skip
+    entity MainCategoryVH {
+        key MainCategory : String(255);
+    }
 
-}
+    @cds.persistence.skip
+    entity Subcategory1VH {
+        key Subcategory1 : String(255);
+    }

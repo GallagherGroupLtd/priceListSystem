@@ -329,6 +329,34 @@ annotate service.TermsAndConditions with {
         }
     );
 
+    MainCategory @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'MainCategoryVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'MainCategory', 
+                    ValueListProperty: 'MainCategory' }
+            ]
+        }
+    );
+    
+    Subcategory1 @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'Subcategory1VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'Subcategory1', 
+                    ValueListProperty: 'Subcategory1' }
+            ]
+        }
+    );
+
     SalesOrg @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
@@ -424,12 +452,6 @@ annotate service.TermsAndConditions with {
         }        
     ); 
     
-    MainCategory       @UI.MultiLineText;
-    Subcategory1       @UI.MultiLineText;
-    Subcategory2       @UI.MultiLineText;
-    Subcategory3       @UI.MultiLineText;
-    Subcategory4       @UI.MultiLineText;
-    Subcategory5       @UI.MultiLineText;
     MainCategoryLocal  @UI.MultiLineText;
     Subcategory1Local  @UI.MultiLineText;
     Subcategory2Local  @UI.MultiLineText;
