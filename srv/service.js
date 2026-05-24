@@ -821,7 +821,18 @@ module.exports = cds.service.impl(async function () {
 
     this.on('READ', 'TradeScenarioVH', () => cds.run(SELECT.distinct.from('TradeAndMarketScenarioDetermination').columns('TradeScenario').orderBy('TradeScenario')));
     this.on('READ', 'MarketRegionVH', () => cds.run(SELECT.distinct.from('TradeAndMarketScenarioDetermination').columns('MarketScopeRegion').orderBy('MarketScopeRegion')));
+    this.on('READ', 'MainCategoryVH', () => cds.run(SELECT.distinct.from('PricelistItemStructureComponents').columns('MainCategory').orderBy('MainCategory')));
+    this.on('READ', 'Subcategory1VH', () => cds.run(SELECT.distinct.from('PricelistItemStructureComponents').columns('Subcategory1').orderBy('Subcategory1')));
 
+    // // Distinct Customers from HANA DB Table T_CUSTOMER_MASTER_DATA
+    // this.on('READ', 'MainCategoryVH', async (req) => {
+    //     const db = cds.transaction(req);
+    //     let q = SELECT.distinct.from('PricelistItemStructureComponents').columns('MainCategory').orderBy('MainCategory');
+    //     if (req.query.SELECT.where) {
+    //         q.where(req.query.SELECT.where);
+    //     }
+    //     return await db.run(q);
+    // });
 
     // Distinct Countries filtered by TradeScenario + Region
     this.on('READ', 'MarketCountryVH', async (req) => {
@@ -892,10 +903,9 @@ module.exports = cds.service.impl(async function () {
     this.on('READ', 'SalesOrgVH', req => readVH(req, 'ERP_SALES_ORG', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'DistributionChannelVH', req => readVH(req, 'ERP_DIST_CHANNEL', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'PlantVH', req => readVH(req, 'ERP_PLANT', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
-
     this.on('READ', 'PricelistVH', req => readVH(req, 'ERP_CUSTPRICELIST', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'CustomerGroup1VH', req => readVH(req, 'ERP_CUSTGRP1', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
-
+    
 
     //Pricing Parameters - Product Price Condition Type (Value Help)
     this.on('READ', 'PriceConditionTypeVH', (req) => {

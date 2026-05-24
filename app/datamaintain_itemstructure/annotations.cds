@@ -72,12 +72,6 @@ annotate service.ItemStructure with @(
             { $Type : 'UI.DataField', Value : DeliveringPlant }
         ]
     },
-    
-    UI.FieldGroup #TermsAndConditions : {
-        Data: [
-            { $Type : 'UI.DataField', Value : TermsAndCondition }
-        ]
-    },
 
     UI.FieldGroup #MainCategory : {
         Data: [
@@ -167,12 +161,6 @@ annotate service.ItemStructure with @(
         },
         {
             $Type  : 'UI.ReferenceFacet',
-            ID    : 'Facet3',
-            Label  : 'General Terms and Conditions',
-            Target : '@UI.FieldGroup#TermsAndConditions'
-        },
-        {
-            $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet4',
             Label  : 'Main Category',
             Target : '@UI.FieldGroup#MainCategory'
@@ -255,7 +243,6 @@ annotate service.ItemStructure with @(
         { Value: CustGroup1 },
         { Value: ErpCustomer },
         { Value: DeliveringPlant },
-        { Value: TermsAndConditions },
         { Value: MainCategory },
         { Value: Subcategory1 },
         { Value: Subcategory2 },
@@ -408,28 +395,8 @@ annotate service.ItemStructure with {
                 }
             ]              
         }        
-    );    
+    );     
 
-    ErpCustomer @(
-        Common.ValueListWithFixedValues : true,
-        Common.ValueList: {
-            $Type         : 'Common.ValueList',
-            CollectionPath: 'Test123VH',
-            Parameters: [
-                { 
-                    $Type: 'Common.ValueListParameterInOut', 
-                    LocalDataProperty: 'ErpCustomer', 
-                    ValueListProperty: 'code' 
-                },
-                { 
-                    $Type: 'Common.ValueListParameterDisplayOnly', 
-                    ValueListProperty: 'name' 
-                }
-            ]              
-        }        
-    );  
-
-    TermsAndCondition  @UI.MultiLineText;
     MainCategory       @UI.MultiLineText;
     Subcategory1       @UI.MultiLineText;
     Subcategory2       @UI.MultiLineText;
