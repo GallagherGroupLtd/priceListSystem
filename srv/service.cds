@@ -572,6 +572,17 @@ service PriceListService {
         actions {
             action SubmitRequest();
         };
+
+    @cds.persistence.skip
+    entity MainCategoryVH {
+        key MainCategory : String(255);
+    }
+
+    @cds.persistence.skip
+    entity Subcategory1VH {
+        key Subcategory1 : String(255);
+    }
+
     }
 
     @cds.persistence.skip
@@ -605,12 +616,3 @@ service PriceListService {
         key Code : String(8);
     }
 
-    @cds.persistence.skip
-    entity MainCategoryVH {
-        key MainCategory : String(255);
-    }
-
-    @cds.persistence.skip
-    entity Subcategory1VH {
-        key Subcategory1 : String(255);
-    }
