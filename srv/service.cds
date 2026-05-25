@@ -611,3 +611,13 @@ service PriceListService {
         key Code : String(8);
     }
 }
+
+    @cds.persistence.skip
+    entity MainCategoryVH {
+        key MainCategory : String(255);
+    }
+
+    @cds.persistence.skip
+    entity Subcategory1VH {
+        key Subategory1 : String(255);
+    }
