@@ -293,7 +293,7 @@ service PriceListService {
     entity ExternalCustomers {
         key CUSTOMER_KEY              : String(100);
             SYSTEM_CLIENT_GENERAL     : String(100);
-            CUSTOMER                  : String(100);
+            CUSTOMER                  : String(100) @title: 'Customer';
             GENERAL_CREATED_ON        : String(100);
             CUSTOMER_NAME_1           : String(100);
             CUSTOMER_NAME_2           : String(100);
@@ -309,8 +309,8 @@ service PriceListService {
             CENTRAL_DELIVERY_BLOCK    : String(100);
             CENTRAL_POSTING_BLOCK     : String(100);
             CENTRAL_SALES_BLOCK       : String(100);
-            SALES_ORGANIZATION        : String(100);
-            DISTRIBUTION_CHANNEL      : String(100);
+            SALES_ORGANIZATION        : String(100) @title: 'Sales Organization';
+            DISTRIBUTION_CHANNEL      : String(100) @title: 'Distribution Channel';
             DIVISION                  : String(100);
             CREATED_ON_DATE           : String(100);
             SALES_AREA_DELETION_FLAG  : String(100);

@@ -1001,9 +1001,9 @@ module.exports = cds.service.impl(async function () {
 
     this.on('READ', 'StatusVH', (req) => {
         const data = [
-            { code: 'Initial', name: 'Initial' },
-            { code: 'Active', name: 'Active' },
-            { code: 'Inactive', name: 'Inactive' }
+            { code: 'Initial' },
+            { code: 'Active' },
+            { code: 'Inactive' }
         ];
 
         if (req.query.SELECT.count) {

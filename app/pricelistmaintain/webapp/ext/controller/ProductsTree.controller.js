@@ -242,16 +242,16 @@ sap.ui.define([
 
         //Button Label Update between Display/Edit/Create Mode
         _updateRefreshButtonLabel: function () {
-            const oBtn = this.byId("ProductsTreeRefreshButton");
-            if (!oBtn) return;
+            // const oBtn = this.byId("ProductsTreeRefreshButton");
+            // if (!oBtn) return;
 
-            if (this._isEditMode()) {
-                // In draft/edit mode → user can fetch materials
-                oBtn.setText("Fetch Pricelist Materials");
-            } else {
-                // In active/display mode → just refresh tree
-                oBtn.setText("Go");
-            }
+            // if (this._isEditMode()) {
+            //     // In draft/edit mode → user can fetch materials
+            //     oBtn.setText("Fetch Pricelist Materials");
+            // } else {
+            //     // In active/display mode → just refresh tree
+            //     oBtn.setText("Go");
+            // }
         },
 
         //Node Selection Change Logic
@@ -1460,7 +1460,7 @@ sap.ui.define([
             const hasSelection = oModel.getProperty("/hasSelection");
 
             // TextArea: editable only when editing terms and node selected
-            this.byId("TermsContentBox").setEditable(termsEditable && hasSelection);
+            // this.byId("TermsContentBox").setEditable(termsEditable && hasSelection);
         }
     });
 });
