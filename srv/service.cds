@@ -612,5 +612,5 @@ service PriceListService {
 
     @cds.persistence.skip
     entity Subcategory1VH {
-        key Subcategory1 : String(255);
+        key Subategory1 : String(255);
     }

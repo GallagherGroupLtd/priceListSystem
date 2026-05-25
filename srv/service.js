@@ -822,7 +822,7 @@ module.exports = cds.service.impl(async function () {
     this.on('READ', 'TradeScenarioVH', () => cds.run(SELECT.distinct.from('TradeAndMarketScenarioDetermination').columns('TradeScenario').orderBy('TradeScenario')));
     this.on('READ', 'MarketRegionVH', () => cds.run(SELECT.distinct.from('TradeAndMarketScenarioDetermination').columns('MarketScopeRegion').orderBy('MarketScopeRegion')));
     this.on('READ', 'MainCategoryVH', () => cds.run(SELECT.distinct.from('PricelistItemStructureComponents').columns('MainCategory').orderBy('MainCategory')));
-    this.on('READ', 'Subcategory1VH', () => cds.run(SELECT.distinct.from('PricelistItemStructureComponents').columns('Subcategory1').orderBy('Subcategory1')));
+    this.on('READ', 'SubCategory1VH', () => cds.run(SELECT.distinct.from('PricelistItemStructureComponents').columns('SubCategory1').orderBy('SubCategory1')));
 
     // // Distinct Customers from HANA DB Table T_CUSTOMER_MASTER_DATA
     // this.on('READ', 'MainCategoryVH', async (req) => {
