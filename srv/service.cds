@@ -622,3 +622,7 @@ service PriceListService {
             Description  : String(100);
     }       
 }
+    @cds.persistence.skip
+    entity Subcategory1VH {
+        key Subategory1 : String(255);
+    }
