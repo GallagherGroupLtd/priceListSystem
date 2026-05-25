@@ -47,7 +47,7 @@ annotate service.TermsAndConditions with @(
     },
 
     // Selection Fields for Filtering
-    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
+    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer,MainCategory,SubCategory1 ],
 
     UI.LineItem  : [
         { Value: TradeScenario },
@@ -343,7 +343,7 @@ annotate service.TermsAndConditions with {
         }
     );
     
-    Subcategory1 @(
+    SubCategory1 @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
@@ -351,8 +351,8 @@ annotate service.TermsAndConditions with {
             Parameters: [
                 { 
                     $Type: 'Common.ValueListParameterInOut', 
-                    LocalDataProperty: 'Subcategory1', 
-                    ValueListProperty: 'Subcategory1' }
+                    LocalDataProperty: 'SubCategory1', 
+                    ValueListProperty: 'SubCategory1' }
             ]
         }
     );
