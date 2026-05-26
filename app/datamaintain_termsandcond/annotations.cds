@@ -203,7 +203,7 @@ annotate service.TermsAndConditions with @(
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet4',
-            Label  : 'Main Category Translation',
+            Label  : 'Main Category Terms and Conditions',
             Target : '@UI.FieldGroup#MainCategoryLocal'
         },
         {
@@ -215,7 +215,7 @@ annotate service.TermsAndConditions with @(
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet6',
-            Label  : 'SubCategory1 Translation',
+            Label  : 'SubCategory1 Terms and Conditions',
             Target : '@UI.FieldGroup#SubCategory1Local'
         },
         {
@@ -227,7 +227,7 @@ annotate service.TermsAndConditions with @(
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet8',
-            Label  : 'SubCategory2 Translation',
+            Label  : 'SubCategory2 Terms and Conditions',
             Target : '@UI.FieldGroup#SubCategory2Local'
         },
         {
@@ -239,7 +239,7 @@ annotate service.TermsAndConditions with @(
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet10',
-            Label  : 'SubCategory3 Translation',
+            Label  : 'SubCategory3 Terms and Conditions',
             Target : '@UI.FieldGroup#SubCategory3Local'
         },
         {
@@ -251,7 +251,7 @@ annotate service.TermsAndConditions with @(
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet12',
-            Label  : 'SubCategory4 Translation',
+            Label  : 'SubCategory4 Terms and Conditions',
             Target : '@UI.FieldGroup#SubCategory4Local'
         },
         {
@@ -263,7 +263,7 @@ annotate service.TermsAndConditions with @(
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet14',
-            Label  : 'SubCategory5 Translation',
+            Label  : 'SubCategory5 Terms and Conditions',
             Target : '@UI.FieldGroup#SubCategory5Local'
         }
     ],

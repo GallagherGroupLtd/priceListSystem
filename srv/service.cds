@@ -598,7 +598,8 @@ service PriceListService {
 
     @cds.persistence.skip
     entity DiscountAccessSequenceVH {
-        key Code : String(4);
+        key Code         : String(4);
+            Description  : String(255);
     }
 
     @cds.persistence.skip
