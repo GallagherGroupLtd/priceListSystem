@@ -163,7 +163,7 @@
                       "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductsTree",
                       "position": {
                         "placement": "After",
-                        "anchor": "PricelistInfoFacet"
+                        "anchor": "ProductPricelistFacet"
                       },
                       "title": "Gallagher Products"
                     },
@@ -191,15 +191,15 @@
                         "anchor": "TermsandConditions"
                       }
                     },
-                    "PricelistInfoFacet": {
+                    "ProductPricelistFacet": {
                       "subSections": {
                         "ProductPricelist": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductPricelist",
                           "position": {
-                            "placement": "After",
-                            "anchor": "ScopeContainer"
+                            "placement": "Before",
+                            "anchor": "PricelistMainCategory"
                           },
-                          "title": "Product Pricelist 1.0"
+                          "title": "Product Pricelist (Cust)"
                         },
                         "PricelistMainCategory": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistMainCategory",
@@ -207,7 +207,7 @@
                             "placement": "After",
                             "anchor": "ProductPricelist"
                           },
-                          "title": "Pricelist Main Category 1.1"
+                          "title": "Pricelist Main Category"
                         },
                         "PricelistSubCategory": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
@@ -215,7 +215,7 @@
                             "placement": "After",
                             "anchor": "PricelistMainCategory"
                           },
-                          "title": "Pricelist Sub Category 1.6"
+                          "title": "Pricelist Sub Category"
                         }
                       }
                     }

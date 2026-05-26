@@ -388,6 +388,18 @@ annotate service.PricelistData with @(
                 ]
             }
         ]
+    },
+    {
+        $Type : 'UI.CollectionFacet',
+        Label : 'Product Pricelist',
+        ID    : 'ProductPricelistFacet',
+        Facets: [
+            {
+                $Type : 'UI.ReferenceFacet',
+                Label : 'General',
+                Target: '@UI.FieldGroup#GeneralInfo'
+            },
+        ]
     }],
 
     // --- FIELD GROUPS ---
