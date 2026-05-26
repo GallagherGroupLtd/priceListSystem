@@ -1041,11 +1041,15 @@ annotate service.PricingParameters with {
         Common.ValueList: {
             $Type         : 'Common.ValueList',
             CollectionPath: 'DiscountAccessSequenceVH',
-            Parameters: [
+            Parameters: [                
                 { 
                     $Type: 'Common.ValueListParameterInOut', 
                     LocalDataProperty: 'DiscountAccessSequence1', 
                     ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
                 }
             ]              
         }        
@@ -1076,6 +1080,10 @@ annotate service.PricingParameters with {
                     $Type: 'Common.ValueListParameterInOut', 
                     LocalDataProperty: 'DiscountAccessSequence2', 
                     ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
                 }
             ]              
         }        
@@ -1106,6 +1114,10 @@ annotate service.PricingParameters with {
                     $Type: 'Common.ValueListParameterInOut', 
                     LocalDataProperty: 'DiscountAccessSequence3', 
                     ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
                 }
             ]              
         }        
@@ -1136,6 +1148,10 @@ annotate service.PricingParameters with {
                     $Type: 'Common.ValueListParameterInOut', 
                     LocalDataProperty: 'DiscountAccessSequence4', 
                     ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
                 }
             ]              
         }        
@@ -1166,6 +1182,10 @@ annotate service.PricingParameters with {
                     $Type: 'Common.ValueListParameterInOut', 
                     LocalDataProperty: 'DiscountAccessSequence5', 
                     ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
                 }
             ]              
         }        
@@ -1196,6 +1216,10 @@ annotate service.PricingParameters with {
                     $Type: 'Common.ValueListParameterInOut', 
                     LocalDataProperty: 'DiscountAccessSequence6', 
                     ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
                 }
             ]              
         }        
@@ -1226,6 +1250,10 @@ annotate service.PricingParameters with {
                     $Type: 'Common.ValueListParameterInOut', 
                     LocalDataProperty: 'DiscountAccessSequence7', 
                     ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
                 }
             ]              
         }        
@@ -1256,6 +1284,10 @@ annotate service.PricingParameters with {
                     $Type: 'Common.ValueListParameterInOut', 
                     LocalDataProperty: 'DiscountAccessSequence8', 
                     ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
                 }
             ]              
         }        
@@ -1286,6 +1318,10 @@ annotate service.PricingParameters with {
                     $Type: 'Common.ValueListParameterInOut', 
                     LocalDataProperty: 'DiscountAccessSequence9', 
                     ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
                 }
             ]              
         }        
@@ -1316,6 +1352,10 @@ annotate service.PricingParameters with {
                     $Type: 'Common.ValueListParameterInOut', 
                     LocalDataProperty: 'DiscountAccessSequence10', 
                     ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
                 }
             ]              
         }        

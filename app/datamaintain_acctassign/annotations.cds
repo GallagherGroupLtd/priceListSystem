@@ -206,57 +206,97 @@ annotate service.AccountAssignment with {
     SalesOrg @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
             CollectionPath: 'SalesOrgVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'SalesOrg', ValueListProperty: 'Code' }
-            ]
-        }
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SalesOrg', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly',
+                    ValueListProperty: 'Description' 
+                }
+            ]            
+        }        
     );
 
     DistChannel @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
             CollectionPath: 'DistributionChannelVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'DistChannel', ValueListProperty: 'Code' }
-            ]
-        }
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'DistChannel', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
+        }        
     );
 
     CustPriceList @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
             CollectionPath: 'PricelistVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'CustPriceList', ValueListProperty: 'Code' }
-            ]
-        }
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'CustPriceList', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
+        }        
     );
 
     CustGroup1 @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
             CollectionPath: 'CustomerGroup1VH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'CustGroup1', ValueListProperty: 'Code' }
-            ]
-        }
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'CustGroup1', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
+        }        
     );
 
     DeliveringPlant @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
             CollectionPath: 'PlantVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'DeliveringPlant', ValueListProperty: 'Code' }
-            ]
-        }
-    );
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'DeliveringPlant', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
+        }        
+    );     
 
     ControlPriceListView               @Common.FieldControl : #Editable;
     ControlPriceView                   @Common.FieldControl : #Editable;

@@ -43,15 +43,21 @@ entity PricelistItemStructureComponents : managed, cuid {
     SubCategory5Local  : String(255) @title: 'Subcategory 5 Local Description';
 }
 
-/** Pricelist Part Number Determination **/
+/** Pricelist Product Maintenance **/
 entity PricelistPartNumberDetermination : managed, cuid {
-    MainCategory        : String(255) @title: 'Main Category';
-    Subcategory1        : String(255) @title: 'Subcategory 1';
-    Subcategory2        : String(255) @title: 'Subcategory 2';
-    Subcategory3        : String(255) @title: 'Subcategory 3';
-    Subcategory4        : String(255) @title: 'Subcategory 4';
-    Subcategory5        : String(255) @title: 'Subcategory 5';
-    PricelistPartNumber : String(30)  @title: 'Part Number';
+    TradeScenario                   : String(255) @title: 'Trade Scenario';
+    MarketScopeRegion               : String(255) @title: 'Region';
+    MarketScopeCountry              : String(255) @title: 'Country';    
+    SalesOrg                        : String(255) @title: 'Sales Organization';
+    DistChannel                     : String(2)   @title: 'Distribution Channel';    
+    ProductID                       : String(30)  @title: 'Product ID';
+    ProductDescription1             : String(255) @title: 'Product Description';
+    MaterialClassification1         : String(255) @title: 'Material Classification';
+    ProductDescription2             : String(255) @title: 'Pricelist Product Description';
+    MaterialClassification2         : String(255) @title: 'Translation Material Classification';
+    PricelistMaterialClassification : String(255) @title: 'Pricelist Material Classification';
+    ProductStatus                   : String(255) @title: 'Product Status';
+    StatusValidity                  : Date        @title: 'Status Validity';
 }
 
 /** Terms and Condition Determination **/

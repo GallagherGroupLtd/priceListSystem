@@ -882,22 +882,11 @@ module.exports = cds.service.impl(async function () {
         );
     });
 
-    // // Distinct Customers from HANA DB Table T_CUSTOMER_MASTER_DATA
-    // this.on('READ', 'MainCategoryVH', async (req) => {
-    //     const db = cds.transaction(req);
-    //     let q = SELECT.distinct.from('PricelistItemStructureComponents').columns('MainCategory').orderBy('MainCategory');
-    //     if (req.query.SELECT.where) {
-    //         q.where(req.query.SELECT.where);
-    //     }
-    //     return await db.run(q);
-    // });
-
     // Distinct Countries filtered by TradeScenario + Region
     this.on('READ', 'MarketCountryVH', async (req) => {
         const db = cds.transaction(req);
         let q = SELECT.distinct.from(TradeScenarios)
-            // .columns('TradeScenario', 'MarketScopeRegion', 'MarketScopeCountry');
-            .columns('MarketScopeCountry');
+            .columns('MarketScopeCountry').orderBy('MarketScopeCountry');
 
         if (req.query.SELECT.where) {
             const filters = {};
@@ -936,7 +925,18 @@ module.exports = cds.service.impl(async function () {
         return await extdb.run(q);
     });
 
+    // Distinct Material Group2
+    this.on('READ', 'MaterialGroup2VH', async (req) => {
+        const extdb = await cds.connect.to('extdb');
+        let q = SELECT.distinct.from('ErpMaterialGroup2')
+            .columns('Code')
+            .orderBy('Code');
 
+        if (req.query.SELECT.where) {
+            q.where(req.query.SELECT.where);
+        }
+        return await extdb.run(q);
+    });
 
     // ─── Helper ──────────────────────────────────────────────────────────────────
     const readVH = async (req, table, { codeCol = 'Code', descCol = 'Description' } = {}) => {
@@ -964,7 +964,6 @@ module.exports = cds.service.impl(async function () {
     this.on('READ', 'PricelistVH', req => readVH(req, 'ERP_CUSTPRICELIST', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'CustomerGroup1VH', req => readVH(req, 'ERP_CUSTGRP1', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     
-
     //Pricing Parameters - Product Price Condition Type (Value Help)
     this.on('READ', 'PriceConditionTypeVH', (req) => {
         const data = [
@@ -1003,9 +1002,16 @@ module.exports = cds.service.impl(async function () {
     //Pricing Parameters - Discount Condition Type (Value Help)
     this.on('READ', 'DiscountConditionTypeVH', (req) => {
         const data = [
+            { Code: 'K020' },
+            { Code: 'K020' },
             { Code: 'K030' },
-            { Code: 'K029' },
-            { Code: 'To follow on other condition types' }
+            { Code: 'K030' },
+            { Code: 'K031' },
+            { Code: 'Z004' },
+            { Code: 'ZSRG' },
+            { Code: 'ZSRG' },
+            { Code: 'ZSRG' },
+            { Code: 'ZSRG' }
         ];
 
         if (req.query.SELECT.count) {
@@ -1018,7 +1024,16 @@ module.exports = cds.service.impl(async function () {
     //Pricing Parameters - Discount Access Sequence (Value Help)
     this.on('READ', 'DiscountAccessSequenceVH', (req) => {
         const data = [
-            { Code: 'TBA' }
+            { Code: 'A020', Description: 'Division/Price Group' },
+            { Code: 'A004', Description: 'Material' },
+            { Code: 'A932', Description: 'Sales org./Distr. Chl/Division/Customer/Matl grp 2' },
+            { Code: 'A030', Description: 'Customer/Material Pricing Group' },
+            { Code: 'A031', Description: 'Price Group/Material Pricing Group' },
+            { Code: 'A034', Description: 'Material with release status' },
+            { Code: 'A924', Description: 'Sales org./Distr. Chl/Division/Order Type/Customer/Material' },
+            { Code: 'A004', Description: 'Material' },
+            { Code: 'A935', Description: 'Sales org./Distr. Chl/Division/SalesDocTy/Mat. Type' },
+            { Code: 'A937', Description: 'Sales org./Distr. Chl/Division/Mat. Type' }
         ];
 
         if (req.query.SELECT.count) {
