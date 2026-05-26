@@ -169,7 +169,7 @@
                     },
                     "ProductDetails": {
                       "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductDetails",
-                      "title": "Details 1000057",
+                      "title": "Product Details",
                       "position": {
                         "placement": "After",
                         "anchor": "ProductsTree"
