@@ -179,6 +179,34 @@
                         "placement": "After",
                         "anchor": "TermsandConditions"
                       }
+                    },
+                    "PricelistInfoFacet": {
+                      "subSections": {
+                        "ProductPricelist": {
+                          "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductPricelist",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "ScopeContainer"
+                          },
+                          "title": "Product Pricelist 1.0"
+                        },
+                        "PricelistMainCategory": {
+                          "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistMainCategory",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "ProductPricelist"
+                          },
+                          "title": "Pricelist Main Category 1.1"
+                        },
+                        "PricelistSubCategory": {
+                          "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "PricelistMainCategory"
+                          },
+                          "title": "Pricelist Sub Category 1.6"
+                        }
+                      }
                     }
                   }
                 }
