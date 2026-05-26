@@ -1,74 +1,28 @@
-<core:FragmentDefinition
-    xmlns:core="sap.ui.core"
-    xmlns="sap.m"
-	xmlns:uxap="sap.uxap"
-    xmlns:smartForm="sap.ui.comp.smartform"
-    xmlns:smartField="sap.ui.comp.smartfield"
-    xmlns:layout="sap.ui.layout">
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
     
     <VBox id="VBox" core:require="{handler: 'pricelistapp/pricelistmaintain/ext/controller/GeneralNotes'}">
 
-		<smartForm:SmartForm id="smartForm1" editable="true" >
-		<smartForm:layout>
-                <smartForm:ColumnLayout id="columnsLayout" columnsM="2" columnsL="2" columnsXL="2" />
-            </smartForm:layout>
-
-		<smartForm:Group id="TermsAndCondGroup" title="Terms and Conditions Overview">
-                <smartForm:GroupElement id="categoryGroupElement" label="Terms and Conditions Category">
-					<Input value="test"></Input>
-                    <!-- <smartField:SmartField id="categoryField" value="category"/> -->
-                </smartForm:GroupElement>
-				<smartForm:GroupElement id="nameGroupElement" label="Terms and Conditions Name">
-					<Input value="Term Name"></Input>
-                    <!-- <smartField:SmartField id="categoryField" value="category"/> -->
-                </smartForm:GroupElement>
-            </smartForm:Group>
-
-		</smartForm:SmartForm>
-        
-        <smartForm:SmartForm id="smartForm2" editable="true" >
-            <!-- <smartForm:layout>
-                <smartForm:ColumnLayout id="columnsLayout" columnsM="2" columnsL="2" columnsXL="2" />
-            </smartForm:layout> -->
-
-            <smartForm:Group id="TermsAndCondContextGroup" title="Terms and Conditions">
-                <smartForm:GroupElement id="ContextGroupElement" label="Context">
-                    <TextArea 
-                        id="TermsAndCondContextText" 
-                        value="{Context}" 
-                        maxLength="1000" 
-                        rows="10"
-                        width="100%" />
-                </smartForm:GroupElement>
-				<smartForm:GroupElement id="termsDisableGroupElement" label="Disable">
-					<HBox id="termsExtUSerVBox" alignContent="Center">
-                		<Text id="termsExtUserText" text="External User" />
-                		<Switch id="termsExtUserSwitch" state="false" change=".onTermsDisableSwitchChange" />
-						<Text id="termsIntUserText" text="Internal User" class="sapUiMediumMarginBegin" />
-                		<Switch id="termsIntUserSwitch" state="false" change=".onTermsDisableSwitchChange" />
-            		</HBox>
-				</smartForm:GroupElement>
-            </smartForm:Group>
-
-            <smartForm:Group id="DetailsGroup" title="General Notes">
-                <smartForm:GroupElement id="NotesGroupElement" label="Notes">
-                    <TextArea 
-                        id="GeneralNotesText" 
-                        value="{generalNotes>/Notes}" 
-                        maxLength="5000" 
-                        rows="10"
-                        width="100%" />
-                </smartForm:GroupElement>
-				<smartForm:GroupElement id="notesDisableGroupElement" label="Disable">
-					<HBox id="notesExtUSerVBox" alignContent="Center">
-                		<Text id="notesExtUserText" text="External User" />
-                		<Switch id="notesExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
-						<Text id="notesIntUserText" text="Internal User" class="sapUiMediumMarginBegin" />
-                		<Switch id="notesIntUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
-            		</HBox>
-				</smartForm:GroupElement>
-            </smartForm:Group>
-
-        </smartForm:SmartForm>
+		<Title id="GeneralNotesTitle" text="General Notes" level="H5" class="sapUiSmallMarginTop sapUiTextBold"/>
+		<TextArea id="GeneralNotesText" value="{generalNotes>/Notes}" maxLength="5000" width="100%" class="sapUiSmallMarginTopBottom"/>
+		<Title id="DisableTitle" text="Disable" level="H5" class="sapUiSmallMarginTop sapUiTextBold"/>
+		<HBox id="switchHBox" width="100%">
+			<HBox id="extUSerVBox">
+				<Text id="extUserText" text="External User" class="sapUiTinyMarginTopBottom"/>
+				<Switch id="extUserSwitch" state="false" class="sapUiSmallMarginBeginEnd" change=".onExternalUserSwitchChange">
+					<layoutData>
+						<FlexItemData id="extUserFlexData" growFactor="1" />
+					</layoutData>
+				</Switch>
+			</HBox>
+			<HBox id="intUSerVBox">
+				<Text id="intUserText" text="Internal User" class="sapUiTinyMarginTopBottom"/>
+				<Switch id="intUserSwitch" state="false" class="sapUiSmallMarginBeginEnd" change=".onInternalUserSwitchChange">
+					<layoutData>
+						<FlexItemData id="intUserFlexData" growFactor="1" />
+					</layoutData>
+				</Switch>
+			</HBox>
+		</HBox>
+				
     </VBox>
 </core:FragmentDefinition>

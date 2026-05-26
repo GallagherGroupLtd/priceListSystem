@@ -173,7 +173,7 @@
                       }
                     },
                     "GeneralNotes": {
-                      "title": "Terms and Conditions (Section 3)",
+                      "title": "General Notes",
                       "template": "pricelistapp.pricelistmaintain.ext.fragment.GeneralNotes",
                       "position": {
                         "placement": "After",
