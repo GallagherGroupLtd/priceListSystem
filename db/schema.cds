@@ -30,17 +30,17 @@ entity PricelistItemStructureComponents : managed, cuid {
     ErpCustomer        : String(255) @title: 'ERP Customer';
     DeliveringPlant    : String(255) @title: 'Plant';    
     MainCategory       : String(255) @title: 'Main Category';
-    Subcategory1       : String(255) @title: 'Subcategory 1';
-    Subcategory2       : String(255) @title: 'Subcategory 2';
-    Subcategory3       : String(255) @title: 'Subcategory 3';
-    Subcategory4       : String(255) @title: 'Subcategory 4';
-    Subcategory5       : String(255) @title: 'Subcategory 5';
+    SubCategory1       : String(255) @title: 'Subcategory 1';
+    SubCategory2       : String(255) @title: 'Subcategory 2';
+    SubCategory3       : String(255) @title: 'Subcategory 3';
+    SubCategory4       : String(255) @title: 'Subcategory 4';
+    SubCategory5       : String(255) @title: 'Subcategory 5';
     MainCategoryLocal  : String(255) @title: 'Main Category Local Description';
-    Subcategory1Local  : String(255) @title: 'Subcategory 1 Local Description';
-    Subcategory2Local  : String(255) @title: 'Subcategory 2 Local Description';
-    Subcategory3Local  : String(255) @title: 'Subcategory 3 Local Description';
-    Subcategory4Local  : String(255) @title: 'Subcategory 4 Local Description';
-    Subcategory5Local  : String(255) @title: 'Subcategory 5 Local Description';
+    SubCategory1Local  : String(255) @title: 'Subcategory 1 Local Description';
+    SubCategory2Local  : String(255) @title: 'Subcategory 2 Local Description';
+    SubCategory3Local  : String(255) @title: 'Subcategory 3 Local Description';
+    SubCategory4Local  : String(255) @title: 'Subcategory 4 Local Description';
+    SubCategory5Local  : String(255) @title: 'Subcategory 5 Local Description';
 }
 
 /** Pricelist Part Number Determination **/
@@ -56,32 +56,32 @@ entity PricelistPartNumberDetermination : managed, cuid {
 
 /** Terms and Condition Determination **/
 entity TermsAndConditionDetermination : managed, cuid {
-    TradeScenario             : String(255) @title: 'Trade Scenario';
-    MarketScopeRegion         : String(255) @title: 'Region';
-    MarketScopeCountry        : String(255) @title: 'Country';
-    SalesOrg                  : String(4)   @title: 'Sales Organization';
-    DistChannel               : String(2)   @title: 'Distribution Channel';
-    CustPriceList             : String(20)  @title: 'Customer Pricelist';
-    CustGroup1                : String(255) @title: 'Customer Group 1';
-    ErpCustomer               : String(255) @title: 'ERP Customer';
-    DeliveringPlant           : String(255) @title: 'Plant';
-    TermsAndCondition         : String(255) @title: 'GeneralTerms and Conditions';
-    MainCategory              : String(255) @title: 'Main Category';
-    Subcategory1              : String(255) @title: 'Subcategory 1';
-    Subcategory2              : String(255) @title: 'Subcategory 2';
-    Subcategory3              : String(255) @title: 'Subcategory 3';
-    Subcategory4              : String(255) @title: 'Subcategory 4';
-    Subcategory5              : String(255) @title: 'Subcategory 5';
-    MainCategoryLocal         : String(255) @title: 'Main Category Local Description';
-    Subcategory1Local         : String(255) @title: 'Subcategory 1 Local Description';
-    Subcategory2Local         : String(255) @title: 'Subcategory 2 Local Description';
-    Subcategory3Local         : String(255) @title: 'Subcategory 3 Local Description';
-    Subcategory4Local         : String(255) @title: 'Subcategory 4 Local Description';
-    Subcategory5Local         : String(255) @title: 'Subcategory 5 Local Description';    
+    TradeScenario                 : String(255) @title: 'Trade Scenario';
+    MarketScopeRegion             : String(255) @title: 'Region';
+    MarketScopeCountry            : String(255) @title: 'Country';
+    SalesOrg                      : String(4)   @title: 'Sales Organization';
+    DistChannel                   : String(2)   @title: 'Distribution Channel';
+    CustPriceList                 : String(20)  @title: 'Customer Pricelist';
+    CustGroup1                    : String(255) @title: 'Customer Group 1';
+    ErpCustomer                   : String(255) @title: 'ERP Customer';
+    DeliveringPlant               : String(255) @title: 'Plant';
+    TermsAndCondition             : String(255) @title: 'GeneralTerms and Conditions';
+    MainCategory                  : String(255) @title: 'Main Category';
+    SubCategory1                  : String(255) @title: 'Subcategory 1';
+    SubCategory2                  : String(255) @title: 'Subcategory 2';
+    SubCategory3                  : String(255) @title: 'Subcategory 3';
+    SubCategory4                  : String(255) @title: 'Subcategory 4';
+    SubCategory5                  : String(255) @title: 'Subcategory 5';
+    MainCategoryLocal : String(255) @title: 'Main Category Terms and Condition';
+    SubCategory1Local : String(255) @title: 'Subcategory 1 Terms and Condition';
+    SubCategory2Local : String(255) @title: 'Subcategory 2 Terms and Condition';
+    SubCategory3Local : String(255) @title: 'Subcategory 3 Terms and Condition';
+    SubCategory4Local : String(255) @title: 'Subcategory 4 Terms and Condition';
+    SubCategory5Local : String(255) @title: 'Subcategory 5 Terms and Condition';
     TermsAndConditionCategory : String(255) @title: 'Terms and Conditions Category';
     PricelistFieldName        : String(255) @title: 'Pricelist Fieldname';
     PricelistDataLevel        : String(255) @title: 'Pricelist Data Level';
-    TermsAndConditionContent  : String      @title: 'Terms and Conditions Content';
+    TermsAndConditionContent  : String      @title: 'Terms and Conditions Content';    
 }
 
 /** Pricing Parameter Determination **/
@@ -95,10 +95,63 @@ entity PricingParameterDetermination : managed, cuid {
     CustGroup1               : String(255) @title : 'Customer Group 1';
     ErpCustomer              : String(255) @title : 'ERP Customer Code';
     DeliveringPlant          : String(255) @title : 'Plant';
-    ConditionType            : String(4)   @title : 'Product Price Condition Type';
-    AccessSequence           : String(255) @title : 'Product Pricing Access Sequence';
-    DiscountConditionType    : String(4)   @title : 'Product Discount Condition Type';
-    DiscountAccessSequence   : String(255) @title : 'Product Discount Access Sequence';
+    ConditionType1           : String(4)   @title : 'Product Price Condition Type';
+    AccessSequence1          : String(255) @title : 'Product Pricing Access Sequence';
+    Priority1                : String(255) @title : 'Priority';
+    ConditionType2           : String(4)   @title : 'Product Price Condition Type';
+    AccessSequence2          : String(255) @title : 'Product Pricing Access Sequence';
+    Priority2                : String(255) @title : 'Priority';
+    ConditionType3           : String(4)   @title : 'Product Price Condition Type';
+    AccessSequence3          : String(255) @title : 'Product Pricing Access Sequence';
+    Priority3                : String(255) @title : 'Priority';
+    ConditionType4           : String(4)   @title : 'Product Price Condition Type';
+    AccessSequence4          : String(255) @title : 'Product Pricing Access Sequence';
+    Priority4                : String(255) @title : 'Priority';
+    ConditionType5           : String(4)   @title : 'Product Price Condition Type';
+    AccessSequence5          : String(255) @title : 'Product Pricing Access Sequence';
+    Priority5                : String(255) @title : 'Priority';
+    ConditionType6           : String(4)   @title : 'Product Price Condition Type';
+    AccessSequence6          : String(255) @title : 'Product Pricing Access Sequence';
+    Priority6                : String(255) @title : 'Priority';
+    ConditionType7           : String(4)   @title : 'Product Price Condition Type';
+    AccessSequence7          : String(255) @title : 'Product Pricing Access Sequence';
+    Priority7                : String(255) @title : 'Priority';
+    ConditionType8           : String(4)   @title : 'Product Price Condition Type';
+    AccessSequence8          : String(255) @title : 'Product Pricing Access Sequence';
+    Priority8                : String(255) @title : 'Priority';
+    ConditionType9           : String(4)   @title : 'Product Price Condition Type';
+    AccessSequence9          : String(255) @title : 'Product Pricing Access Sequence';
+    Priority9                : String(255) @title : 'Priority';
+    DiscountConditionType1   : String(4)   @title : 'Discount/Surcharge Condition Type';
+    DiscountAccessSequence1  : String(255) @title : 'Product Discount Access Sequence';
+    DiscountPriority1        : String(255) @title : 'Priority';
+    DiscountConditionType2   : String(4)   @title : 'Discount/Surcharge Condition Type';
+    DiscountAccessSequence2  : String(255) @title : 'Product Discount Access Sequence';
+    DiscountPriority2        : String(255) @title : 'Priority';
+    DiscountConditionType3   : String(4)   @title : 'Discount/Surcharge Condition Type';
+    DiscountAccessSequence3  : String(255) @title : 'Product Discount Access Sequence';
+    DiscountPriority3        : String(255) @title : 'Priority';
+    DiscountConditionType4   : String(4)   @title : 'Discount/Surcharge Condition Type';
+    DiscountAccessSequence4  : String(255) @title : 'Product Discount Access Sequence';
+    DiscountPriority4        : String(255) @title : 'Priority';
+    DiscountConditionType5   : String(4)   @title : 'Discount/Surcharge Condition Type';
+    DiscountAccessSequence5  : String(255) @title : 'Product Discount Access Sequence';
+    DiscountPriority5        : String(255) @title : 'Priority';
+    DiscountConditionType6   : String(4)   @title : 'Discount/Surcharge Condition Type';
+    DiscountAccessSequence6  : String(255) @title : 'Product Discount Access Sequence';
+    DiscountPriority6        : String(255) @title : 'Priority';
+    DiscountConditionType7   : String(4)   @title : 'Discount/Surcharge Condition Type';
+    DiscountAccessSequence7  : String(255) @title : 'Product Discount Access Sequence';
+    DiscountPriority7        : String(255) @title : 'Priority';
+    DiscountConditionType8   : String(4)   @title : 'Discount/Surcharge Condition Type';
+    DiscountAccessSequence8  : String(255) @title : 'Product Discount Access Sequence';
+    DiscountPriority8        : String(255) @title : 'Priority';  
+    DiscountConditionType9   : String(4)   @title : 'Discount/Surcharge Condition Type';
+    DiscountAccessSequence9  : String(255) @title : 'Product Discount Access Sequence';
+    DiscountPriority9        : String(255) @title : 'Priority';         
+    DiscountConditionType10  : String(4)   @title : 'Discount/Surcharge Condition Type';
+    DiscountAccessSequence10 : String(255) @title : 'Product Discount Access Sequence';
+    DiscountPriority10       : String(255) @title : 'Priority';                                                          
 }
 
 /** Information Tile Content **/

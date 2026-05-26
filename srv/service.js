@@ -822,7 +822,52 @@ module.exports = cds.service.impl(async function () {
     this.on('READ', 'TradeScenarioVH', () => cds.run(SELECT.distinct.from('TradeAndMarketScenarioDetermination').columns('TradeScenario').orderBy('TradeScenario')));
     this.on('READ', 'MarketRegionVH', () => cds.run(SELECT.distinct.from('TradeAndMarketScenarioDetermination').columns('MarketScopeRegion').orderBy('MarketScopeRegion')));
     this.on('READ', 'MainCategoryVH', () => cds.run(SELECT.distinct.from('PricelistItemStructureComponents').columns('MainCategory').orderBy('MainCategory')));
-    this.on('READ', 'Subcategory1VH', () => cds.run(SELECT.distinct.from('PricelistItemStructureComponents').columns('Subcategory1').orderBy('Subcategory1')));
+
+    this.on('READ', 'SubCategory1VH', () => {
+        return cds.run(
+            SELECT.distinct.from('PricelistItemStructureComponents')
+                .columns('SubCategory1')
+                .where(`SubCategory1 is not null and SubCategory1 <> ''`)
+                .orderBy('SubCategory1')
+        );
+    });
+
+    this.on('READ', 'SubCategory2VH', () => {
+        return cds.run(
+            SELECT.distinct.from('PricelistItemStructureComponents')
+                .columns('SubCategory2')
+                .where(`SubCategory2 is not null and SubCategory2 <> ''`)
+                .orderBy('SubCategory2')
+        );
+    });
+
+    this.on('READ', 'SubCategory3VH', () => {
+        return cds.run(
+            SELECT.distinct.from('PricelistItemStructureComponents')
+                .columns('SubCategory3')
+                .where(`SubCategory3 is not null and SubCategory3 <> ''`)
+                .orderBy('SubCategory3')
+        );
+    });
+
+
+    this.on('READ', 'SubCategory4VH', () => {
+        return cds.run(
+            SELECT.distinct.from('PricelistItemStructureComponents')
+                .columns('SubCategory4')
+                .where(`SubCategory4 is not null and SubCategory4 <> ''`)
+                .orderBy('SubCategory4')
+        );
+    });
+
+    this.on('READ', 'SubCategory5VH', () => {
+        return cds.run(
+            SELECT.distinct.from('PricelistItemStructureComponents')
+                .columns('SubCategory5')
+                .where(`SubCategory5 is not null and SubCategory5 <> ''`)
+                .orderBy('SubCategory5')
+        );
+    });
 
     // // Distinct Customers from HANA DB Table T_CUSTOMER_MASTER_DATA
     // this.on('READ', 'MainCategoryVH', async (req) => {
