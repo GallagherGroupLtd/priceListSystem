@@ -87,11 +87,7 @@ sap.ui.define([
             { label: "Subcategory2", property: "Subcategory2" },
             { label: "Subcategory3", property: "Subcategory3" },
             { label: "Subcategory4", property: "Subcategory4" },
-            { label: "Subcategory5", property: "Subcategory5" },            
-            { label: "TermsAndConditionCategory", property: "TermsAndConditionCategory" },
-            { label: "PricelistFieldName", property: "PricelistFieldName" },
-            { label: "PricelistDataLevel", property: "PricelistDataLevel" },
-            { label: "TermsAndConditionContent", property: "TermsAndConditionContent" }
+            { label: "Subcategory5", property: "Subcategory5" }
           ];
           const oSettings = {
             workbook: { columns: aColumns },
