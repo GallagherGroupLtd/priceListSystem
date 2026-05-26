@@ -272,7 +272,7 @@ entity PricelistData : managed, cuid {
     EffectiveDate      : Date        @title: 'Effectivity Date';
     ExpiryDate         : Date        @title: 'Expiry Date';
     Currency           : String(100) @title: 'Currency';
-    Version            : String(20)  @title: 'Version';
+    Version            : String(20)  @title: 'Version'  default '0.1';
 
     MarketDisplay      : String      @title: 'Market Region'  @cds.persistence.skip; //Virtual Field
 
