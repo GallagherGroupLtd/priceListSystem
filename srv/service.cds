@@ -573,17 +573,12 @@ service PriceListService {
             action SubmitRequest();
         };
 
-    @cds.persistence.skip
-    entity MainCategoryVH {
-        key MainCategory : String(255);
-    }
-
-    @cds.persistence.skip
-    entity Subcategory1VH {
-        key Subcategory1 : String(255);
-    }
-
-    }
+    @cds.persistence.skip entity MainCategoryVH { key MainCategory : String(255); }
+    @cds.persistence.skip entity SubCategory1VH { key SubCategory1 : String(255); }
+    @cds.persistence.skip entity SubCategory2VH { key SubCategory2 : String(255); }
+    @cds.persistence.skip entity SubCategory3VH { key SubCategory3 : String(255); }
+    @cds.persistence.skip entity SubCategory4VH { key SubCategory4 : String(255); }
+    @cds.persistence.skip entity SubCategory5VH { key SubCategory5 : String(255); }
 
     @cds.persistence.skip
     entity PriceConditionTypeVH {
@@ -615,9 +610,4 @@ service PriceListService {
     entity AccountScopeVH {
         key Code : String(8);
     }
-
-
-    @cds.persistence.skip
-    entity Subcategory1VH {
-        key Subategory1 : String(255);
-    }
+}
