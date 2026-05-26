@@ -610,7 +610,7 @@ service PriceListService {
     entity AccountScopeVH {
         key Code : String(8);
     }
-}
+
 
     @cds.persistence.skip
     entity MainCategoryVH {
@@ -621,3 +621,4 @@ service PriceListService {
     entity Subcategory1VH {
         key Subategory1 : String(255);
     }
+}
