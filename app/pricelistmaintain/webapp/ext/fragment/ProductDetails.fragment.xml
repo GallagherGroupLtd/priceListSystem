@@ -1,0 +1,92 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m" xmlns:f="sap.ui.layout.form" xmlns:l="sap.ui.layout" xmlns:layout="sap.ui.layout" xmlns:smartField="sap.ui.comp.smartfield" xmlns:smartForm="sap.ui.comp.smartform" xmlns:uxap="sap.uxap" core:require="{handler: 'pricelistapp/pricelistmaintain/ext/controller/ProductDetails'}">
+   <VBox id="VBoxProductDetails" width="100%">
+      
+	  <!-- <f:SimpleForm id="sfProductDetails5" editable="false" width="100%" layout="ResponsiveGridLayout" adjustLabelSpan="false" columnsL="1" columnsXL="1" labelSpanXL="1" labelSpanL="1" labelSpanM="1" labelSpanS="1" emptySpanS="0" emptySpanM="0" emptySpanL="0" emptySpanXL="0" class="sapUiNoContentPadding sapUiNoMarginStart">
+         <f:content>
+            <VBox alignItems="Start" width="100%">
+               <HBox alignItems="Center">
+                  <Label text="Product:" class="sapUiMediumMarginEnd" width="20%" />
+                  <Text text="123456789" class="sapUiSmallMarginEnd" width="40%" />
+                  <Text text="Product Description" />
+               </HBox>
+               <HBox alignItems="Center">
+                  <Label text="Published Description:" class="sapUiMediumMarginEnd" width="20%" />
+                  <Input value="{PublishedDescription}" width="50%">
+                     <layoutData>
+                        <l:GridData span="L4 M6 S12" />
+                     </layoutData>
+                  </Input>
+               </HBox>
+               <HBox alignItems="Center">
+                  <Label text="Material Status:" class="sapUiMediumMarginEnd" width="20%" />
+                  <Input value="{MaterialStatus}" class="sapUiSmallMarginEnd" width="50%" />
+                  <Text text="Effective From: " class="sapUiSmallMarginEnd" />
+                  <DatePicker value="{EffectiveFrom}" width="15%" />
+                  <Text text="Effective To: " class="sapUiSmallMarginEnd" />
+                  <DatePicker value="{EffectiveTo}" width="15%" />				  
+               </HBox>
+            </VBox>
+         </f:content>
+      </f:SimpleForm> -->
+
+	<f:SimpleForm id="sfProductDetails5" editable="false" width="100%" layout="ResponsiveGridLayout" adjustLabelSpan="false" columnsL="1" columnsXL="1" labelSpanXL="1" labelSpanL="1" labelSpanM="1" labelSpanS="1" emptySpanS="0" emptySpanM="0" emptySpanL="0" emptySpanXL="0" class="sapUiNoContentPadding sapUiNoMarginStart">
+         <f:content>
+            <VBox alignItems="Start" width="100%">
+               
+               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
+                  <Label text="Product:" width="180px"/>
+                  <Text text="123456789" class="sapUiSmallMarginEnd" />
+                  <Text text="Product Description" />
+               </HBox>
+               
+               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
+                  <Label text="Published Description:" width="180px" />
+                  <Input value="{PublishedDescription}" />
+               </HBox>
+               
+               <HBox alignItems="Center" width="100%">
+                  <Label text="Material Status:" width="180px" />
+                  <Input value="{MaterialStatus}" class="sapUiLargeMarginEnd" />
+                  
+                  <Text text="Effective From:" class="sapUiSmallMarginEnd" />
+                  <DatePicker value="{EffectiveFrom}" class="sapUiMediumMarginEnd" width="150px" />
+                  
+                  <Text text="Effective To:" class="sapUiSmallMarginEnd" />
+                  <DatePicker value="{EffectiveTo}" width="150px" />				  
+               </HBox>
+               
+            </VBox>
+         </f:content>
+      </f:SimpleForm>
+
+      <smartForm:SmartForm id="sfProductTerms" editable="true">
+         <smartForm:Group id="sfProductTermsGrp" title="Terms and Conditions">
+            <smartForm:GroupElement id="sfProductTermsGrpEle" label="Context">
+               <TextArea id="sfProductTermsText" value="{Context}" maxLength="1000" rows="10" width="100%" />
+            </smartForm:GroupElement>
+            <smartForm:GroupElement id="sfProductTermsDisableGroupElement" label="Disable">
+               <HBox id="productTermsHBox" alignContent="Center">
+                  <Text id="productTermsExtUserText" text="External User" />
+                  <Switch id="productTermsExtUserSwitch" state="false" change=".onTermsDisableSwitchChange" />
+                  <Text id="productTermsIntUserText" text="Internal User" class="sapUiMediumMarginBegin" />
+                  <Switch id="productTermsIntUserSwitch" state="false" change=".onTermsDisableSwitchChange" />
+               </HBox>
+            </smartForm:GroupElement>
+         </smartForm:Group>
+         <smartForm:Group id="sfProductNotes" title="General Notes">
+            <smartForm:GroupElement id="sfProductNotesGrp" label="Notes">
+               <TextArea id="sfProductNotesText" value="{generalNotes&gt;/Notes}" maxLength="5000" rows="10" width="100%" />
+            </smartForm:GroupElement>
+            <smartForm:GroupElement id="sfProductNotesDisableGroupElement" label="Disable">
+               <HBox id="productNotesHBox" alignContent="Center">
+                  <Text id="productNotesExtUserText" text="External User" />
+                  <Switch id="productNotesExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
+                  <Text id="productNotesIntUserText" text="Internal User" class="sapUiMediumMarginBegin" />
+                  <Switch id="productNotesIntUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
+               </HBox>
+            </smartForm:GroupElement>
+         </smartForm:Group>
+      </smartForm:SmartForm>
+
+   </VBox>
+</core:FragmentDefinition>

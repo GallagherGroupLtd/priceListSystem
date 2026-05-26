@@ -66,6 +66,9 @@
         "sap.ui.table": {}
       }
     },
+    "cache": {
+      "mode": "off"
+    },    
     "contentDensities": {
       "compact": true,
       "cozy": true
@@ -164,11 +167,19 @@
                       },
                       "title": "Gallagher Products"
                     },
+                    "ProductDetails": {
+                      "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductDetails",
+                      "title": "Details 1000057",
+                      "position": {
+                        "placement": "After",
+                        "anchor": "ProductsTree"
+                      }
+                    },
                     "TermsandConditions": {
                       "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsandConditions",
                       "title": "Terms and Conditions",
                       "position": {
-                        "anchor": "ProductsTree",
+                        "anchor": "ProductDetails",
                         "placement": "After"
                       }
                     },
