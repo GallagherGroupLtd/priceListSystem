@@ -1,0 +1,138 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m" xmlns:f="sap.ui.layout.form" xmlns:l="sap.ui.layout" xmlns:layout="sap.ui.layout" xmlns:smartField="sap.ui.comp.smartfield" xmlns:smartForm="sap.ui.comp.smartform" xmlns:uxap="sap.uxap" core:require="{handler: 'pricelistapp/pricelistmaintain/ext/controller/ProductDetails'}">
+   <Panel headerText="Product Details" expandable="true" expanded="true" width="100%">
+   <VBox id="VBoxProductDetails" width="100%">
+      
+	<f:SimpleForm id="sfProductDetails5" editable="false" width="100%" layout="ResponsiveGridLayout" adjustLabelSpan="false" columnsL="1" columnsXL="1" labelSpanXL="1" labelSpanL="1" labelSpanM="1" labelSpanS="1" emptySpanS="0" emptySpanM="0" emptySpanL="0" emptySpanXL="0" class="sapUiNoContentPadding">
+         <f:content>
+            <VBox alignItems="Start" width="100%">
+               
+               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
+                  <HBox justifyContent="End">
+                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
+                     <Label text="Product:" class="sapUiSmallMarginEnd" />
+                  </HBox>
+                  <!-- <Text text="{product>productNo}" class="sapUiLargeMarginEnd" /> -->
+                  <!-- <Text text="{product>description}" /> -->
+                  <Text text="Material Number"><layoutData><FlexItemData growFactor="1" maxWidth="10%" /></layoutData></Text>
+                  <Text text="Description" ><layoutData><FlexItemData growFactor="1" maxWidth="15%" /></layoutData></Text>
+               </HBox>
+               
+               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
+                  <HBox justifyContent="End">
+                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
+                     <Label text="Published Description:" class="sapUiSmallMarginEnd" />
+                  </HBox>
+                  <Input value="{product>publishedDescription}" ><layoutData><FlexItemData growFactor="1" maxWidth="30%" /></layoutData></Input>
+               </HBox>
+               
+               <HBox alignItems="Center" width="100%">
+                  <HBox justifyContent="End">
+                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
+                     <Label text="Material Status:" class="sapUiSmallMarginEnd" />
+                  </HBox>
+                  <Input value="{product>status}" class="sapUiLargeMarginEnd"><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
+                  
+                  <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="21%" /></layoutData></Text>
+
+                  <Label text="Effective From:" class="sapUiSmallMarginEnd" />
+                  <DatePicker value="{product>effectiveFrom}" class="sapUiMediumMarginEnd"><layoutData><FlexItemData growFactor="1" maxWidth="10%" /></layoutData></DatePicker>
+                  
+                  <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="1.5%" /></layoutData></Text>                  
+                  <Label text="Effective To:" class="sapUiSmallMarginEnd" />
+                  <DatePicker value="{product>effectiveTo}"><layoutData><FlexItemData growFactor="1" maxWidth="10%" /></layoutData></DatePicker>			
+               </HBox>
+
+               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
+                  <HBox justifyContent="End">
+                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
+                     <Label text="Material Classification:" class="sapUiSmallMarginEnd" />
+                  </HBox>               
+                  <Input value="{product>materialClassification}"><layoutData><FlexItemData growFactor="1" maxWidth="25%"/></layoutData></Input>
+               </HBox>
+
+               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
+                  <HBox justifyContent="End">
+                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
+                     <Label text="Shared:" class="sapUiSmallMarginEnd" />
+                  </HBox>                  
+                  <Text text="{product>sharedIndicator}" />
+               </HBox>
+
+               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
+                  <HBox justifyContent="End">
+                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
+                     <Label text="Main Category:" class="sapUiSmallMarginEnd" />
+                  </HBox>
+                  <Input value="{product>mainCategory}" ><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
+               </HBox>
+
+               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
+                  <HBox justifyContent="End">
+                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
+                     <Label text="Sub Category 1:" class="sapUiSmallMarginEnd" />
+                  </HBox>               
+                  <Input value="{product>subCategory1}" ><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
+
+                  <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="21%" /></layoutData></Text>
+
+                  <Label text="Sub Category 4:" class="sapUiSmallMarginEnd"/>
+                  <Input value="{product>subCategory4}" ><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
+               </HBox>
+
+               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
+                  <HBox justifyContent="End">
+                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
+                     <Label text="Sub Category 2:" class="sapUiSmallMarginEnd" />
+                  </HBox>
+                  <Input value="{product>subCategory2}" ><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
+
+                  <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="21%" /></layoutData></Text>
+
+                  <Label text="Sub Category 5:" class="sapUiSmallMarginEnd"/>
+                  <Input value="{product>subCategory5}" ><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
+               </HBox>
+
+               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
+                  <HBox justifyContent="End">
+                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
+                     <Label text="Sub Category 3:" class="sapUiSmallMarginEnd" />
+                  </HBox>               
+                  <Input value="{product>subCategory3}" ><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
+               </HBox>
+
+            </VBox>
+         </f:content>
+      </f:SimpleForm>
+
+      <smartForm:SmartForm id="sfProductTerms" editable="true">
+         <smartForm:Group id="sfProductTermsGrp" title="Terms and Conditions">
+            <smartForm:GroupElement id="sfProductTermsGrpEle" label="Context">
+               <TextArea id="sfProductTermsText" value="{Context}" maxLength="1000" rows="10" width="100%" />
+            </smartForm:GroupElement>
+            <smartForm:GroupElement id="sfProductTermsDisableGroupElement" label="Disable">
+               <HBox id="productTermsHBox" alignContent="Center">
+                  <Text id="productTermsExtUserText" text="External User" />
+                  <Switch id="productTermsExtUserSwitch" state="false" change=".onTermsDisableSwitchChange" />
+                  <Text id="productTermsIntUserText" text="Internal User" class="sapUiMediumMarginBegin" />
+                  <Switch id="productTermsIntUserSwitch" state="false" change=".onTermsDisableSwitchChange" />
+               </HBox>
+            </smartForm:GroupElement>
+         </smartForm:Group>
+         <smartForm:Group id="sfProductNotes" title="General Notes">
+            <smartForm:GroupElement id="sfProductNotesGrp" label="Notes">
+               <TextArea id="sfProductNotesText" value="{generalNotes&gt;/Notes}" maxLength="5000" rows="10" width="100%" />
+            </smartForm:GroupElement>
+            <smartForm:GroupElement id="sfProductNotesDisableGroupElement" label="Disable">
+               <HBox id="productNotesHBox" alignContent="Center">
+                  <Text id="productNotesExtUserText" text="External User" />
+                  <Switch id="productNotesExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
+                  <Text id="productNotesIntUserText" text="Internal User" class="sapUiMediumMarginBegin" />
+                  <Switch id="productNotesIntUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
+               </HBox>
+            </smartForm:GroupElement>
+         </smartForm:Group>
+      </smartForm:SmartForm>
+
+   </VBox>
+   </Panel>
+</core:FragmentDefinition>
