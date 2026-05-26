@@ -1,7 +1,7 @@
 using PriceListService as service from '../../srv/service';
 annotate service.TermsAndConditions with @(
     UI.HeaderInfo: {
-        TypeName      : 'Term & Condition',
+        TypeName      : 'Terms & Conditions',
         TypeNamePlural: 'Terms & Conditions'
     },
 
@@ -47,7 +47,7 @@ annotate service.TermsAndConditions with @(
     },
 
     // Selection Fields for Filtering
-    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer,MainCategory,SubCategory1 ],
+    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
 
     UI.LineItem  : [
         { Value: TradeScenario },
@@ -59,16 +59,12 @@ annotate service.TermsAndConditions with @(
         { Value: CustGroup1 },
         { Value: ErpCustomer },
         { Value: DeliveringPlant },
-        { Value: TermsAndConditionCategory },
         { Value: MainCategory },
-        { Value: Subcategory1 },
-        { Value: Subcategory2 },
-        { Value: Subcategory3 },
-        { Value: Subcategory4 },
-        { Value: Subcategory5 },
-        { Value: PricelistFieldName }, 
-        { Value: PricelistDataLevel },
-        { Value: TermsAndConditionContent }
+        { Value: SubCategory1 },
+        { Value: SubCategory2 },
+        { Value: SubCategory3 },
+        { Value: SubCategory4 },
+        { Value: SubCategory5 }
     ],
 
     UI.PresentationVariant : {
@@ -106,15 +102,6 @@ annotate service.TermsAndConditions with @(
         ]
     },
 
-    UI.FieldGroup #TermsDetails : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            { $Type : 'UI.DataField', Value : TermsAndConditionCategory },
-            { $Type : 'UI.DataField', Value : PricelistFieldName },
-            { $Type : 'UI.DataField', Value : PricelistDataLevel }
-        ]
-    },
-
     UI.FieldGroup #TermsContent : {
         $Type : 'UI.FieldGroupType',
         Data : [
@@ -134,63 +121,63 @@ annotate service.TermsAndConditions with @(
         ]
     },
 
-    UI.FieldGroup #Subcategory1 : {
+    UI.FieldGroup #SubCategory1 : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory1 }
+            { $Type : 'UI.DataField', Value : SubCategory1 }
         ]
     },
 
-    UI.FieldGroup #Subcategory1Local : {
+    UI.FieldGroup #SubCategory1Local : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory1Local }
+            { $Type : 'UI.DataField', Value : SubCategory1Local }
         ]
     },
 
-    UI.FieldGroup #Subcategory2 : {
+    UI.FieldGroup #SubCategory2 : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory2 }
+            { $Type : 'UI.DataField', Value : SubCategory2 }
         ]
     },
 
-    UI.FieldGroup #Subcategory2Local : {
+    UI.FieldGroup #SubCategory2Local : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory2Local }
+            { $Type : 'UI.DataField', Value : SubCategory2Local }
         ]
     },
 
-    UI.FieldGroup #Subcategory3 : {
+    UI.FieldGroup #SubCategory3 : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory3 }
+            { $Type : 'UI.DataField', Value : SubCategory3 }
         ]
     },
 
-    UI.FieldGroup #Subcategory3Local : {
+    UI.FieldGroup #SubCategory3Local : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory3Local }
+            { $Type : 'UI.DataField', Value : SubCategory3Local }
         ]
     },
 
-    UI.FieldGroup #Subcategory4 : {
+    UI.FieldGroup #SubCategory4 : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory4 }
+            { $Type : 'UI.DataField', Value : SubCategory4 }
         ]
     },
 
-    UI.FieldGroup #Subcategory4Local : {
+    UI.FieldGroup #SubCategory4Local : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory4Local }
+            { $Type : 'UI.DataField', Value : SubCategory4Local }
         ]
     },
 
-    UI.FieldGroup #Subcategory5 : {
+    UI.FieldGroup #SubCategory5 : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory5 }
+            { $Type : 'UI.DataField', Value : SubCategory5 }
         ]
     },
 
-    UI.FieldGroup #Subcategory5Local : {
+    UI.FieldGroup #SubCategory5Local : {
         Data: [
-            { $Type : 'UI.DataField', Value : Subcategory5Local }
+            { $Type : 'UI.DataField', Value : SubCategory5Local }
         ]
     },
 
@@ -222,62 +209,62 @@ annotate service.TermsAndConditions with @(
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet5',
-            Label  : 'Subcategory1',
-            Target : '@UI.FieldGroup#Subcategory1'
+            Label  : 'SubCategory1',
+            Target : '@UI.FieldGroup#SubCategory1'
         },
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet6',
-            Label  : 'Subcategory1 Translation',
-            Target : '@UI.FieldGroup#Subcategory1Local'
+            Label  : 'SubCategory1 Translation',
+            Target : '@UI.FieldGroup#SubCategory1Local'
         },
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet7',
-            Label  : 'Subcategory2',
-            Target : '@UI.FieldGroup#Subcategory2'
+            Label  : 'SubCategory2',
+            Target : '@UI.FieldGroup#SubCategory2'
         },
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet8',
-            Label  : 'Subcategory2 Translation',
-            Target : '@UI.FieldGroup#Subcategory2Local'
+            Label  : 'SubCategory2 Translation',
+            Target : '@UI.FieldGroup#SubCategory2Local'
         },
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet9',
-            Label  : 'Subcategory3',
-            Target : '@UI.FieldGroup#Subcategory3'
+            Label  : 'SubCategory3',
+            Target : '@UI.FieldGroup#SubCategory3'
         },
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet10',
-            Label  : 'Subcategory3 Translation',
-            Target : '@UI.FieldGroup#Subcategory3Local'
+            Label  : 'SubCategory3 Translation',
+            Target : '@UI.FieldGroup#SubCategory3Local'
         },
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet11',
-            Label  : 'Subcategory4',
-            Target : '@UI.FieldGroup#Subcategory4'
+            Label  : 'SubCategory4',
+            Target : '@UI.FieldGroup#SubCategory4'
         },
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet12',
-            Label  : 'Subcategory4 Translation',
-            Target : '@UI.FieldGroup#Subcategory4Local'
+            Label  : 'SubCategory4 Translation',
+            Target : '@UI.FieldGroup#SubCategory4Local'
         },
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet13',
-            Label  : 'Subcategory5',
-            Target : '@UI.FieldGroup#Subcategory5'
+            Label  : 'SubCategory5',
+            Target : '@UI.FieldGroup#SubCategory5'
         },
         {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet14',
-            Label  : 'Subcategory5 Translation',
-            Target : '@UI.FieldGroup#Subcategory5Local'
+            Label  : 'SubCategory5 Translation',
+            Target : '@UI.FieldGroup#SubCategory5Local'
         }
     ],
 
@@ -347,7 +334,7 @@ annotate service.TermsAndConditions with {
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'Subcategory1VH',
+            CollectionPath: 'SubCategory1VH',
             Parameters: [
                 { 
                     $Type: 'Common.ValueListParameterInOut', 
@@ -357,6 +344,61 @@ annotate service.TermsAndConditions with {
         }
     );
 
+    SubCategory3 @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'SubCategory3VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SubCategory3', 
+                    ValueListProperty: 'SubCategory3' }
+            ]
+        }
+    );
+
+    SubCategory4 @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'SubCategory4VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SubCategory4', 
+                    ValueListProperty: 'SubCategory4' }
+            ]
+        }
+    );
+
+    SubCategory5 @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'SubCategory5VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SubCategory5', 
+                    ValueListProperty: 'SubCategory5' }
+            ]
+        }
+    );
+
+    SubCategory2 @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'SubCategory2VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SubCategory2', 
+                    ValueListProperty: 'SubCategory2' }
+            ]
+        }
+    );
     SalesOrg @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
@@ -453,9 +495,9 @@ annotate service.TermsAndConditions with {
     ); 
     
     MainCategoryLocal  @UI.MultiLineText;
-    Subcategory1Local  @UI.MultiLineText;
-    Subcategory2Local  @UI.MultiLineText;
-    Subcategory3Local  @UI.MultiLineText;
-    Subcategory4Local  @UI.MultiLineText;
-    Subcategory5Local  @UI.MultiLineText;  
+    SubCategory1Local  @UI.MultiLineText;
+    SubCategory2Local  @UI.MultiLineText;
+    SubCategory3Local  @UI.MultiLineText;
+    SubCategory4Local  @UI.MultiLineText;
+    SubCategory5Local  @UI.MultiLineText;  
 }

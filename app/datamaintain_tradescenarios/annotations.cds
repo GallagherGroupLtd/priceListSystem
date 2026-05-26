@@ -111,35 +111,5 @@ annotate PriceListService.TradeScenarios with @(
 
 annotate PriceListService.TradeScenarios with {
 
-    // TradeScenario @(
-    //     Common.ValueList: {
-    //         // $Type         : 'Common.ValueListType',
-    //         Parameters: [
-    //             { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
-    //         ]
-    //     }
-    // );
-
-    MarketScopeRegion @(
-        Common.ValueListWithFixedValues : true,
-        Common.ValueList: {
-            $Type         : 'Common.ValueListType',
-            CollectionPath: 'MarketRegionVH',
-            Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeRegion', ValueListProperty: 'MarketScopeRegion' }
-            ]
-        }
-    );
-
-    MarketScopeCountry @(
-        Common.ValueListWithFixedValues : true,
-        Common.ValueList: {
-            $Type         : 'Common.ValueListType',
-            CollectionPath: 'MarketCountryVH',
-            Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeCountry', ValueListProperty: 'MarketScopeCountry' }
-            ]
-        }
-    );
 
 };
