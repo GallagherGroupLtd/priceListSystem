@@ -337,21 +337,31 @@ annotate service.PricelistData with @(
         TypeName      : 'Pricelist',
         TypeNamePlural: 'Pricelists',
         Title         : {Value: PricelistTitle},
-        Description   : {Value: Version},
+        Description   : {Value: Status},
         ImageUrl      : 'sap-icon://sales-order-item'
     },
 
     UI.HeaderFacets               : [
         {
             $Type : 'UI.ReferenceFacet',
-            ID    : 'DatesFacet',
-            Target: '@UI.FieldGroup#DatesGroup'
+            ID    : 'PriceListHeaderFacet',
+            Target: '@UI.FieldGroup#PriceListHeaderGroup'
+        },        
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'PublishedInfoFacet',
+            Target: '@UI.FieldGroup#PublishedInfoGroup'
         },
         {
             $Type : 'UI.ReferenceFacet',
-            ID    : 'UsersFacet',
-            Target: '@UI.FieldGroup#UsersGroup'
+            ID    : 'RevisedInfoFacet',
+            Target: '@UI.FieldGroup#RevisedInfoGroup'
         },
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'CreatedInfoFacet',
+            Target: '@UI.FieldGroup#CreatedInfoGroup'
+        },        
         {
             $Type : 'UI.ReferenceFacet',
             ID    : 'AdminFacet',
@@ -402,37 +412,51 @@ annotate service.PricelistData with @(
         ]
     }],
 
-    // --- FIELD GROUPS ---
-    UI.FieldGroup #DatesGroup     : {Data: [
+    // --- FIELD GROUPS --- OBJECT PAGE HEADER
+    UI.FieldGroup #PriceListHeaderGroup: {Data: [
+        {
+            Value: TradeScenario,
+            Label: 'Trade Scenario'
+        },
+        {
+            Value: MarketScopeRegion,
+            Label: 'Region'
+        },
+        {
+            Value: MarketScopeCountry,
+            Label: 'Country'
+        }
+    ]},    
+    UI.FieldGroup #PublishedInfoGroup     : {Data: [
+        {
+            Value: PublishedDate,
+            Label: 'Published On'
+        },
+        {
+            Value: PublishedBy,
+            Label: 'Published By'
+        }                
+    ]},
+    UI.FieldGroup #RevisedInfoGroup     : {Data: [
+        {
+            Value: modifiedAt,
+            Label: 'Last Revised On'
+        },        
+        {
+            Value: modifiedBy,
+            Label: 'Revised By'
+        }
+    ]},
+    UI.FieldGroup #CreatedInfoGroup     : {Data: [
         {
             Value: createdAt,
             Label: 'Created on'
         },
         {
-            Value: modifiedAt,
-            Label: 'Last Revised On'
-        },
-        {
-            Value: PublishedDate,
-            Label: 'Published On'
-        }
-    ]},
-
-    UI.FieldGroup #UsersGroup     : {Data: [
-        {
             Value: createdBy,
             Label: 'Created By'
-        },
-        {
-            Value: modifiedBy,
-            Label: 'Revised By'
-        },
-        {
-            Value: PublishedBy,
-            Label: 'Published By'
         }
     ]},
-
     UI.FieldGroup #AdminGroup     : {Data: [
         {
             Value: Version,
@@ -443,6 +467,7 @@ annotate service.PricelistData with @(
             Label: 'Status'
         }
     ]},
+
 
     UI.FieldGroup #GeneralInfo    : {Data: [
         {Value: PricelistTitle},
