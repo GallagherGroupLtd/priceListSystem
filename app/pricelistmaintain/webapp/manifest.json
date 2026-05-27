@@ -63,12 +63,13 @@
         "sap.m": {},
         "sap.ui.core": {},
         "sap.fe.templates": {},
-        "sap.ui.table": {}
+        "sap.ui.table": {},
+        "sap.fe.macros": {}
       }
     },
     "cache": {
       "mode": "off"
-    },    
+    },
     "contentDensities": {
       "compact": true,
       "cozy": true
@@ -195,10 +196,6 @@
                       "subSections": {
                         "ProductPricelist": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductPricelist",
-                          "position": {
-                            "placement": "Before",
-                            "anchor": "PricelistMainCategory"
-                          },
                           "title": "Product Pricelist (Cust)"
                         },
                         "PricelistMainCategory": {
@@ -218,6 +215,14 @@
                           "title": "Pricelist Sub Category"
                         }
                       }
+                    },
+                    "TermsAndConditionsV2": {
+                      "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsAndConditionsV2",
+                      "position": {
+                        "placement": "Before",
+                        "anchor": "GeneralNotes"
+                      },
+                      "title": "Terms and Conditions (New)"
                     }
                   }
                 }

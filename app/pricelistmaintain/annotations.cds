@@ -404,13 +404,9 @@ annotate service.PricelistData with @(
         Label : 'Product Pricelist',
         ID    : 'ProductPricelistFacet',
         Facets: [
-            {
-                $Type : 'UI.ReferenceFacet',
-                Label : 'General',
-                Target: '@UI.FieldGroup#GeneralInfo'
-            },
+            
         ]
-    }],
+    },],
 
     // --- FIELD GROUPS --- OBJECT PAGE HEADER
     UI.FieldGroup #PriceListHeaderGroup: {Data: [
@@ -516,7 +512,24 @@ annotate service.PricelistData with @(
             Value: DeliveringPlant,
             Label: 'Delivering Plant'
         }
-    ]}
+    ]},
+    UI.FieldGroup #NotesForm : {
+        $Type : 'UI.FieldGroupType',
+        Data : [
+            {
+                $Type : 'UI.DataField',
+                Value : Notes,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : NotesDisableExtUser,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : NotesDisableIntUser,
+            },
+        ],
+    },
 );
 
 // ====================================================================
