@@ -34,11 +34,11 @@
                   
                   <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="21%" /></layoutData></Text>
 
-                  <Label text="Effective From:" class="sapUiSmallMarginEnd" />
+                  <Label text="Effective From:" class="sapUiSmallMarginEnd" ><layoutData><FlexItemData growFactor="1" maxWidth="5%"/></layoutData></Label>
                   <DatePicker value="{product>effectiveFrom}" class="sapUiMediumMarginEnd"><layoutData><FlexItemData growFactor="1" maxWidth="10%" /></layoutData></DatePicker>
                   
                   <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="1.5%" /></layoutData></Text>                  
-                  <Label text="Effective To:" class="sapUiSmallMarginEnd" />
+                  <Label text="Effective To:" class="sapUiSmallMarginEnd"><layoutData><FlexItemData growFactor="1" maxWidth="4%"/></layoutData></Label>
                   <DatePicker value="{product>effectiveTo}"><layoutData><FlexItemData growFactor="1" maxWidth="10%" /></layoutData></DatePicker>			
                </HBox>
 
@@ -48,6 +48,16 @@
                      <Label text="Material Classification:" class="sapUiSmallMarginEnd" />
                   </HBox>               
                   <Input value="{product>materialClassification}"><layoutData><FlexItemData growFactor="1" maxWidth="25%"/></layoutData></Input>
+
+                  <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="21%" /></layoutData></Text>
+
+                  <Label text="3rd part no:" class="sapUiSmallMarginEnd"><layoutData><FlexItemData growFactor="1" maxWidth="5%"/></layoutData></Label>
+                  <Input value="{product>3rdPartyPartNo}" ><layoutData><FlexItemData growFactor="1" maxWidth="10%" /></layoutData></Input>
+                  <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="1.5%" /></layoutData></Text>                                    
+
+                  <Label text="Supplier:" class="sapUiSmallMarginEnd" ><layoutData><FlexItemData growFactor="1" maxWidth="4%"/></layoutData></Label>
+                  <Input value="{product>Supplier}" ><layoutData><FlexItemData growFactor="1" maxWidth="10%" /></layoutData></Input>
+
                </HBox>
 
                <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
