@@ -316,8 +316,8 @@ function buildPdfBuffer({ headerCriteria, headerTerms, detailTerms }) {
 
 module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
-    const { User, TradeScenarios, ItemStructure, PartNumbers, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, PricingCondType,
-        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem } = this.entities;
+    const { User, TradeScenarios, ItemStructure, PriceProductMaintenance, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, PricingCondType,
+        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest } = this.entities;
 
     //Selection of Materials
     async function resolveItems(filters, db, extdb) {
@@ -869,22 +869,11 @@ module.exports = cds.service.impl(async function () {
         );
     });
 
-    // // Distinct Customers from HANA DB Table T_CUSTOMER_MASTER_DATA
-    // this.on('READ', 'MainCategoryVH', async (req) => {
-    //     const db = cds.transaction(req);
-    //     let q = SELECT.distinct.from('PricelistItemStructureComponents').columns('MainCategory').orderBy('MainCategory');
-    //     if (req.query.SELECT.where) {
-    //         q.where(req.query.SELECT.where);
-    //     }
-    //     return await db.run(q);
-    // });
-
     // Distinct Countries filtered by TradeScenario + Region
     this.on('READ', 'MarketCountryVH', async (req) => {
         const db = cds.transaction(req);
         let q = SELECT.distinct.from(TradeScenarios)
-            // .columns('TradeScenario', 'MarketScopeRegion', 'MarketScopeCountry');
-            .columns('MarketScopeCountry');
+            .columns('MarketScopeCountry').orderBy('MarketScopeCountry');
 
         if (req.query.SELECT.where) {
             const filters = {};
@@ -923,7 +912,18 @@ module.exports = cds.service.impl(async function () {
         return await extdb.run(q);
     });
 
+    // Distinct Material Group2
+    this.on('READ', 'MaterialGroup2VH', async (req) => {
+        const extdb = await cds.connect.to('extdb');
+        let q = SELECT.distinct.from('ErpMaterialGroup2')
+            .columns('Code')
+            .orderBy('Code');
 
+        if (req.query.SELECT.where) {
+            q.where(req.query.SELECT.where);
+        }
+        return await extdb.run(q);
+    });
 
     // ─── Helper ──────────────────────────────────────────────────────────────────
     const readVH = async (req, table, { codeCol = 'Code', descCol = 'Description' } = {}) => {
@@ -944,68 +944,42 @@ module.exports = cds.service.impl(async function () {
         }));
     };
 
+    const readVH2 = async (req, table, { codeCol = 'Code', descCol = 'Description' } = {}) => {
+        const extdb = await cds.connect.to('extdb');
+
+        let q = SELECT.distinct.from(table)
+            .columns(codeCol)
+            .orderBy(codeCol);
+
+        if (req.query.SELECT.where) {
+            q.where(req.query.SELECT.where);
+        }
+
+        const result = await extdb.run(q);
+        return result.map(r => ({
+            Code: r[codeCol],
+            Description: r[descCol]
+        }));
+    };
+
     // ─── Value Help Handlers ──────────────────────────────────────────────────────
     this.on('READ', 'SalesOrgVH', req => readVH(req, 'ERP_SALES_ORG', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'DistributionChannelVH', req => readVH(req, 'ERP_DIST_CHANNEL', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'PlantVH', req => readVH(req, 'ERP_PLANT', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'PricelistVH', req => readVH(req, 'ERP_CUSTPRICELIST', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'CustomerGroup1VH', req => readVH(req, 'ERP_CUSTGRP1', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
-    
+    this.on('READ', 'PriceAccessSequenceVH', req => readVH(req, 'ERP_PRICEACCESSSEQUENCE', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
+    this.on('READ', 'DiscountConditionTypeVH', req => readVH2(req, 'ERP_DISCOUNTCONDTYPE', { codeCol: 'CODE' }));
+    this.on('READ', 'DiscountAccessSequenceVH', req => readVH(req, 'ERP_DISCOUNTACCESSSEQ', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
+    this.on('READ', 'MatGruop2VH', req => readVH(req, 'ERP_MAT_GROUP2', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
+    this.on('READ', 'RequestStatusVH', req => readVH2(req, 'ERP_REQUESTSTATUS', { codeCol: 'CODE' }));
+    this.on('READ', 'MatMasVH', req => readVH(req, 'T_MATERIAL_MASTER_DATA', { codeCol: 'MATERIAL', descCol: 'MATERIAL_DESCRIPTION' }));
 
     //Pricing Parameters - Product Price Condition Type (Value Help)
     this.on('READ', 'PriceConditionTypeVH', (req) => {
         const data = [
             { Code: 'PR00' },
             { Code: 'PREX' },
-        ];
-
-        if (req.query.SELECT.count) {
-            data.$count = data.length;
-        }
-
-        return data;
-    });
-
-    //Pricing Parameters - Product Price Access Sequence (Value Help)
-    this.on('READ', 'PriceAccessSequenceVH', (req) => {
-        const data = [
-            { Code: 'A304', Description: 'Material with release status' },
-            { Code: 'A305', Description: 'Customer/material with release status' },
-            { Code: 'A032', Description: 'Price group/Material' },
-            { Code: 'A503', Description: 'Sales org./Distr. Ch/Price list/Item/Material' },
-            { Code: 'A506', Description: 'Sales org./Distr. Ch/SalesDocTy/Function/Partner/Material' },
-            { Code: 'A916', Description: 'Sales org./Distr. Ch/Price list/Material' },
-            { Code: 'A917', Description: 'Sales org./Distr. Ch/Cust Grp1/Price list/Material' },
-            { Code: 'A918', Description: 'Sales org./Distr. Ch/Cust Grp1/Material' },
-            { Code: 'A930', Description: 'Sales org./Distr. Ch/SalesDocTy/Customer/Material' }
-        ];
-
-        if (req.query.SELECT.count) {
-            data.$count = data.length;
-        }
-
-        return data;
-    });
-
-    //Pricing Parameters - Discount Condition Type (Value Help)
-    this.on('READ', 'DiscountConditionTypeVH', (req) => {
-        const data = [
-            { Code: 'K030' },
-            { Code: 'K029' },
-            { Code: 'To follow on other condition types' }
-        ];
-
-        if (req.query.SELECT.count) {
-            data.$count = data.length;
-        }
-
-        return data;
-    });
-
-    //Pricing Parameters - Discount Access Sequence (Value Help)
-    this.on('READ', 'DiscountAccessSequenceVH', (req) => {
-        const data = [
-            { Code: 'TBA' }
         ];
 
         if (req.query.SELECT.count) {
@@ -1056,6 +1030,22 @@ module.exports = cds.service.impl(async function () {
         }
 
         return data;
+    });
+
+    this.before('PATCH', 'PriceProductMaintenance.drafts', async (req) => {
+    const productId = req.data.PricelistPartNumber;
+    if (!productId) return;
+        const extdb = await cds.connect.to('extdb');
+        const material = await extdb.run(
+            SELECT.one
+                .from('T_MATERIAL_MASTER_DATA')
+                .columns('MATERIAL_DESCRIPTION')
+                .where({ MATERIAL: productId })
+        );
+
+        if (material) {
+            req.data.PartNumberDescr = material.MATERIAL_DESCRIPTION;
+        }
     });
 
     // Handler for PricelistData Status Assignment
@@ -1241,4 +1231,74 @@ module.exports = cds.service.impl(async function () {
 
         return;
     });
+
+    // My request
+    // this.on('READ', 'MyRequestPriorityVH', async () => {
+    //     return [
+    //         { Priority: 'Low' },
+    //         { Priority: 'Medium' },
+    //         { Priority: 'High' }
+    //     ];
+    // });
+
+    // this.on('READ', 'MyRequestRepeatVH', async () => {
+    //     return [
+    //         { Repeat: 'Does not repeat' },
+    //         { Repeat: 'Repeat' }
+    //     ];
+    // });
+
+    // function getCurrentNzDateTime() {
+    //     const now = new Date();
+
+    //     const date = new Intl.DateTimeFormat('en-CA', {
+    //         timeZone: 'Pacific/Auckland',
+    //         year: 'numeric',
+    //         month: '2-digit',
+    //         day: '2-digit'
+    //     }).format(now);
+
+    //     const time = new Intl.DateTimeFormat('en-GB', {
+    //         timeZone: 'Pacific/Auckland',
+    //         hour: '2-digit',
+    //         minute: '2-digit',
+    //         second: '2-digit',
+    //         hour12: false
+    //     }).format(now);
+
+    //     return { date, time };
+    // }
+
+    // function setMyRequestDefaults(req) {
+    //     const { date, time } = getCurrentNzDateTime();
+
+    //     req.data.AccountName = req.data.AccountName || req.user?.id || req.user?.email || 'Unknown User';
+    //     req.data.ReqDate = req.data.ReqDate || date;
+    //     req.data.ReqTime = req.data.ReqTime || time;
+    //     req.data.ReqStatus = req.data.ReqStatus || 'New';
+
+    //     req.data.ReqPriority = req.data.ReqPriority || 'Low';
+    //     req.data.ReqRepeat = req.data.ReqRepeat || 'Does not repeat';
+
+    //     req.data.ReqInfoProvided = req.data.ReqInfoProvided ?? false;
+    //     req.data.ReqCatalogUpdated = req.data.ReqCatalogUpdated ?? false;
+    //     req.data.ReqMasterPLUpdated = req.data.ReqMasterPLUpdated ?? false;
+    //     req.data.ReqSecCommerceChecked = req.data.ReqSecCommerceChecked ?? false;
+    // }
+
+    // this.before('NEW', 'MyRequest', (req) => {
+    //     console.log('>>> MyRequest NEW default handler called');
+    //     setMyRequestDefaults(req);
+    // });
+
+    // this.before('CREATE', 'MyRequest', (req) => {
+    //     console.log('>>> MyRequest CREATE default handler called');
+    //     setMyRequestDefaults(req);
+    // });
+
+    // this.before('CREATE', 'MyRequest.drafts', (req) => {
+    //     console.log('>>> MyRequest.drafts CREATE default handler called');
+    //     setMyRequestDefaults(req);
+    // });
+
 });

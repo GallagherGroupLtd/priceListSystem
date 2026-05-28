@@ -1,17 +1,62 @@
 using PriceListService as service from '../../srv/service';
-annotate service.PartNumbers with @(
+annotate service.PriceProductMaintenance with @(
+
+    // Selection Fields for Filtering
+    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,MaterialClassification1 ],
+
     UI.HeaderInfo: {
-        TypeName      : 'Part Number',
-        TypeNamePlural: 'Part Numbers'
+        TypeName      : 'Price Product Maintenance',
+        TypeNamePlural: 'Price Product Maintenance'
     },
+
+    // Header Section at the top
+    UI.HeaderInfo                 : {
+        ImageUrl      : 'sap-icon://sales-order-item'
+    },  
+    UI.HeaderFacets               : [
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'DatesFacet',
+            Target: '@UI.FieldGroup#CreateGroup'
+        },
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'UsersFacet',
+            Target: '@UI.FieldGroup#UpdateGroup'
+        }
+    ],
+    UI.FieldGroup #CreateGroup     : {
+        Data: [
+            {
+                Value: createdAt,
+                Label: 'Created On'
+            },
+            {
+                Value: createdBy,
+                Label: 'Created BY'
+            }
+        ]
+    },
+    UI.FieldGroup #UpdateGroup     : {
+        Data: [
+            {
+                Value: modifiedAt,
+                Label: 'Updated On'
+            },
+            {
+                Value: modifiedBy,
+                Label: 'Updated By'
+            }
+        ]
+    },
+
     UI.LineItem  : [
-        { Value: MainCategory },
-        { Value: Subcategory1 },
-        { Value: Subcategory2 },
-        { Value: Subcategory3 },
-        { Value: Subcategory4 },
-        { Value: Subcategory5 },
-        { Value: PricelistPartNumber }
+        { Value: ProductID },
+        { Value: ProductDescription1 },
+        { Value: SalesOrg },
+        { Value: DistChannel },
+        { Value: MaterialClassification1 },
+        { Value: ProductDescription2 }
     ],
     UI.PresentationVariant : {
         SortOrder      : [
@@ -28,45 +73,190 @@ annotate service.PartNumbers with @(
         ],
         Visualizations : ['@UI.LineItem']
     },
-    UI.FieldGroup #GeneratedGroup : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            {
-                $Type : 'UI.DataField',
-                Value : MainCategory,
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : Subcategory1,
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : Subcategory2,
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : Subcategory3,
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : Subcategory4,
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : Subcategory5,
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : PricelistPartNumber,
-            }
-        ],
-    },
+
     UI.Facets : [
         {
             $Type : 'UI.ReferenceFacet',
             ID : 'GeneratedFacet1',
             Label : 'General Information',
-            Target : '@UI.FieldGroup#GeneratedGroup',
+            Target : '@UI.FieldGroup#GeneralInformation',
         },
-    ]
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID : 'GeneratedFacet2',
+            Label : 'Product Detail Translation',
+            Target : '@UI.FieldGroup#DetailTranslation',
+        }
+    ],
+
+    UI.FieldGroup #GeneralInformation : {
+        $Type : 'UI.FieldGroupType',
+        Data : [
+            {
+                $Type : 'UI.DataField',
+                Value : ProductID,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ProductDescription1,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : SalesOrg,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : DistChannel,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : MaterialClassification1,
+            }
+        ],
+    },
+
+    UI.FieldGroup #DetailTranslation : {
+        $Type : 'UI.FieldGroupType',
+        Data : [
+            {
+                $Type : 'UI.DataField',
+                Value : ProductDescription2,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : MaterialClassification2,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : PricelistMaterialClassification,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ProductStatus,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : StatusValidity,
+            }
+        ],
+    }    
 );
+
+annotate service.PriceProductMaintenance with {
+    TradeScenario @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'TradeScenarioVH',
+            Parameters: [
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
+            ]
+        }
+    );
+
+    MarketScopeRegion @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'MarketRegionVH',
+            Parameters: [
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeRegion', ValueListProperty: 'MarketScopeRegion' }
+            ]
+        }
+    );
+
+    MarketScopeCountry @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'MarketCountryVH',
+            Parameters: [
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeCountry', ValueListProperty: 'MarketScopeCountry' }
+            ]
+        }
+    );
+
+    SalesOrg @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'SalesOrgVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SalesOrg', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly',
+                    ValueListProperty: 'Description' 
+                }
+            ]            
+        }        
+    );
+
+    DistChannel @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'DistributionChannelVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'DistChannel', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
+        }        
+    );
+
+    MaterialClassification1 @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'MatGruop2VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'MaterialClassification1', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
+        }        
+    );
+
+    ProductID @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'MatMasVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'ProductID', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterOut', 
+                    LocalDataProperty: 'ProductDescription1', 
+                    ValueListProperty: 'Description' 
+                }
+            ]
+        }
+    );
+
+    // ProductID @Common.SideEffects : {
+    //     SourceProperties : [ProductID],
+    //     TargetProperties : [ProductDescription1]
+    // };
+
+    ProductDescription1 @Common.FieldControl : #ReadOnly;
+}

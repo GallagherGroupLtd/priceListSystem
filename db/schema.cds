@@ -43,15 +43,21 @@ entity PricelistItemStructureComponents : managed, cuid {
     SubCategory5Local  : String(255) @title: 'Subcategory 5 Local Description';
 }
 
-/** Pricelist Part Number Determination **/
+/** Pricelist Product Maintenance **/
 entity PricelistPartNumberDetermination : managed, cuid {
-    MainCategory        : String(255) @title: 'Main Category';
-    Subcategory1        : String(255) @title: 'Subcategory 1';
-    Subcategory2        : String(255) @title: 'Subcategory 2';
-    Subcategory3        : String(255) @title: 'Subcategory 3';
-    Subcategory4        : String(255) @title: 'Subcategory 4';
-    Subcategory5        : String(255) @title: 'Subcategory 5';
-    PricelistPartNumber : String(30)  @title: 'Part Number';
+    TradeScenario                   : String(255) @title: 'Trade Scenario';
+    MarketScopeRegion               : String(255) @title: 'Region';
+    MarketScopeCountry              : String(255) @title: 'Country';    
+    SalesOrg                        : String(255) @title: 'Sales Organization';
+    DistChannel                     : String(2)   @title: 'Distribution Channel';    
+    ProductID                       : String(30)  @title: 'Product ID';
+    ProductDescription1             : String(255) @title: 'Product Description';
+    MaterialClassification1         : String(255) @title: 'Material Classification';
+    ProductDescription2             : String(255) @title: 'Pricelist Product Description';
+    MaterialClassification2         : String(255) @title: 'Translation Material Classification';
+    PricelistMaterialClassification : String(255) @title: 'Pricelist Material Classification';
+    ProductStatus                   : String(255) @title: 'Product Status';
+    StatusValidity                  : Date        @title: 'Status Validity';
 }
 
 /** Terms and Condition Determination **/
@@ -210,20 +216,6 @@ entity AccountAssignment : managed, cuid {
     ControlApplicationLogTile :          Boolean     @title: 'Application Log Tile';
 }
 
-/** Product Maintenance **/
-entity ProductMaintenance : managed, cuid {
-    ProductID                       : String(30)  @title: 'Product ID';
-    ProductDescription              : String(255) @title: 'Product Description';
-    SalesOrg                        : String(255) @title: 'Sales Organization';
-    DistChannel                     : String(2)   @title: 'Distribution Channel';
-    MaterialClassification1         : String(255) @title: 'Material Classification';
-    DetailsTranslation              : String(255) @title: 'Product Details Translation';
-    MaterialClassification2         : String(255) @title: 'Material Classification';
-    PricelistMaterialClassification : String(255) @title: 'Pricelist Material Classification';
-    ProductStatus                   : String(255) @title: 'Product Status';
-    StatusValidity                  : Date        @title: 'Status Validity';
-}
-
 /** Pricing Condition Description **/
 entity PricingCondType : managed, cuid {
     ErpPricingAccessSequence : String(100) @title : 'ERP Pricing Access Sequence';
@@ -323,20 +315,6 @@ entity PricelistItemData : managed, cuid {
     SubCategory5TermsandCond  : String @title : 'Sucategory 5 Terms and Conditions';
 }
 
-/** Product Maintenance **/
-entity PricelistProduct : managed, cuid {
-    ProductID                       : String(30)  @title: 'Product ID';
-    ProductDescription              : String(255) @title: 'Product Description';
-    SalesOrg                        : String(255) @title: 'Sales Organization';
-    DistChannel                     : String(2)   @title: 'Distribution Channel';
-    MaterialClassification1         : String(255) @title: 'Material Classification';
-    ProductDescription2             : String(255) @title: 'Pricelist Product Description';
-    MaterialClassification2         : String(255) @title: 'Translation Material Classification';
-    PricelistMaterialClassification : String(255) @title: 'Pricelist Material Classification';
-    ProductStatus                   : String(255) @title: 'Product Status';
-    StatusValidity                  : Date        @title: 'Status Validity';
-}
-
 /* -------------------------------------- Value Help -------------------------------------- */
 
 /* Sales Org Table */
@@ -399,23 +377,18 @@ entity ErpPriceStatus : managed, cuid {
     Description : String(255);
 }
 
-entity MyRequest {
-  key ID            : UUID;
-
-  AccountName       : String(100);   // UI label = Bucket
-  ReqDate           : Date;          // UI label = Start Date
-  ReqTime           : Time;
-  ReqStatus         : String(20);    // UI label = Progress
-
-  ReqSubject        : String(200);
-  RequestDetails    : String(1000);  // UI label = Notes / Request Details
-
-  ReqPriority       : String(20);
-  ReqDueDate        : Date;
-  ReqRepeat         : String(50);
-
-  ReqInfoProvided       : Boolean default false;
-  ReqCatalogUpdated     : Boolean default false;
-  ReqMasterPLUpdated    : Boolean default false;
-  ReqSecCommerceChecked : Boolean default false;
+entity MyRequest : managed, cuid {
+    TradeScenario         : String(255) @title: 'Trade Scenario';
+    MarketScopeRegion     : String(255) @title: 'Region';
+    MarketScopeCountry    : String(255) @title: 'Country';    
+    ReqStatus             : String(20)   @title: 'Status';
+    ReqSubject            : String(200)  @title: 'Subject';
+    RequestDetails        : String(1000) @title: 'Request Details';
+    ReqPriority           : String(20)   @title: 'Priority';
+    ReqStartDate          : Date         @title: 'Start Date';
+    ReqDueDate            : Date         @title: 'Due Date';
+    ReqInfoProvided       : Boolean      @title: 'Requestor to Provide Information';
+    ReqCatalogUpdated     : Boolean      @title: 'PPR Team Adds Part/s to Relevant Catalogs';
+    ReqMasterPLUpdated    : Boolean      @title: 'PPR Team Updates Master PL';
+    ReqSecCommerceChecked : Boolean      @title: 'Check or Request Tech Admin to add Sec Commerce Flag (Scale Price as Required)';
 }
