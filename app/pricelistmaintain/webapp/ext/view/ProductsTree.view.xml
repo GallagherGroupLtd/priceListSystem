@@ -6,7 +6,7 @@
     xmlns:u="sap.ui.unified"
     controllerName="pricelistapp.pricelistmaintain.ext.controller.ProductsTree">
     <m:HBox id="ProductsTreeSection" width="100%" renderType="Bare" alignItems="Start">
-        <m:VBox id="ProductsTreeVBox" width="70%" class="sapUiSmallMargin">
+        <m:VBox id="ProductsTreeVBox" width="100%" class="sapUiSmallMargin">
             <m:OverflowToolbar id="ProductsTreeToolbar">
                 <m:Title
                     id="ProductsTreeTitle"
@@ -73,11 +73,11 @@
                     </m:menu>
                 </m:MenuButton>
 
-                <m:Button
+                <!-- <m:Button
                     id="ProductsTreeRefreshButton"
                     text="Go"
                     type="Emphasized"
-                    press=".onRefresh" />
+                    press=".onRefresh" /> -->
             </m:OverflowToolbar>
 
             <t:TreeTable
@@ -85,7 +85,7 @@
                 selectionMode="Single"
                 enableColumnReordering="true"
                 enableColumnFreeze="true"
-                rowSelectionChange=".onSelectionChange"
+                rowSelectionChange=".onSelectionChangeV2"
                 width="100%"
                 rows="{
                     path: 'tree>/nodes',
@@ -200,18 +200,20 @@
             </t:TreeTable>
         </m:VBox>
 
-        <m:VBox id="TermsBox" width="30%" height="100%" class="sapUiSmallMargin">
+
+        <!-- <m:VBox id="TermsBox" width="30%" height="100%" class="sapUiSmallMargin">
             <m:HBox id="HBOXSpacer" height="0.5rem"/>
             <m:Title id="TermsandCondID" text="Terms and Conditions"/>
             <m:HBox id="HBOXSpacer2" height="0.5rem"/>
 
-            <!-- TextArea: editable only when editing terms AND a node is selected -->
+            <! TextArea: editable only when editing terms AND a node is selected >
             <m:TextArea 
                 id="TermsContentBox"
                 value=""
                 width="100%"
                 height="10rem"
                 liveChange=".onTermsChanged"/>
-        </m:VBox>
+        </m:VBox> -->
+
     </m:HBox>
 </mvc:View>

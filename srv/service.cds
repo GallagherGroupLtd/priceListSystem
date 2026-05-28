@@ -19,17 +19,17 @@ service PriceListService {
     };
 
     //Data Maintenance Application
-    entity TableDirectory         as projection on my.MaintenanceTableDirectory;
+    entity TableDirectory          as projection on my.MaintenanceTableDirectory;
     annotate TableDirectory with @odata.draft.enabled;
 
-    entity TradeScenarios         as projection on my.TradeAndMarketScenarioDetermination
+    entity TradeScenarios          as projection on my.TradeAndMarketScenarioDetermination
         actions {
             action copyRow() returns TradeScenarios;
         };
 
     annotate TradeScenarios with @odata.draft.enabled;
 
-    entity ItemStructure          as projection on my.PricelistItemStructureComponents
+    entity ItemStructure           as projection on my.PricelistItemStructureComponents
         actions {
             action copyRow() returns ItemStructure;
         };
@@ -43,105 +43,105 @@ service PriceListService {
 
     annotate PriceProductMaintenance with @odata.draft.enabled;
 
-    entity TermsAndConditions     as projection on my.TermsAndConditionDetermination
+    entity TermsAndConditions      as projection on my.TermsAndConditionDetermination
         actions {
             action copyRow() returns TermsAndConditions;
         };
 
     annotate TermsAndConditions with @odata.draft.enabled;
 
-    entity PricingParameters      as projection on my.PricingParameterDetermination
+    entity PricingParameters       as projection on my.PricingParameterDetermination
         actions {
             action copyRow() returns PricingParameters;
         };
 
     annotate PricingParameters with @odata.draft.enabled;
 
-    entity TileContent            as projection on my.InformationTileContent
+    entity TileContent             as projection on my.InformationTileContent
         actions {
             action copyRow() returns TileContent;
         };
 
     annotate TileContent with @odata.draft.enabled;
 
-    entity ContactInfo            as projection on my.ContactInformation
+    entity ContactInfo             as projection on my.ContactInformation
         actions {
             action copyRow() returns ContactInfo;
         };
 
     annotate ContactInfo with @odata.draft.enabled;
 
-    entity AccountAssignment      as projection on my.AccountAssignment
+    entity AccountAssignment       as projection on my.AccountAssignment
         actions {
             action copyRow() returns AccountAssignment;
         };
 
     annotate AccountAssignment with @odata.draft.enabled;
 
-    entity ErpSalesOrg            as projection on my.ErpSalesOrg
+    entity ErpSalesOrg             as projection on my.ErpSalesOrg
         actions {
             action copyRow() returns ErpDistributionChannel;
         };
 
     annotate ErpSalesOrg with @odata.draft.enabled;
 
-    entity ErpDistributionChannel as projection on my.ErpDistributionChannel
+    entity ErpDistributionChannel  as projection on my.ErpDistributionChannel
         actions {
             action copyRow() returns ErpDistributionChannel;
         };
 
     annotate ErpDistributionChannel with @odata.draft.enabled;
 
-    entity ErpDivision            as projection on my.ErpDivision
+    entity ErpDivision             as projection on my.ErpDivision
         actions {
             action copyRow() returns ErpDivision;
         };
 
     annotate ErpDivision with @odata.draft.enabled;
 
-    entity ErpPlant               as projection on my.ErpPlant
+    entity ErpPlant                as projection on my.ErpPlant
         actions {
             action copyRow() returns ErpPlant;
         };
 
     annotate ErpPlant with @odata.draft.enabled;
 
-    entity ErpMaterialGroup1      as projection on my.ErpMaterialGroup1
+    entity ErpMaterialGroup1       as projection on my.ErpMaterialGroup1
         actions {
             action copyRow() returns ErpMaterialGroup1;
         };
 
     annotate ErpMaterialGroup1 with @odata.draft.enabled;
 
-    entity ErpMaterialGroup2      as projection on my.ErpMaterialGroup2
+    entity ErpMaterialGroup2       as projection on my.ErpMaterialGroup2
         actions {
             action copyRow() returns ErpMaterialGroup2;
         };
 
     annotate ErpMaterialGroup2 with @odata.draft.enabled;
 
-    entity ErpMaterialGroup5      as projection on my.ErpMaterialGroup5
+    entity ErpMaterialGroup5       as projection on my.ErpMaterialGroup5
         actions {
             action copyRow() returns ErpMaterialGroup5;
         };
 
     annotate ErpMaterialGroup5 with @odata.draft.enabled;
 
-    entity ErpPricelist           as projection on my.ErpPricelist
+    entity ErpPricelist            as projection on my.ErpPricelist
         actions {
             action copyRow() returns ErpPricelist;
         };
 
     annotate ErpPricelist with @odata.draft.enabled;
 
-    entity ErpCustomerGroup1      as projection on my.ErpCustomerGroup1
+    entity ErpCustomerGroup1       as projection on my.ErpCustomerGroup1
         actions {
             action copyRow() returns ErpPricelist;
         };
 
     annotate ErpCustomerGroup1 with @odata.draft.enabled;
 
-    entity ErpPriceStatus         as projection on my.ErpPriceStatus
+    entity ErpPriceStatus          as projection on my.ErpPriceStatus
         actions {
             action copyRow() returns ErpPricelist;
         };
@@ -158,15 +158,15 @@ service PriceListService {
     action MassUploadContactInfo(file: String)                       returns String;
     action MassUploadAcctAssign(file: String)                        returns String;
 
-    entity PricingCondType        as projection on my.PricingCondType;
+    entity PricingCondType         as projection on my.PricingCondType;
 
-    entity UserTypeValues         as projection on my.UserTypeValues;
-    entity TermsDataLevelValues   as projection on my.TermsDataLevelValues;
-    entity StatusValues           as projection on my.StatusValues;
+    entity UserTypeValues          as projection on my.UserTypeValues;
+    entity TermsDataLevelValues    as projection on my.TermsDataLevelValues;
+    entity StatusValues            as projection on my.StatusValues;
 
     //Pricelist Maintenance Application
     @odata.draft.enabled
-    entity PricelistData          as
+    entity PricelistData           as
         projection on my.PricelistData {
             *,
             MarketScopeRegion || ' (' || MarketScopeCountry || ')' as MarketDisplay : String,
@@ -175,7 +175,7 @@ service PriceListService {
             items                                                                   : redirected to PricelistItemData
         };
 
-    entity PricelistItemData      as
+    entity PricelistItemData       as
         projection on my.PricelistItemData {
             *
         };
@@ -221,7 +221,7 @@ service PriceListService {
 
     //Pricelist App
     @cds.redirection.target
-    entity PricelistItemTree      as
+    entity PricelistItemTree       as
         projection on my.PricelistItemData {
             ID,
             pricelist,
@@ -286,7 +286,7 @@ service PriceListService {
     entity ExternalCustomers {
         key CUSTOMER_KEY              : String(100);
             SYSTEM_CLIENT_GENERAL     : String(100);
-            CUSTOMER                  : String(100);
+            CUSTOMER                  : String(100) @title: 'Customer';
             GENERAL_CREATED_ON        : String(100);
             CUSTOMER_NAME_1           : String(100);
             CUSTOMER_NAME_2           : String(100);
@@ -302,8 +302,8 @@ service PriceListService {
             CENTRAL_DELIVERY_BLOCK    : String(100);
             CENTRAL_POSTING_BLOCK     : String(100);
             CENTRAL_SALES_BLOCK       : String(100);
-            SALES_ORGANIZATION        : String(100);
-            DISTRIBUTION_CHANNEL      : String(100);
+            SALES_ORGANIZATION        : String(100) @title: 'Sales Organization';
+            DISTRIBUTION_CHANNEL      : String(100) @title: 'Distribution Channel';
             DIVISION                  : String(100);
             CREATED_ON_DATE           : String(100);
             SALES_AREA_DELETION_FLAG  : String(100);
@@ -523,55 +523,78 @@ service PriceListService {
     }
 
     @cds.persistence.skip
-    entity CustomerVH             as projection on ExternalCustomers;
+    entity CustomerVH              as projection on ExternalCustomers;
 
     @cds.persistence.skip
-    entity SalesOrgVH             as projection on my.ErpSalesOrg;
+    entity SalesOrgVH              as projection on my.ErpSalesOrg;
 
     @cds.persistence.skip
-    entity DistributionChannelVH  as projection on my.ErpDistributionChannel;
+    entity DistributionChannelVH   as projection on my.ErpDistributionChannel;
 
     @cds.persistence.skip
-    entity DivisionVH             as projection on my.ErpDivision;
+    entity DivisionVH              as projection on my.ErpDivision;
 
     @cds.persistence.skip
-    entity PlantVH                as projection on my.ErpPlant;
+    entity PlantVH                 as projection on my.ErpPlant;
 
     @cds.persistence.skip
-    entity MaterialGroup1VH       as projection on my.ErpMaterialGroup1;
+    entity MaterialGroup1VH        as projection on my.ErpMaterialGroup1;
 
     @cds.persistence.skip
-    entity MaterialGroup2VH       as projection on my.ErpMaterialGroup2;
+    entity MaterialGroup2VH        as projection on my.ErpMaterialGroup2;
 
     @cds.persistence.skip
-    entity MaterialGroup5VH       as projection on my.ErpMaterialGroup5;
+    entity MaterialGroup5VH        as projection on my.ErpMaterialGroup5;
 
     @cds.persistence.skip
-    entity PricelistVH            as projection on my.ErpPricelist;
+    entity PricelistVH             as projection on my.ErpPricelist;
 
     @cds.persistence.skip
-    entity CustomerGroup1VH       as projection on my.ErpCustomerGroup1;
+    entity CustomerGroup1VH        as projection on my.ErpCustomerGroup1;
 
     @cds.persistence.skip
-    entity CustPricelistVH        as projection on ExternalCustomers;
+    entity CustPricelistVH         as projection on ExternalCustomers;
 
     @cds.persistence.skip
-    entity StatusVH               as projection on StatusValues;
+    entity StatusVH                as projection on StatusValues;
 
-    entity PriceStatusVH          as projection on my.ErpPriceStatus;
+    entity PriceStatusVH           as projection on my.ErpPriceStatus;
 
     @odata.draft.enabled
-    entity MyRequest              as projection on my.MyRequest
+    entity MyRequest               as projection on my.MyRequest
         actions {
             action SubmitRequest();
         };
 
-    @cds.persistence.skip entity MainCategoryVH { key MainCategory : String(255); }
-    @cds.persistence.skip entity SubCategory1VH { key SubCategory1 : String(255); }
-    @cds.persistence.skip entity SubCategory2VH { key SubCategory2 : String(255); }
-    @cds.persistence.skip entity SubCategory3VH { key SubCategory3 : String(255); }
-    @cds.persistence.skip entity SubCategory4VH { key SubCategory4 : String(255); }
-    @cds.persistence.skip entity SubCategory5VH { key SubCategory5 : String(255); }
+    @cds.persistence.skip
+    entity MainCategoryVH {
+        key MainCategory : String(255);
+    }
+
+    @cds.persistence.skip
+    entity SubCategory1VH {
+        key SubCategory1 : String(255);
+    }
+
+    @cds.persistence.skip
+    entity SubCategory2VH {
+        key SubCategory2 : String(255);
+    }
+
+    @cds.persistence.skip
+    entity SubCategory3VH {
+        key SubCategory3 : String(255);
+    }
+
+    @cds.persistence.skip
+    entity SubCategory4VH {
+        key SubCategory4 : String(255);
+    }
+
+    @cds.persistence.skip
+    entity SubCategory5VH {
+        key SubCategory5 : String(255);
+    }
 
     @cds.persistence.skip
     entity PriceConditionTypeVH {
@@ -612,13 +635,18 @@ service PriceListService {
 
     @cds.persistence.skip
     entity MatGruop2VH {
-        key Code         : String(8);
-            Description  : String(255);
-    }      
+        key Code        : String(8);
+            Description : String(255);
+    }
 
     @cds.persistence.skip
     entity MatMasVH {
-        key Code         : String(100);
-            Description  : String(100);
-    }       
+        key Code        : String(100);
+            Description : String(100);
+    }
+}
+
+@cds.persistence.skip
+entity Subcategory1VH {
+    key Subategory1 : String(255);
 }
