@@ -160,41 +160,21 @@
               "content": {
                 "body": {
                   "sections": {
-                    "ProductDetails": {
-                      "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductDetails",
-                      "title": "Product Details",
+                    "ProductsTree": {
+                      "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductsTree",
                       "position": {
-                        "placement": "After",
-                        "anchor": "ProductsTree"
-                      }
-                    },
-                    "TermsandConditions": {
-                      "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsandConditions",
-                      "title": "Terms and Conditions",
-                      "position": {
-                        "anchor": "ProductDetails",
-                        "placement": "After"
-                      }
-                    },
-                    "GeneralNotes": {
-                      "title": "General Notes",
-                      "template": "pricelistapp.pricelistmaintain.ext.fragment.GeneralNotes",
-                      "position": {
-                        "placement": "After",
-                        "anchor": "TermsandConditions"
-                      }
+                        "placement": "Before",
+                        "anchor": "ProductPricelistFacet"
+                      },
+                      "title": "Gallagher Products"
                     },
                     "ProductPricelistFacet": {
                       "subSections": {
-                        "ProductsTree": {
-                          "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductsTree",
-                          "title": "Gallagher Products"
-                        },
                         "PricelistMainCategory": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistMainCategory",
                           "position": {
                             "placement": "After",
-                            "anchor": "ProductPricelist"
+                            "anchor": "ProductsTree"
                           },
                           "title": "Pricelist Main Category"
                         },
@@ -205,7 +185,23 @@
                             "anchor": "PricelistMainCategory"
                           },
                           "title": "Pricelist Sub Category"
+                        },
+                        "ProductDetails": {
+                          "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductDetails",
+                          "title": "Product Details",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "PricelistSubCategory"
+                          }
                         }
+                      }
+                    },
+                    "TermsandConditions": {
+                      "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsandConditions",
+                      "title": "Terms and Conditions",
+                      "position": {
+                        "anchor": "ProductDetails",
+                        "placement": "After"
                       }
                     },
                     "TermsAndConditionsV2": {
@@ -214,7 +210,15 @@
                         "placement": "Before",
                         "anchor": "GeneralNotes"
                       },
-                      "title": "Terms and Conditions (New)"
+                      "title": "Terms and Conditions"
+                    },                    
+                    "GeneralNotes": {
+                      "title": "General Notes",
+                      "template": "pricelistapp.pricelistmaintain.ext.fragment.GeneralNotes",
+                      "position": {
+                        "placement": "After",
+                        "anchor": "TermsandConditions"
+                      }
                     }
                   }
                 }
