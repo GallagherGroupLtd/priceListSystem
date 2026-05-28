@@ -269,12 +269,12 @@ entity PricelistData : managed, cuid {
     MarketDisplay       : String      @title: 'Market Region'  @cds.persistence.skip; //Virtual Field
 
     TermsAndConditions  : String      @title: 'Header Terms and Conditions';
-    TACDisableExtUser   : Boolean     @title: 'Terms and Conditions Disable Flag for External User';
-    TACDisableIntUser   : Boolean     @title: 'Terms and Conditions Disable Flag for Internal User';
+    // TACDisableExtUser   : Boolean     @title: 'Terms and Conditions Disable Flag for External User';
+    // TACDisableIntUser   : Boolean     @title: 'Terms and Conditions Disable Flag for Internal User';
 
     Notes               : String      @title: 'Notes';
-    NotesDisableExtUser : Boolean     @title: 'Notes Disable Flag for External User';
-    NotesDisableIntUser : Boolean     @title: 'Notes Disable Flag for Internal User';
+    // NotesDisableExtUser : Boolean     @title: 'Notes Disable Flag for External User';
+    // NotesDisableIntUser : Boolean     @title: 'Notes Disable Flag for Internal User';
 
     // Composition: Pricelist owns its items
     items               : Composition of many PricelistItemData

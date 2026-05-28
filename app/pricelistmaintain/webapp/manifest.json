@@ -170,13 +170,6 @@
                     },
                     "ProductPricelistFacet": {
                       "subSections": {
-<<<<<<< HEAD
-=======
-                        "ProductPricelist": {
-                          "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductPricelist",
-                          "title": "Product Pricelist (Cust)"
-                        },
->>>>>>> 9d0cdb9 (adjust sections - terms and cond, notes & change compo to asso)
                         "PricelistMainCategory": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistMainCategory",
                           "position": {
@@ -203,7 +196,6 @@
                         }
                       }
                     },
-<<<<<<< HEAD
                     "TermsandConditions": {
                       "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsandConditions",
                       "title": "Terms and Conditions",
@@ -212,15 +204,12 @@
                         "placement": "After"
                       }
                     },
-=======
->>>>>>> 9d0cdb9 (adjust sections - terms and cond, notes & change compo to asso)
                     "TermsAndConditionsV2": {
                       "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsAndConditionsV2",
                       "position": {
                         "placement": "Before",
                         "anchor": "GeneralNotes"
                       },
-<<<<<<< HEAD
                       "title": "Terms and Conditions"
                     },                    
                     "GeneralNotes": {
@@ -230,9 +219,6 @@
                         "placement": "After",
                         "anchor": "TermsandConditions"
                       }
-=======
-                      "title": "Terms and Conditions (New)"
->>>>>>> 9d0cdb9 (adjust sections - terms and cond, notes & change compo to asso)
                     }
                   }
                 }
