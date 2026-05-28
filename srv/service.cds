@@ -36,12 +36,12 @@ service PriceListService {
 
     annotate ItemStructure with @odata.draft.enabled;
 
-    entity PartNumbers            as projection on my.PricelistPartNumberDetermination
+    entity PriceProductMaintenance            as projection on my.PricelistPartNumberDetermination
         actions {
-            action copyRow() returns PartNumbers;
+            action copyRow() returns PriceProductMaintenance;
         };
 
-    annotate PartNumbers with @odata.draft.enabled;
+    annotate PriceProductMaintenance with @odata.draft.enabled;
 
     entity TermsAndConditions     as projection on my.TermsAndConditionDetermination
         actions {
@@ -147,13 +147,6 @@ service PriceListService {
         };
 
     annotate ErpPriceStatus with @odata.draft.enabled;
-
-    entity PricelistProduct    as projection on my.PricelistProduct
-        actions {
-            action copyRow() returns PricelistProduct;
-        };
-
-    annotate PricelistProduct with @odata.draft.enabled;
     
     //File Upload Functions
     action MassUploadTradeScenarios(file: String)                    returns String;
@@ -603,6 +596,11 @@ service PriceListService {
     }
 
     @cds.persistence.skip
+    entity RequestStatusVH {
+        key Code : String(4);
+    }
+
+    @cds.persistence.skip
     entity AccountTypeVH {
         key Code : String(8);
     }
@@ -612,14 +610,15 @@ service PriceListService {
         key Code : String(8);
     }
 
+    @cds.persistence.skip
+    entity MatGruop2VH {
+        key Code         : String(8);
+            Description  : String(255);
+    }      
 
     @cds.persistence.skip
-    entity MainCategoryVH {
-        key MainCategory : String(255);
-    }
-
-    @cds.persistence.skip
-    entity Subcategory1VH {
-        key Subategory1 : String(255);
-    }
+    entity MatMasVH {
+        key Code         : String(100);
+            Description  : String(100);
+    }       
 }

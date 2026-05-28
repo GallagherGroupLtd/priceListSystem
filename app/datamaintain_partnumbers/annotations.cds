@@ -1,13 +1,55 @@
 using PriceListService as service from '../../srv/service';
-annotate service.PartNumbers with @(
+annotate service.PriceProductMaintenance with @(
 
     // Selection Fields for Filtering
     UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,MaterialClassification1 ],
 
     UI.HeaderInfo: {
-        TypeName      : 'Part Number',
-        TypeNamePlural: 'Part Numbers'
+        TypeName      : 'Price Product Maintenance',
+        TypeNamePlural: 'Price Product Maintenance'
     },
+
+    // Header Section at the top
+    UI.HeaderInfo                 : {
+        ImageUrl      : 'sap-icon://sales-order-item'
+    },  
+    UI.HeaderFacets               : [
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'DatesFacet',
+            Target: '@UI.FieldGroup#CreateGroup'
+        },
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'UsersFacet',
+            Target: '@UI.FieldGroup#UpdateGroup'
+        }
+    ],
+    UI.FieldGroup #CreateGroup     : {
+        Data: [
+            {
+                Value: createdAt,
+                Label: 'Created On'
+            },
+            {
+                Value: createdBy,
+                Label: 'Created BY'
+            }
+        ]
+    },
+    UI.FieldGroup #UpdateGroup     : {
+        Data: [
+            {
+                Value: modifiedAt,
+                Label: 'Updated On'
+            },
+            {
+                Value: modifiedBy,
+                Label: 'Updated By'
+            }
+        ]
+    },
+
     UI.LineItem  : [
         { Value: ProductID },
         { Value: ProductDescription1 },
@@ -39,6 +81,12 @@ annotate service.PartNumbers with @(
             Label : 'General Information',
             Target : '@UI.FieldGroup#GeneralInformation',
         },
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID : 'GeneratedFacet2',
+            Label : 'Product Detail Translation',
+            Target : '@UI.FieldGroup#DetailTranslation',
+        }
     ],
 
     UI.FieldGroup #GeneralInformation : {
@@ -63,16 +111,38 @@ annotate service.PartNumbers with @(
             {
                 $Type : 'UI.DataField',
                 Value : MaterialClassification1,
-            },
+            }
+        ],
+    },
+
+    UI.FieldGroup #DetailTranslation : {
+        $Type : 'UI.FieldGroupType',
+        Data : [
             {
                 $Type : 'UI.DataField',
                 Value : ProductDescription2,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : MaterialClassification2,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : PricelistMaterialClassification,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ProductStatus,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : StatusValidity,
             }
         ],
     }    
 );
 
-annotate service.PartNumbers with {
+annotate service.PriceProductMaintenance with {
     TradeScenario @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
@@ -148,7 +218,7 @@ annotate service.PartNumbers with {
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueList',
-            CollectionPath: 'MaterialGroup2VH',
+            CollectionPath: 'MatGruop2VH',
             Parameters: [
                 { 
                     $Type: 'Common.ValueListParameterInOut', 
@@ -162,4 +232,31 @@ annotate service.PartNumbers with {
             ]              
         }        
     );
+
+    ProductID @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'MatMasVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'ProductID', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterOut', 
+                    LocalDataProperty: 'ProductDescription1', 
+                    ValueListProperty: 'Description' 
+                }
+            ]
+        }
+    );
+
+    // ProductID @Common.SideEffects : {
+    //     SourceProperties : [ProductID],
+    //     TargetProperties : [ProductDescription1]
+    // };
+
+    ProductDescription1 @Common.FieldControl : #ReadOnly;
 }
