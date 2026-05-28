@@ -85,7 +85,7 @@
                 selectionMode="Single"
                 enableColumnReordering="true"
                 enableColumnFreeze="true"
-                rowSelectionChange=".onSelectionChange"
+                rowSelectionChange=".onSelectionChangeV2"
                 width="100%"
                 rows="{
                     path: 'tree>/nodes',

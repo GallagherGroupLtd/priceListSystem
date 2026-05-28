@@ -160,14 +160,6 @@
               "content": {
                 "body": {
                   "sections": {
-                    "ProductsTree": {
-                      "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductsTree",
-                      "position": {
-                        "placement": "After",
-                        "anchor": "ProductPricelistFacet"
-                      },
-                      "title": "Gallagher Products"
-                    },
                     "ProductDetails": {
                       "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductDetails",
                       "title": "Product Details",
@@ -194,9 +186,9 @@
                     },
                     "ProductPricelistFacet": {
                       "subSections": {
-                        "ProductPricelist": {
-                          "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductPricelist",
-                          "title": "Product Pricelist (Cust)"
+                        "ProductsTree": {
+                          "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductsTree",
+                          "title": "Gallagher Products"
                         },
                         "PricelistMainCategory": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistMainCategory",

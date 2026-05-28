@@ -345,10 +345,77 @@ sap.ui.define([
             }
         },
 
+        onSelectionChangeV2: function (oEvent) {
+            // // 1. Call the original, untouched function to handle standard states & buttons
+            // this.onSelectionChange(oEvent);
+
+            // 2. Execute the new logic for the Fragment and Navigation
+            const oTable = oEvent.getSource();
+            const iIndex = oTable.getSelectedIndex();
+
+            // The exact Fiori Elements prefix for your Custom SubSection fragment
+            const sFePrefix = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::PricelistMainCategory--";
+
+            if (iIndex >= 0) {
+                const oSelectedNode = oTable.getContextByIndex(iIndex).getObject();
+
+                if (oSelectedNode) {
+                    const sCategoryName = oSelectedNode.text || "";
+
+                    // Fetch inputs using the exact absolute IDs
+                    const oMainCatInput = sap.ui.getCore().byId(sFePrefix + "MainCategoryInput");
+                    const oPublishedCatInput = sap.ui.getCore().byId(sFePrefix + "PublishedMainCategoryInput");
+
+                    if (oMainCatInput) {
+                        oMainCatInput.setValue(sCategoryName);
+                    }
+                    if (oPublishedCatInput) {
+                        oPublishedCatInput.setValue(sCategoryName);
+                    }
+
+                    // ====================================================================
+                    // Navigate/Scroll to the Subsection (Native UI5 Approach)
+                    // ====================================================================
+
+                    // 1. Traverse up the UI tree to find the Fiori ObjectPageLayout container
+                    let oControl = this.getView();
+                    let oObjectPageLayout = null;
+
+                    while (oControl) {
+                        if (oControl.isA && oControl.isA("sap.uxap.ObjectPageLayout")) {
+                            oObjectPageLayout = oControl;
+                            break;
+                        }
+                        oControl = oControl.getParent && oControl.getParent();
+                    }
+
+                    const sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::PricelistMainCategory";
+
+                    // 2. Tell the ObjectPageLayout to scroll smoothly to your subsection
+                    if (oObjectPageLayout) {
+                        oObjectPageLayout.scrollToSection(sSubSectionId);
+                    } else {
+                        // 3. Ultimate Fallback: Direct DOM scroll if the ObjectPageLayout isn't found
+                        const oSubSection = sap.ui.getCore().byId(sSubSectionId);
+                        if (oSubSection && oSubSection.getDomRef()) {
+                            oSubSection.getDomRef().scrollIntoView({ behavior: "smooth" });
+                        }
+                    }
+                } else {
+                    // Clear the inputs if the user deselects the row
+                    const oMainCatInput = sap.ui.getCore().byId(sFePrefix + "MainCategoryInput");
+                    const oPublishedCatInput = sap.ui.getCore().byId(sFePrefix + "PublishedMainCategoryInput");
+
+                    if (oMainCatInput) oMainCatInput.setValue("");
+                    if (oPublishedCatInput) oPublishedCatInput.setValue("");
+                }
+            }
+        },
+
         _getSelectedNodeNow: function () {
             const oTable = this.byId("ProductsTreeTable");
             const iIndex = oTable.getSelectedIndex();
-            if (iIndex < 0) 
+            if (iIndex < 0)
                 return null;
 
             const oCtx = oTable.getContextByIndex(iIndex);
@@ -459,18 +526,18 @@ sap.ui.define([
         _updateNodeInTree: function (nodes, key, fieldName, value) {
             for (const node of nodes) {
                 if (node.key === key) {
-                node[fieldName] = value; // Update the selected node value
+                    node[fieldName] = value; // Update the selected node value
 
-                // Always update children too
-                if (node.children && node.children.length > 0) {
-                    node.children.forEach(child => {
-                        child[fieldName] = value;
+                    // Always update children too
+                    if (node.children && node.children.length > 0) {
+                        node.children.forEach(child => {
+                            child[fieldName] = value;
 
-                        // Recurse into grandchildren
-                        this._updateNodeInTree(child.children || [], child.key, fieldName, value);
-                    });
-                }
-                return true;
+                            // Recurse into grandchildren
+                            this._updateNodeInTree(child.children || [], child.key, fieldName, value);
+                        });
+                    }
+                    return true;
                 }
 
                 // Search deeper if not matched yet
@@ -679,9 +746,9 @@ sap.ui.define([
         },
 
         // Edit Button
-        onEditNode: function() {
+        onEditNode: function () {
             const node = this._selectedNode;
-            if (!node) 
+            if (!node)
                 return;
 
             // Create reusable helper for a cell (label + control)
@@ -712,82 +779,82 @@ sap.ui.define([
 
             // Editable controls (store references for Save)
             this._descrInput = new sap.m.Input({ value: node.PartNumberDescrLong });
-            this._mainCatTermsArea = 
-                new sap.m.TextArea({ 
-                    value: node.MainCategoryTermsandCond, 
+            this._mainCatTermsArea =
+                new sap.m.TextArea({
+                    value: node.MainCategoryTermsandCond,
                     rows: 3,
                     editable: !!node.MainCategory
                 });
-            this._subCat1TermsArea = 
-                new sap.m.TextArea({ 
-                    value: node.SubCategory1TermsandCond, 
+            this._subCat1TermsArea =
+                new sap.m.TextArea({
+                    value: node.SubCategory1TermsandCond,
                     rows: 3,
                     editable: !!node.Subcategory1
                 });
-            this._subCat2TermsArea = 
-                new sap.m.TextArea({ 
-                    value: node.SubCategory2TermsandCond, 
+            this._subCat2TermsArea =
+                new sap.m.TextArea({
+                    value: node.SubCategory2TermsandCond,
                     rows: 3,
                     editable: !!node.Subcategory2
                 });
-            this._subCat3TermsArea = 
-                new sap.m.TextArea({ 
-                    value: node.SubCategory3TermsandCond, 
+            this._subCat3TermsArea =
+                new sap.m.TextArea({
+                    value: node.SubCategory3TermsandCond,
                     rows: 3,
                     editable: !!node.Subcategory3
                 });
-            this._subCat4TermsArea = 
-                new sap.m.TextArea({ 
-                    value: node.SubCategory4TermsandCond, 
+            this._subCat4TermsArea =
+                new sap.m.TextArea({
+                    value: node.SubCategory4TermsandCond,
                     rows: 3,
                     editable: !!node.Subcategory4
                 });
-            this._subCat5TermsArea = 
-                new sap.m.TextArea({ 
-                    value: node.SubCategory5TermsandCond, 
+            this._subCat5TermsArea =
+                new sap.m.TextArea({
+                    value: node.SubCategory5TermsandCond,
                     rows: 3,
                     editable: !!node.Subcategory5
                 });
-            this._partNumTermsArea = 
-                new sap.m.TextArea({ 
-                    value: node.PartNumberTermsandCond, 
-                    rows: 3 
+            this._partNumTermsArea =
+                new sap.m.TextArea({
+                    value: node.PartNumberTermsandCond,
+                    rows: 3
                 });
 
             // Build rows ~
             const oVBox = new sap.m.VBox({
                 items: [
-                makeRow("Pricelist Part Number", new sap.m.Text({ text: node.PricelistPartNumber }),
+                    makeRow("Pricelist Part Number", new sap.m.Text({ text: node.PricelistPartNumber }),
                         "Material Status", new sap.m.Text({ text: node.MaterialStatus })),
 
-                makeRow("Description (Long)", this._descrInput,
+                    makeRow("Description (Long)", this._descrInput,
                         "Material Status Effective Date", new sap.m.Text({ text: node.MaterialStatusEffecDate })),
 
-                makeRow("Price", new sap.m.Text({ text: node.Price }),
+                    makeRow("Price", new sap.m.Text({ text: node.Price }),
                         "Discount Rate", new sap.m.Text({ text: node.DiscountRate })),
 
-                makeRow("Price Unit", new sap.m.Text({ text: node.PriceUnit }),
+                    makeRow("Price Unit", new sap.m.Text({ text: node.PriceUnit }),
                         "Discount Effective Date", new sap.m.Text({ text: node.DiscountEffectiveDate })),
 
-                makeRow("Main Category", new sap.m.Text({ text: node.MainCategory }),
+                    makeRow("Main Category", new sap.m.Text({ text: node.MainCategory }),
                         "Main Category Terms", this._mainCatTermsArea),
 
-                makeRow("Subcategory 1", new sap.m.Text({ text: node.Subcategory1 }),
+                    makeRow("Subcategory 1", new sap.m.Text({ text: node.Subcategory1 }),
                         "Subcategory 1 Terms", this._subCat1TermsArea),
 
-                makeRow("Subcategory 2", new sap.m.Text({ text: node.Subcategory2 }),
+                    makeRow("Subcategory 2", new sap.m.Text({ text: node.Subcategory2 }),
                         "Subcategory 2 Terms", this._subCat2TermsArea),
 
-                makeRow("Subcategory 3", new sap.m.Text({ text: node.Subcategory3 }),
+                    makeRow("Subcategory 3", new sap.m.Text({ text: node.Subcategory3 }),
                         "Subcategory 3 Terms", this._subCat3TermsArea),
 
-                makeRow("Subcategory 4", new sap.m.Text({ text: node.Subcategory4 }),
+                    makeRow("Subcategory 4", new sap.m.Text({ text: node.Subcategory4 }),
                         "Subcategory 4 Terms", this._subCat4TermsArea),
 
-                makeRow("Subcategory 5", new sap.m.Text({ text: node.Subcategory5 }),
+                    makeRow("Subcategory 5", new sap.m.Text({ text: node.Subcategory5 }),
                         "Subcategory 5 Terms", this._subCat5TermsArea),
 
-                makeRow("Part Number", new sap.m.Text({ text: node.PricelistPartNumber }),
+                    makeRow("Part Number", new sap.m.Text({ text: node.PricelistPartNumber }),
                         "Part Number Terms", this._partNumTermsArea)
                 ]
             });
@@ -799,14 +866,14 @@ sap.ui.define([
                 contentHeight: "700px",
                 content: [oVBox],
                 buttons: [
-                    new sap.m.Button({ 
-                        text: "Save Changes", 
-                        type: "Emphasized", 
-                        press: this.onSaveEdit.bind(this) 
+                    new sap.m.Button({
+                        text: "Save Changes",
+                        type: "Emphasized",
+                        press: this.onSaveEdit.bind(this)
                     }),
-                    new sap.m.Button({ 
-                        text: "Cancel", 
-                        press: () => this._oEditDialog.close() 
+                    new sap.m.Button({
+                        text: "Cancel",
+                        press: () => this._oEditDialog.close()
                     })
                 ]
             });
@@ -814,7 +881,7 @@ sap.ui.define([
             this._oEditDialog.open();
         },
 
-        onSaveEdit: async function() {
+        onSaveEdit: async function () {
             // Read values from stored references
             const newDescrLong = this._descrInput.getValue();
             const newMainCatTerms = this._mainCatTermsArea.getValue();
@@ -881,7 +948,7 @@ sap.ui.define([
             }
 
             this._oEditDialog.close();
-            },
+        },
 
         // Delete selected node (Product) OR selected node + subnodes (Category).
         onDelete: function () {
