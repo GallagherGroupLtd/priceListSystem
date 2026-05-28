@@ -36,7 +36,7 @@ service PriceListService {
 
     annotate ItemStructure with @odata.draft.enabled;
 
-    entity PriceProductMaintenance as projection on my.PricelistPartNumberDetermination
+    entity PriceProductMaintenance            as projection on my.PricelistPartNumberDetermination
         actions {
             action copyRow() returns PriceProductMaintenance;
         };
@@ -147,7 +147,7 @@ service PriceListService {
         };
 
     annotate ErpPriceStatus with @odata.draft.enabled;
-
+    
     //File Upload Functions
     action MassUploadTradeScenarios(file: String)                    returns String;
     action MassUploadItemStructure(file: String)                     returns String;
@@ -614,8 +614,8 @@ service PriceListService {
 
     @cds.persistence.skip
     entity DiscountAccessSequenceVH {
-        key Code        : String(4);
-            Description : String(255);
+        key Code         : String(4);
+            Description  : String(255);
     }
 
     @cds.persistence.skip
