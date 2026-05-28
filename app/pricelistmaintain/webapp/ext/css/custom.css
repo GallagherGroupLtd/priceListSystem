@@ -141,4 +141,13 @@ html body .sapMITBTextOnly .sapMITBFilterDefault.sapMITBSelected .sapMITBFilterE
   color: #ffffff !important;              /* white icons when selected */
 }
 
+/* Selected row hover state */
+.sapMListItemSelected:hover,
+.sapUiTableRowSel:hover .sapUiTableCell {
+  background-color: #575A5D !important;
+}
 
+/* sap.ui.table.Table (Grid Table) */
+.sapUiTableRowSel .sapUiTableCell {
+  background-color: #9ba0a1 !important;
+}

@@ -314,6 +314,19 @@ function buildPdfBuffer({ headerCriteria, headerTerms, detailTerms }) {
     });
 }
 
+// ─── Version Helpers ──────────────────────────────────────────────────────────
+const incrementDraftVersion = (current) => {
+    const num = parseFloat(current) || 0;
+    return (Math.round((num + 0.1) * 10) / 10).toFixed(1);
+};
+
+const publishVersion = (current) => {
+    const num = parseFloat(current) || 0;
+    return Math.ceil(num).toFixed(1);
+};
+
+
+
 module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
     const { User, TradeScenarios, ItemStructure, PartNumbers, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, PricingCondType,
@@ -1061,6 +1074,33 @@ module.exports = cds.service.impl(async function () {
     // Handler for PricelistData Status Assignment
     this.before('CREATE', PricelistData, async (req) => {
         req.data.Status = 'Initial';
+    });
+
+    // ─── Version: increment on edit Draft ───────────────────────────────
+    this.before('draftEdit', PricelistData, async (req) => {
+        const ID = req.params?.[0]?.ID;
+        if (!ID) return;
+
+        const active = await SELECT.one(PricelistData)
+            .where({ ID })
+            .columns('Version', 'Status');
+
+        if (active) {
+            req.data         ??= {};
+            req.data.Version   = incrementDraftVersion(active.Version);
+        }
+    });
+
+    // ─── Version: round to x.0 on Publish (draftActivate) ────────────────────
+    this.before('draftActivate', PricelistData, async (req) => {
+        const ID = req.params?.[0]?.ID;
+        if (!ID) return;
+        const draft = await SELECT.one(PricelistData.drafts).where({ ID });
+        if (draft) {
+            req.data         ??= {};
+            req.data.Version   = publishVersion(draft.Version);
+            req.data.Status    = 'Published';
+        }          
     });
 
     // Handler upon create of Pricing Parameters
