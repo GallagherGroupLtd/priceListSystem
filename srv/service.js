@@ -329,7 +329,7 @@ const publishVersion = (current) => {
 
 module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
-    const { User, TradeScenarios, ItemStructure, PartNumbers, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, PricingCondType,
+    const { User, TradeScenarios, ItemStructure, PriceProductMaintenance, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, PricingCondType,
         PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest } = this.entities;
 
     //Selection of Materials
