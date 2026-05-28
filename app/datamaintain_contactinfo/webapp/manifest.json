@@ -140,7 +140,7 @@
                   "tableSettings": {
                     "type": "GridTable",
                     "creationMode": "Inline",
-                    "selectionMode": "Single",
+                    "selectionMode": "Multi",
                     "useExportToExcel": true
                   },
                   "actions": {
