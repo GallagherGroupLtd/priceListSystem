@@ -3,7 +3,7 @@ using PriceListService as service from '../../srv/service';
 annotate service.MyRequest with @(
 
     // Selection Fields for Filtering
-    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,ReqStatus ],
+    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,ReqStatus,ReqStartDate ],
 
     UI.HeaderInfo : {
         TypeName       : 'My Request',
@@ -133,6 +133,11 @@ annotate service.MyRequest with @(
                 $Type : 'UI.DataField',
                 Value : ReqDueDate,
                 Label : 'Due Date'
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ReqStatus,
+                Label : 'Request Status'
             }
         ]
     },
@@ -180,7 +185,16 @@ annotate service.MyRequest with @(
                 Label : 'Check or Request Tech Admin to add Sec Commerce Flag (Scale Price as Required)'
             }
         ]
-    },    
+    }, 
+
+    Capabilities.FilterRestrictions : {
+        FilterExpressionRestrictions : [
+            {
+                Property   : ReqStartDate,
+                AllowedExpressions : 'SingleRange'
+            }
+        ]
+    }   
 );
 
 annotate service.MyRequest with {
