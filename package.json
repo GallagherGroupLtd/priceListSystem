@@ -24,6 +24,7 @@
     "start": "cds-serve",
     "start-hybrid": "cds watch --profile hybrid-new",
     "start-approuter": "cds bind --exec -- npm start --prefix app/router",
+    "clean": "rimraf gen/ .cds-services.json node_modules/.cache",
     "all-wz": "npm-run-all --parallel start-hybrid start-approuter",
     "watch-main": "cds watch --open pricelistapp.main/index.html?sap-ui-xx-viewCache=false --livereload false",
     "undeploy": "cf undeploy priceListSystem --delete-services --delete-service-keys --delete-service-brokers",
