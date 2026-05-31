@@ -140,7 +140,7 @@
                   "tableSettings": {
                     "type": "ResponsiveTable",
                     "creationMode": "Inline",
-                    "selectionMode": "Single",
+                    "selectionMode": "Multi",
                     "useExportToExcel": true
                   },
                   "actions": {
