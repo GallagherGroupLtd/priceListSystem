@@ -166,7 +166,7 @@
                         "placement": "Before",
                         "anchor": "ProductPricelistFacet"
                       },
-                      "title": "Gallagher Products"
+                      "title": "Gallagher Products 2.2"
                     },
                     "ProductPricelistFacet": {
                       "subSections": {
@@ -196,6 +196,20 @@
                         }
                       }
                     },
+                    "TermsAndConditions": {
+                      "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsAndConditions",
+                      "position": {
+                        "placement": "Before",
+                        "anchor": "GeneralNotes"
+                      },
+                      "title": "Terms and Conditions"
+                    },                    
+                    "GeneralNotes": {
+                      "title": "General Notes",
+                      "template": "pricelistapp.pricelistmaintain.ext.fragment.GeneralNotes",
+                      "position": {
+                        "placement": "After",
+                        "anchor": "TermsAndConditions"
                     "PricelistInfoFacet": {
                       "subSections": {
                         "TermsAndConditionsV2": {
