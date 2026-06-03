@@ -36,7 +36,7 @@ service PriceListService {
 
     annotate ItemStructure with @odata.draft.enabled;
 
-    entity PriceProductMaintenance            as projection on my.PricelistPartNumberDetermination
+    entity PriceProductMaintenance as projection on my.PricelistPartNumberDetermination
         actions {
             action copyRow() returns PriceProductMaintenance;
         };
@@ -147,7 +147,7 @@ service PriceListService {
         };
 
     annotate ErpPriceStatus with @odata.draft.enabled;
-    
+
     //File Upload Functions
     action MassUploadTradeScenarios(file: String)                    returns String;
     action MassUploadItemStructure(file: String)                     returns String;
@@ -484,6 +484,32 @@ service PriceListService {
 
     annotate ResolvedPricelistItem with @cds.persistence.skip;
 
+    // Pricelist Maintain -- Product Pricelist Tree Table
+    entity ProductPricelistTree    as
+        select from my.PricelistItemStructureComponents {
+            key TradeScenario,
+            key MarketScopeRegion,
+            key MarketScopeCountry,
+            key SalesOrg,
+            key DistChannel,
+            key CustPriceList,
+            key CustGroup1,
+            key ErpCustomer,
+            key DeliveringPlant,
+                MainCategory,
+                SubCategory1,
+                SubCategory2,
+                SubCategory3,
+                SubCategory4,
+                SubCategory5,
+                _Materials : Association to many ExternalMaterials
+                                 on  _Materials.MAIN_CATEGORY = $self.MainCategory
+                                 and _Materials.SUBCATEGORY_1 = $self.SubCategory1
+                                 and _Materials.SUBCATEGORY_2 = $self.SubCategory2
+                                 and _Materials.SUBCATEGORY_3 = $self.SubCategory3
+                                 and _Materials.SUBCATEGORY_4 = $self.SubCategory4
+                                 and _Materials.SUBCATEGORY_5 = $self.SubCategory5
+        };
 
     //For PDF Creation
     action exportTermsPdf(ID: UUID,
@@ -614,8 +640,8 @@ service PriceListService {
 
     @cds.persistence.skip
     entity DiscountAccessSequenceVH {
-        key Code         : String(4);
-            Description  : String(255);
+        key Code        : String(4);
+            Description : String(255);
     }
 
     @cds.persistence.skip
