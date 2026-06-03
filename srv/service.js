@@ -1032,11 +1032,7 @@ module.exports = cds.service.impl(async function () {
     });
 
     this.on('READ', 'StatusVH', (req) => {
-        const data = [
-            { code: 'Initial' },
-            { code: 'Active' },
-            { code: 'Inactive' }
-        ];
+        const data = [{ code: 'Drafted' }, { code: 'Submitted' }, { code: 'In Review' }, { code: 'For Publication' }, { code: 'Published' }, { code: 'For Revision' }];
 
         if (req.query.SELECT.count) {
             data.$count = data.length;
@@ -1046,8 +1042,8 @@ module.exports = cds.service.impl(async function () {
     });
 
     this.before('PATCH', 'PriceProductMaintenance.drafts', async (req) => {
-    const productId = req.data.PricelistPartNumber;
-    if (!productId) return;
+        const productId = req.data.PricelistPartNumber;
+        if (!productId) return;
         const extdb = await cds.connect.to('extdb');
         const material = await extdb.run(
             SELECT.one
@@ -1063,10 +1059,10 @@ module.exports = cds.service.impl(async function () {
 
     // Handler for PricelistData Status Assignment
     this.before('CREATE', PricelistData, async (req) => {
-        req.data.Status = 'Initial';
+        req.data.Status = 'Drafted';
     });
 
-    // ─── Version: increment on edit Draft ───────────────────────────────
+
     this.before('draftEdit', PricelistData, async (req) => {
         const ID = req.params?.[0]?.ID;
         if (!ID) return;
@@ -1076,9 +1072,18 @@ module.exports = cds.service.impl(async function () {
             .columns('Version', 'Status');
 
         if (active) {
-            req.data         ??= {};
-            req.data.Version   = incrementDraftVersion(active.Version);
+            req._newVersion = incrementDraftVersion(active.Version);
         }
+    });
+
+    // ─── Version: increment on edit Draft ───────────────────────────────
+    this.after('draftEdit', PricelistData, async (req) => {
+        const ID = req.params?.[0]?.ID;
+        if (!ID || !req._newVersion) return;
+
+        await UPDATE(PricelistData.drafts)
+            .set({ Version: req._newVersion })
+            .where({ ID });
     });
 
     // ─── Version: round to x.0 on Publish (draftActivate) ────────────────────
@@ -1087,10 +1092,10 @@ module.exports = cds.service.impl(async function () {
         if (!ID) return;
         const draft = await SELECT.one(PricelistData.drafts).where({ ID });
         if (draft) {
-            req.data         ??= {};
-            req.data.Version   = publishVersion(draft.Version);
-            req.data.Status    = 'Published';
-        }          
+            req.data ??= {};
+            req.data.Version = publishVersion(draft.Version);
+            req.data.Status = 'Published';
+        }
     });
 
     // Handler upon create of Pricing Parameters

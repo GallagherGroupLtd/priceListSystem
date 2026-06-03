@@ -114,7 +114,7 @@
          </f:content>
       </f:SimpleForm>
 
-      <smartForm:SmartForm id="sfProductTerms" editable="true">
+      <!-- <smartForm:SmartForm id="sfProductTerms" editable="true">
          <smartForm:Group id="sfProductTermsGrp" title="Terms and Conditions">
             <smartForm:GroupElement id="sfProductTermsGrpEle" label="Context">
                <TextArea id="sfProductTermsText" value="{Context}" maxLength="1000" rows="10" width="100%" />
@@ -141,7 +141,22 @@
                </HBox>
             </smartForm:GroupElement>
          </smartForm:Group>
-      </smartForm:SmartForm>
+      </smartForm:SmartForm> -->
+      
+      <f:SimpleForm id="sfProductNotes" editable="true" width="100%" layout="ResponsiveGridLayout" adjustLabelSpan="false" columnsL="1" columnsXL="1" labelSpanXL="2" labelSpanL="2" labelSpanM="2" labelSpanS="2" emptySpanS="0" emptySpanM="0" emptySpanL="0" emptySpanXL="0" class="sapUiNoContentPadding">
+         <f:content>
+            <Title text="General Notes" />
+            <Label text="Notes" />
+            <TextArea id="sfProductNotesText" value="{generalNotes>/Notes}" maxLength="5000" rows="10" width="50%" />
+            <Label text="Disable" />
+            <HBox id="productNotesHBox" alignItems="Center">
+                  <Text id="productNotesExtUserText" text="External User" />
+                  <Switch id="productNotesExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
+                  <Text id="productNotesIntUserText" text="Internal User" class="sapUiMediumMarginBegin" />
+                  <Switch id="productNotesIntUserSwitch" state="false" change="onNotesDisableSwitchChange" />
+            </HBox>
+         </f:content>
+      </f:SimpleForm>
 
    </VBox>
    </Panel>

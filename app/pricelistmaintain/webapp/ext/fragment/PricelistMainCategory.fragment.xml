@@ -5,7 +5,7 @@
                 <smartForm:ColumnLayout id="MainCategoryColumnsLayout" columnsM="2" columnsL="2" columnsXL="2" />
             </smartForm:layout>
 
-			<smartForm:Group id="MainCategoryTermsAndCondGroup" title="Main Category Details">
+			<smartForm:Group id="MainCategoryTermsAndCondGroup" title=" ">
                 <smartForm:GroupElement id="MainCategoryGroupElement" label="Main Category Name">
 					<Input id="MainCategoryInput" value="sub category test name"></Input>
                 </smartForm:GroupElement>
