@@ -147,7 +147,7 @@
          <f:content>
             <Title text="General Notes" />
             <Label text="Notes" />
-            <TextArea id="sfProductNotesText" value="{generalNotes>/Notes}" maxLength="5000" rows="10" width="50%" />
+            <TextArea id="sfProductNotesText" value="{generalNotes>/Notes}" maxLength="5000" rows="6" width="75%" />
             <Label text="Disable" />
             <HBox id="productNotesHBox" alignItems="Center">
                   <Text id="productNotesExtUserText" text="External User" />

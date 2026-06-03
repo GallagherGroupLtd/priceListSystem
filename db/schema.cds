@@ -248,31 +248,31 @@ entity StatusValues {
 
 /** Pricelist Table */
 entity PricelistData : managed, cuid {
-    PricelistTitle      : String(255) @title: 'Pricelist Name';
-    TradeScenario       : String(255) @title: 'Trade Scenario';
-    MarketScopeRegion   : String(255) @title: 'Region';
-    MarketScopeCountry  : String(255) @title: 'Country';
-    SalesOrg            : String(4)   @title: 'Sales Organization';
-    DistChannel         : String(2)   @title: 'Distribution Channel';
-    CustPriceList       : String(255) @title: 'Customer Pricelist';
-    ErpCustomer         : String(255) @title: 'ERP Customer Code';
-    CustGroup1          : String(255) @title: 'Customer Group 1';
-    DeliveringPlant     : String(255) @title: 'Plant';
-    Status              : String(20)  @title: 'Status';
-    PublishedBy         : String(255) @title: 'Published By';
-    PublishedDate       : Date        @title: 'Published Date';
-    EffectiveDate       : Date        @title: 'Effectivity Date';
-    ExpiryDate          : Date        @title: 'Expiry Date';
-    Currency            : String(100) @title: 'Currency';
-    Version             : String(20)  @title: 'Version' default '0.1';
+    PricelistTitle      : String(255)  @title: 'Pricelist Name';
+    TradeScenario       : String(255)  @title: 'Trade Scenario';
+    MarketScopeRegion   : String(255)  @title: 'Region';
+    MarketScopeCountry  : String(255)  @title: 'Country';
+    SalesOrg            : String(4)    @title: 'Sales Organization';
+    DistChannel         : String(2)    @title: 'Distribution Channel';
+    CustPriceList       : String(255)  @title: 'Customer Pricelist';
+    ErpCustomer         : String(255)  @title: 'ERP Customer Code';
+    CustGroup1          : String(255)  @title: 'Customer Group 1';
+    DeliveringPlant     : String(255)  @title: 'Plant';
+    Status              : String(20)   @title: 'Status';
+    PublishedBy         : String(255)  @title: 'Published By';
+    PublishedDate       : Date         @title: 'Published Date';
+    EffectiveDate       : Date         @title: 'Effectivity Date';
+    ExpiryDate          : Date         @title: 'Expiry Date';
+    Currency            : String(100)  @title: 'Currency';
+    Version             : String(20)   @title: 'Version' default '0.1';
 
-    MarketDisplay       : String      @title: 'Market Region'  @cds.persistence.skip; //Virtual Field
+    MarketDisplay       : String       @title: 'Market Region'  @cds.persistence.skip; //Virtual Field
 
-    TermsAndConditions  : String      @title: 'Header Terms and Conditions';
+    TermsAndConditions  : String(1000) @title: 'Header Terms and Conditions';
     // TACDisableExtUser   : Boolean     @title: 'Terms and Conditions Disable Flag for External User';
     // TACDisableIntUser   : Boolean     @title: 'Terms and Conditions Disable Flag for Internal User';
 
-    Notes               : String      @title: 'Notes';
+    Notes               : String(5000) @title: 'Notes';
     // NotesDisableExtUser : Boolean     @title: 'Notes Disable Flag for External User';
     // NotesDisableIntUser : Boolean     @title: 'Notes Disable Flag for Internal User';
 

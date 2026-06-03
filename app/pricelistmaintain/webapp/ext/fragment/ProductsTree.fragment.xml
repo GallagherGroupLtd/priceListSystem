@@ -3,7 +3,8 @@
     xmlns="sap.m" 
     xmlns:t="sap.ui.table"
     xmlns:mvc="sap.ui.core.mvc" 
-    xmlns:macros="sap.fe.macros">
+    xmlns:macros="sap.fe.macros"
+    xmlns:dnd="sap.ui.core.dnd">
 
     <VBox id="ProductListVBox" core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/ProductList'}">
 	
@@ -14,6 +15,42 @@
                 
             <ToolbarSpacer id="ProductListToolbarSep_1" />
 
+
+                <!-- <Button 
+                    id="ProductListEditBtn" 
+                    text="Edit"  
+                    icon="sap-icon://edit"
+                    enabled="false"
+                    press="handler.onEdit"/> -->
+
+                <Button
+                    id="ProductListRefreshBtn"
+                    text="Refresh Pricelist"
+                    icon="sap-icon://refresh"
+                    type="Emphasized"
+                    enabled="false"
+                    press="handler.onRefreshPrice" />
+
+                <Button
+                    id="ProductListResetBtn"
+                    text="Reset Pricelist"
+                    icon="sap-icon://reset"
+                    type="Emphasized"
+                    enabled="false"
+                    press="handler.onResetPrice" />
+
+                <ToolbarSeparator id="ProductListToolbarSep_2" />
+
+
+                <Button
+                    id="ProductListDeleteBtn"
+                    text="Delete"
+                    icon="sap-icon://delete"
+                    enabled="false"
+                    press="handler.onDelete" />
+
+                <ToolbarSeparator id="ProductListToolbarSep_3" />
+
                 <Button
                     id="ProductListExpandBtn"
                     text="Expand"
@@ -23,28 +60,12 @@
                     press="handler.onExpand"/>
 
 				<Button
-                    id="ProductListECollapseBtn"
+                    id="ProductListCollapseBtn"
                     text="Collapse"
                     icon="sap-icon://collapse-all"
                     tooltip="Collapse all"
 					visible="false"
                     press="handler.onCollapse"/>
-
-                <Button 
-                    id="ProductListEditBtn" 
-                    text="Edit"  
-                    icon="sap-icon://edit"
-                    enabled="false"
-                    press="handler.onEdit"/>
-
-                <Button
-                    id="ProductListDeleteBtn"
-                    text="Delete"
-                    icon="sap-icon://delete"
-                    enabled="false"
-                    press="handler.onDelete" />
-
-                <ToolbarSeparator id="ProductListToolbarSep_2" />
 
                 <Button
                     id="ProductListSortBtn"
@@ -63,7 +84,6 @@
                     icon="sap-icon://action-settings"
                     press=".onOpenColumnPopover"/> -->
                 
-                <ToolbarSeparator id="ProductListToolbarSep_3" />
 
                 <!-- <MenuButton
                     id="ProductListExcelMenuBtn"
@@ -82,11 +102,11 @@
                     </menu>
                 </MenuButton> -->
 
-                <Button
+                <!-- <Button
                     id="ProductsListRefreshButton"
                     icon="sap-icon://refresh"
                     type="Emphasized"
-                    press="handler.onRefresh" />
+                    press="handler.onRefresh" /> -->
         </OverflowToolbar>
 
         <t:TreeTable
@@ -100,6 +120,13 @@
                 path: 'jsonModel>/productPriceList',
                 parameters: { arrayNames: ['children'] } 
             }">
+            <!-- <t:dragDropConfig>
+                <dnd:DragDropInfo
+                    sourceAggregation="rows"
+                    targetAggregation="rows"
+                    dropPosition="OnOrBetween"
+                    drop="handler.onDrop" />
+            </t:dragDropConfig>             -->
             <t:columns>
                 
                 <t:Column id="ColCategoriesAndProducts" width="35%" >

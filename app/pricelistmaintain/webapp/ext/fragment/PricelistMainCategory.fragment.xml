@@ -24,7 +24,7 @@
                         value="{Context}" 
                         maxLength="1000" 
                         rows="10"
-                        width="60%" />
+                        width="100%" />
                 </smartForm:GroupElement>
 				<smartForm:GroupElement id="MainCategoryTermsDisableGroupElement" label="Disable">
 					<HBox id="MainCategoryTermsExtUSerHBox" alignContent="Center">

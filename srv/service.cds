@@ -252,7 +252,7 @@ service PriceListService {
 
     //HANA DB Tables
     @cds.persistence.skip
-    entity ExternalMateFtrials {
+    entity ExternalMaterials {
         key MATERIAL_KEY                   : String(100) @title: 'Material Key';
             CLIENT                         : String(100) @title: 'Client';
             MATERIAL                       : String(100) @title: 'Material Number';
