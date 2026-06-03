@@ -131,7 +131,7 @@
               "controlConfiguration": {
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
-                    "type": "GridTable",
+                    "type": "ResponsiveTable",
                     "enableMassEdit": false,
                     "creationMode": "Inline"
                   },
@@ -176,7 +176,7 @@
                             "placement": "After",
                             "anchor": "ProductsTree"
                           },
-                          "title": "Pricelist Main Category"
+                          "title": "Main Category Details"
                         },
                         "PricelistSubCategory": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
@@ -184,7 +184,7 @@
                             "placement": "After",
                             "anchor": "PricelistMainCategory"
                           },
-                          "title": "Pricelist Sub Category"
+                          "title": "Sub Category Details"
                         },
                         "ProductDetails": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductDetails",
@@ -196,20 +196,24 @@
                         }
                       }
                     },
-                    "TermsAndConditionsV2": {
-                      "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsAndConditionsV2",
-                      "position": {
-                        "placement": "Before",
-                        "anchor": "GeneralNotes"
-                      },
-                      "title": "Terms and Conditions"
-                    },                    
-                    "GeneralNotes": {
-                      "title": "General Notes",
-                      "template": "pricelistapp.pricelistmaintain.ext.fragment.GeneralNotes",
-                      "position": {
-                        "placement": "After",
-                        "anchor": "TermsAndConditionsV2"
+                    "PricelistInfoFacet": {
+                      "subSections": {
+                        "TermsAndConditionsV2": {
+                          "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsAndConditionsV2",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "GeneralInfo"
+                          },
+                          "title": "General Terms and Conditions"
+                        },
+                        "GeneralNotes": {
+                          "title": "General Notes",
+                          "template": "pricelistapp.pricelistmaintain.ext.fragment.GeneralNotes",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "TermsAndConditionsV2"
+                          }
+                        }
                       }
                     }
                   }

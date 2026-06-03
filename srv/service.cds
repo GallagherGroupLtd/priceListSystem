@@ -170,7 +170,7 @@ service PriceListService {
         projection on my.PricelistData {
             *,
             MarketScopeRegion || ' (' || MarketScopeCountry || ')' as MarketDisplay : String,
-            Status @(Common.FieldControl: #ReadOnly),
+            Status @(Common.FieldControl: #Mandatory),
 
             items                                                                   : redirected to PricelistItemData
         };

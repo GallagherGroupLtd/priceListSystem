@@ -42,13 +42,11 @@ annotate service.PricelistData with {
     // Value Help: Status
     Status              @(
         Common.ValueListWithFixedValues: true,
-        Common.Text                    : Status,
-        Common.TextArrangement         : #TextOnly,
         Common.ValueList               : {
             $Type         : 'Common.ValueListType',
             CollectionPath: 'StatusVH',
             Parameters    : [{
-                $Type            : 'Common.ValueListParameterInOut',
+                $Type            : 'Common.ValueListParameterOut',
                 LocalDataProperty: Status,
                 ValueListProperty: 'code'
             }]
@@ -377,13 +375,13 @@ annotate service.PricelistData with @(
         Facets: [
             {
                 $Type : 'UI.ReferenceFacet',
-                Label : 'General',
+                Label : 'Pricelist General Data',
                 Target: '@UI.FieldGroup#GeneralInfo'
             },
             {
                 $Type : 'UI.CollectionFacet',
                 ID    : 'ScopeContainer',
-                Label : 'Scope',
+                Label : 'Pricelist Scope',
                 Facets: [
                     {
                         $Type : 'UI.ReferenceFacet',
@@ -401,7 +399,7 @@ annotate service.PricelistData with @(
     },
     {
         $Type : 'UI.CollectionFacet',
-        Label : 'Product Pricelist',
+        Label : 'Categories and Product Details',
         ID    : 'ProductPricelistFacet',
         Facets: [
             
@@ -457,10 +455,6 @@ annotate service.PricelistData with @(
         {
             Value: Version,
             Label: 'Version'
-        },
-        {
-            Value: Status,
-            Label: 'Status'
         }
     ]},
 
@@ -469,7 +463,8 @@ annotate service.PricelistData with @(
         {Value: PricelistTitle},
         {Value: Currency},
         {Value: EffectiveDate},
-        {Value: ExpiryDate}
+        {Value: ExpiryDate},
+        {Value: Status},
     ]},
 
     UI.FieldGroup #MarketScope    : {Data: [
@@ -490,19 +485,19 @@ annotate service.PricelistData with @(
     UI.FieldGroup #CommercialScope: {Data: [
         {
             Value: SalesOrg,
-            Label: 'Sales Org'
+            Label: 'Sales Organization'
         },
         {
             Value: DistChannel,
-            Label: 'Dist. Channel'
+            Label: 'Distribution Channel'
         },
         {
             Value: CustPriceList,
-            Label: 'Cust. Price List'
+            Label: 'Customer Pricelist'
         },
         {
             Value: CustGroup1,
-            Label: 'Cust. Group 1'
+            Label: 'Customer Group 1'
         },
         {
             Value: ErpCustomer,
@@ -535,7 +530,7 @@ annotate service.PricelistData with @(
 // ====================================================================
 // 3. ITEMS LEVEL ANNOTATIONS (Value Help with Parameters)
 // ====================================================================
-annotate service.PricelistItemData with {
+annotate service.PricelistItemData with {    
     PricelistPartNumber @(Common.ValueList: {
         CollectionPath: 'ResolvedPricelistItem',
         Parameters    : [

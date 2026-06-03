@@ -242,7 +242,7 @@ entity TermsDataLevelValues {
 }
 
 entity StatusValues {
-    key code : String(12);
+    key code : String(20);
         name : String;
 }
 
@@ -258,7 +258,7 @@ entity PricelistData : managed, cuid {
     ErpCustomer         : String(255) @title: 'ERP Customer Code';
     CustGroup1          : String(255) @title: 'Customer Group 1';
     DeliveringPlant     : String(255) @title: 'Plant';
-    Status              : String(12)  @title: 'Status';
+    Status              : String(20)  @title: 'Status';
     PublishedBy         : String(255) @title: 'Published By';
     PublishedDate       : Date        @title: 'Published Date';
     EffectiveDate       : Date        @title: 'Effectivity Date';
