@@ -102,35 +102,35 @@
             }">
             <t:columns>
                 
-                <t:Column id="ColCategoriesAndProducts" width="22rem" >
-                    <Label id="LblCategoriesAndProducts" text="Categories and Products" />
+                <t:Column id="ColCategoriesAndProducts" width="35%" >
+                    <Label id="LblCategoriesAndProducts" text="Categories and Products" textAlign="Center" width="100%"/>
                     <t:template>
                         <Text id="TxtCategoriesAndProducts" text="{jsonModel>text}" wrapping="false" />
                     </t:template>
                 </t:Column>
 
-                <t:Column id="ColDescription" width="25rem">
-                    <Label id="LblDescription" text="Description"/>
+                <t:Column id="ColDescription" width="30%">
+                    <Label id="LblDescription" text="Description" textAlign="Center" width="100%"/>
                     <t:template>
                         <Text id="TxtDescription" text="{= ${jsonModel>kind} === 'Product' ? ${jsonModel>MaterialDescription} : '' }" wrapping="false" />
                     </t:template>
                 </t:Column>
 
-                <t:Column id="ColPriceCurrency" width="12rem">
-                    <Label id="LblPriceCurrency" text="Price (Currency)"/>
+                <t:Column id="ColPriceCurrency" width="7.5%" hAlign="Center">
+                    <Label id="LblPriceCurrency" text="Price (Currency)" textAlign="Center" width="100%"/>
                     <t:template>
                         <Text id="TxtPriceCurrency" text="{= ${jsonModel>kind} === 'Product' ? (${jsonModel>Price} || '') + ' ' + (${jsonModel>PriceUnit} || '') : '' }" />
                     </t:template>
                 </t:Column>
 
-                <t:Column id="ColValidity" width="12rem">
-                    <Label id="LblValidity" text="Validity"/>
+                <t:Column id="ColValidity" width="12.5%" hAlign="Center">
+                    <Label id="LblValidity" text="Validity" textAlign="Center" width="100%"/>
                     <t:template>
                         <Text id="TxtValidity" text="{= ${jsonModel>kind} === 'Product' ? ${jsonModel>MaterialStatusEffecDate} : '' }"/>
                     </t:template>
                 </t:Column>
 
-                <t:Column id="ColDiscountIndicator" width="10rem" hAlign="Center">
+                <t:Column id="ColDiscountIndicator" width="7.5%" hAlign="Center">
                     <Label id="LblDiscountIndicator" text="Discount (Indicator)"/>
                     <t:template>
                         <Switch id="SwDiscountIndicator" state="false" 
@@ -140,7 +140,7 @@
                     </t:template>
                 </t:Column>
 
-                <t:Column id="ColThirdPartyIndicator" width="10rem" hAlign="Center">
+                <t:Column id="ColThirdPartyIndicator" width="7.5%" hAlign="Center">
                     <Label id="LblThirdPartyIndicator" text="3rd Party (Indicator)"/>
                     <t:template>
                         <Switch id="SwThirdPartyIndicator" state="false" 
