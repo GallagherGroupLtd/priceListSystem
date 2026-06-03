@@ -1199,6 +1199,82 @@ module.exports = cds.service.impl(async function () {
         return resolvedItems;
     });
 
+    // Custom logic to get product tree data
+    this.on('READ', 'ProductPricelistTree', async(req) => {
+        const db = cds.transaction(req);
+        const extdb = await cds.connect.to('extdb');
+
+        // 1. Get main data from item structure
+        let localQuery = SELECT.from('PricelistItemStructureComponents');
+        if (req.query.SELECT.where) {
+            localQuery.where(req.query.SELECT.where);
+        }
+
+        const results = await db.run(localQuery);
+
+        if (!results || results.length === 0){
+            return [];
+        }
+
+        // 2. Build Dynamic WHERE clause
+        let orConditions = [];
+
+        results.forEach(row => {
+            let andConditions = [];
+
+            const addCondition = (dbField, val) => {
+                if (val) {
+                    const safeVal = String(val).replace(/'/g, "''");
+                    andConditions.push(`"${dbField}" = '${safeVal}'`);
+                } else {
+                    andConditions.push(`COALESCE("${dbField}", '') = ''`);
+                }
+            };
+
+            addCondition('MAIN_CATEGORY', row.MainCategory);
+            addCondition('SUBCATEGORY_1', row.SubCategory1);
+            addCondition('SUBCATEGORY_2', row.SubCategory2);
+            addCondition('SUBCATEGORY_3', row.SubCategory3);
+            addCondition('SUBCATEGORY_4', row.SubCategory4);
+            addCondition('SUBCATEGORY_5', row.SubCategory5);
+
+            orConditions.push(`(${andConditions.join(' AND ')})`);
+        });
+
+        const extQuery = `
+            SELECT * FROM "SAPECC"."T_MATERIAL_MASTER_DATA" 
+            WHERE ${orConditions.join(' OR ')}
+        `;
+
+        // Get mat master data from external DB
+        const materialsMaster = await extdb.run(extQuery);
+
+        // 3. Prepare result (Flatten Data & Inner Join Logic)
+        const finalFlatResults = [];
+
+        results.forEach(row => {
+            const matchingProducts = materialsMaster.filter(mat => 
+                (mat.MAIN_CATEGORY || null) === (row.MainCategory || null) &&
+                (mat.SUBCATEGORY_1 || null) === (row.SubCategory1 || null) &&
+                (mat.SUBCATEGORY_2 || null) === (row.SubCategory2 || null) &&
+                (mat.SUBCATEGORY_3 || null) === (row.SubCategory3 || null) &&
+                (mat.SUBCATEGORY_4 || null) === (row.SubCategory4 || null) &&
+                (mat.SUBCATEGORY_5 || null) === (row.SubCategory5 || null)
+            );
+
+            matchingProducts.forEach(mat => {
+                finalFlatResults.push({
+                    ...row,
+                    MaterialKey: mat.MATERIAL_KEY, 
+                    Material: mat.MATERIAL,
+                    MaterialDescription: mat.MATERIAL_DESCRIPTION
+                });
+            });
+        });
+
+        return finalFlatResults;
+    });
+
     //PDF Export
     this.on("exportTermsPdf", async (req) => {
         const tx = cds.transaction(req);

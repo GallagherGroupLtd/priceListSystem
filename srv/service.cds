@@ -252,7 +252,7 @@ service PriceListService {
 
     //HANA DB Tables
     @cds.persistence.skip
-    entity ExternalMaterials {
+    entity ExternalMateFtrials {
         key MATERIAL_KEY                   : String(100) @title: 'Material Key';
             CLIENT                         : String(100) @title: 'Client';
             MATERIAL                       : String(100) @title: 'Material Number';
@@ -485,31 +485,53 @@ service PriceListService {
     annotate ResolvedPricelistItem with @cds.persistence.skip;
 
     // Pricelist Maintain -- Product Pricelist Tree Table
-    entity ProductPricelistTree    as
-        select from my.PricelistItemStructureComponents {
-            key TradeScenario,
-            key MarketScopeRegion,
-            key MarketScopeCountry,
-            key SalesOrg,
-            key DistChannel,
-            key CustPriceList,
-            key CustGroup1,
-            key ErpCustomer,
-            key DeliveringPlant,
-                MainCategory,
-                SubCategory1,
-                SubCategory2,
-                SubCategory3,
-                SubCategory4,
-                SubCategory5,
-                _Materials : Association to many ExternalMaterials
-                                 on  _Materials.MAIN_CATEGORY = $self.MainCategory
-                                 and _Materials.SUBCATEGORY_1 = $self.SubCategory1
-                                 and _Materials.SUBCATEGORY_2 = $self.SubCategory2
-                                 and _Materials.SUBCATEGORY_3 = $self.SubCategory3
-                                 and _Materials.SUBCATEGORY_4 = $self.SubCategory4
-                                 and _Materials.SUBCATEGORY_5 = $self.SubCategory5
-        };
+    @readonly
+    entity ProductPricelistTree {
+        key TradeScenario       : String(255) @title: 'Trade Scenario';
+        key MarketScopeRegion   : String(255) @title: 'Region';
+        key MarketScopeCountry  : String(255) @title: 'Country';
+        key SalesOrg            : String(4)   @title: 'Sales Organization';
+        key DistChannel         : String(2)   @title: 'Distribution Channel';
+        key CustPriceList       : String(20)  @title: 'Customer Pricelist';
+        key CustGroup1          : String(255) @title: 'Customer Group 1';
+        key ErpCustomer         : String(255) @title: 'ERP Customer';
+        key DeliveringPlant     : String(255) @title: 'Plant';
+            MainCategory        : String(255) @title: 'Main Category';
+            SubCategory1        : String(255) @title: 'Subcategory 1';
+            SubCategory2        : String(255) @title: 'Subcategory 2';
+            SubCategory3        : String(255) @title: 'Subcategory 3';
+            SubCategory4        : String(255) @title: 'Subcategory 4';
+            SubCategory5        : String(255) @title: 'Subcategory 5';
+            MaterialKey         : String(100) @title: 'Material Key';
+            Material            : String(100) @title: 'Material Number';
+            MaterialDescription : String(100) @title: 'Material Description';
+    };
+
+    // entity ProductPricelistTree    as
+    //     select from my.PricelistItemStructureComponents {
+    //         key TradeScenario,
+    //         key MarketScopeRegion,
+    //         key MarketScopeCountry,
+    //         key SalesOrg,
+    //         key DistChannel,
+    //         key CustPriceList,
+    //         key CustGroup1,
+    //         key ErpCustomer,
+    //         key DeliveringPlant,
+    //             MainCategory,
+    //             SubCategory1,
+    //             SubCategory2,
+    //             SubCategory3,
+    //             SubCategory4,
+    //             SubCategory5,
+    //             _Materials : Association to many ExternalMaterials
+    //                              on  _Materials.MAIN_CATEGORY = $self.MainCategory
+    //                              and _Materials.SUBCATEGORY_1 = $self.SubCategory1
+    //                              and _Materials.SUBCATEGORY_2 = $self.SubCategory2
+    //                              and _Materials.SUBCATEGORY_3 = $self.SubCategory3
+    //                              and _Materials.SUBCATEGORY_4 = $self.SubCategory4
+    //                              and _Materials.SUBCATEGORY_5 = $self.SubCategory5
+    //     };
 
     //For PDF Creation
     action exportTermsPdf(ID: UUID,
