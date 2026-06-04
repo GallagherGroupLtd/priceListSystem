@@ -1,4 +1,4 @@
-sap.ui.define([
+Updsap.ui.define([
 	'sap/ui/core/mvc/ControllerExtension',
 	'sap/ui/model/json/JSONModel',
 	'sap/ui/model/Filter',
@@ -51,18 +51,25 @@ sap.ui.define([
 			oView.getModel('jsonModel').setProperty("/productPriceList", aTreeData);
 
 			// const oData = this.base.getView().getBindingContext().getObject();
-			
-			// const aFilters = [
-        	// 	new Filter("TradeScenario", FilterOperator.EQ, oData?.TradeScenario), 
-			// 	new Filter("Region", FilterOperator.EQ, oData?.MarketScopeRegion),
-			// 	new Filter("Country", FilterOperator.EQ, oData?.MarketScopeCountry),
-			// 	new Filter("SalesOrganization", FilterOperator.EQ, oData?.SalesOrg),
-			// 	new Filter("DistributionChannel", FilterOperator.EQ, oData?.DistChannel),
-			// 	new Filter("CustPriceList", FilterOperator.EQ, oData?.CustPriceList),
-			// 	new Filter("CustGroup1", FilterOperator.EQ, oData?.CustGroup1),
-			// 	new Filter("ErpCustomer", FilterOperator.EQ, oData?.ErpCustomer),
-			// 	new Filter("DeliveringPlant", FilterOperator.EQ, oData?.DeliveringPlant),
+
+			// const aFilterConfig = [
+			// 	{ path: "TradeScenario", value: oData?.TradeScenario },
+			// 	{ path: "MarketScopeRegion", value: oData?.MarketScopeRegion },
+			// 	{ path: "MarketScopeCountry", value: oData?.MarketScopeCountry },
+			// 	{ path: "SalesOrg", value: oData?.SalesOrg },
+			// 	{ path: "DistChannel", value: oData?.DistChannel },
+			// 	{ path: "CustPriceList", value: oData?.CustPriceList },
+			// 	{ path: "CustGroup1", value: oData?.CustGroup1 },
+			// 	{ path: "ErpCustomer", value: oData?.ErpCustomer },
+			// 	{ path: "DeliveringPlant", value: oData?.DeliveringPlant }
 			// ];
+
+			// const aFilters = [];
+			// aFilterConfig.forEach(item => {
+			// 	if (item.value !== undefined && item.value !== null && item.value !== "") {
+			// 		aFilters.push(new Filter(item.path, FilterOperator.EQ, item.value));
+			// 	}
+			// });
 
 			// debugger;
 
@@ -74,75 +81,74 @@ sap.ui.define([
 			// 		oView.getModel('jsonModel').setProperty("/productPriceList", aTreeData);
 			// 	}).catch((oErr) => {
 			// 		console.error("Error fetching ProductPricelistTree data:", oErr);
-			// 	}
-			// );
+			// 	});
 
 		},
 
-        _buildTree: function (rows) {
-		const byKey = new Map();
-		const roots = [];
+		_buildTree: function (rows) {
+			const byKey = new Map();
+			const roots = [];
 
-		const ensureCategoryNode = (key, text, parentKey, level, row) => {
-			if (!byKey.has(key)) {
-				const parts = key.split(" / ");
+			const ensureCategoryNode = (key, text, parentKey, level, row) => {
+				if (!byKey.has(key)) {
+					const parts = key.split(" / ");
 
-				const node = {
-					key: key,
-					text: text,       // This will display the category name (e.g., "Command Centre" or "Software Features")
-					kind: "Category",
-					level: level,
-					children: [],
+					const node = {
+						key: key,
+						text: text,       // This will display the category name (e.g., "Command Centre" or "Software Features")
+						kind: "Category",
+						level: level,
+						children: [],
 
-					// Maintain field names consistent with JSON
-					MainCategory: parts[0] || null,
-					SubCategory1: parts[1] || null,
-					SubCategory2: parts[2] || null,
-					SubCategory3: parts[3] || null,
-					SubCategory4: parts[4] || null,
-					SubCategory5: parts[5] || null
-				};
+						// Maintain field names consistent with JSON
+						MainCategory: parts[0] || null,
+						SubCategory1: parts[1] || null,
+						SubCategory2: parts[2] || null,
+						SubCategory3: parts[3] || null,
+						SubCategory4: parts[4] || null,
+						SubCategory5: parts[5] || null
+					};
 
-				byKey.set(key, node);
+					byKey.set(key, node);
 
-				if (parentKey && byKey.has(parentKey)) {
-					byKey.get(parentKey).children.push(node);
-				} else {
-					roots.push(node);
+					if (parentKey && byKey.has(parentKey)) {
+						byKey.get(parentKey).children.push(node);
+					} else {
+						roots.push(node);
+					}
 				}
-			}
-			return byKey.get(key);
-		};
-
-		for (const r of rows) {
-			// Filter out null/empty categories so the leaf attaches to the lowest available category
-			const parts = H_FIELDS.map(f => norm(r[f])).filter(Boolean);
-			if (!parts.length) continue;
-
-			let path = "";
-			let parentPath = null;
-
-			// Build the category tree path
-			for (let i = 0; i < parts.length; i++) {
-				path = path ? `${path} / ${parts[i]}` : parts[i];
-				ensureCategoryNode(path, parts[i], parentPath, i + 1, r);
-				parentPath = path;
-			}
-
-			// FIXED: Updated leaf mapping to use Material properties from your JSON
-			const leaf = {
-				key: r?.MaterialKey, // Used MaterialKey for uniqueness
-				text: r?.Material,
-				kind: "Product",
-				...r, // Spreads all properties (Material, MaterialKey, ID, etc.) into the node so columns can bind to them
-				children: [] // Empty array tells the TreeTable this is a leaf node
+				return byKey.get(key);
 			};
 
-			byKey.get(parentPath).children.push(leaf);
-		}
+			for (const r of rows) {
+				// Filter out null/empty categories so the leaf attaches to the lowest available category
+				const parts = H_FIELDS.map(f => norm(r[f])).filter(Boolean);
+				if (!parts.length) continue;
 
-		return roots;
-	},
+				let path = "";
+				let parentPath = null;
+
+				// Build the category tree path
+				for (let i = 0; i < parts.length; i++) {
+					path = path ? `${path} / ${parts[i]}` : parts[i];
+					ensureCategoryNode(path, parts[i], parentPath, i + 1, r);
+					parentPath = path;
+				}
+
+				// FIXED: Updated leaf mapping to use Material properties from your JSON
+				const leaf = {
+					key: r?.MaterialKey, // Used MaterialKey for uniqueness
+					text: r?.Material,
+					kind: "Product",
+					...r, // Spreads all properties (Material, MaterialKey, ID, etc.) into the node so columns can bind to them
+					children: [] // Empty array tells the TreeTable this is a leaf node
+				};
+
+				byKey.get(parentPath).children.push(leaf);
+			}
+
+			return roots;
+		},
 
 		_getMockData: function () {
 			// Placeholder: Replace this entirely with your data fetching logic.
@@ -174,7 +180,7 @@ sap.ui.define([
 
 		// 				const oTreeModel = this._productTreeSection?.getModel("tree");
 		// 				oTreeModel?.setProperty("/nodes", nodes);
-        //         		oTreeModel?.setProperty("/nodesAll", JSON.parse(JSON.stringify(nodes)));
+		//         		oTreeModel?.setProperty("/nodesAll", JSON.parse(JSON.stringify(nodes)));
 		// 			}
 		// 		})
 		// 		.catch((oErr) => {
