@@ -36,34 +36,25 @@ sap.ui.define([
 
                     const oReader = new FileReader();
                     oReader.onload = async (e) => {
-                        // Strip off the "data:...;base64," prefix
                         const base64 = e.target.result.split(",")[1];
-
-                        // Get Model
                         const oModel = this.getModel();
 
+                        const oOperation = oModel.bindContext("/MassUploadAcctAssign(...)");
+                        oOperation.setParameter("file", base64);
+
                         try {
-                            const response = await fetch("/odata/v4/price-list/MassUploadAcctAssign", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ file: base64 })
-                            });
-
-                            if (!response.ok) {
-                                throw new Error(await response.text());
-                            }
-
-                            //Refresh model.
-                            oModel.refresh();
-
+                            await oOperation.execute();
                             MessageToast.show("Upload successful.");
-                            if (this._oUploadDialog) {
-                                this._oUploadDialog.close();
-                            }
+                            oModel.refresh();
+                            oDialog.close();
+
                         } catch (err) {
                             MessageToast.show("Upload failed: " + err.message);
+                        } finally {
+                            sap.ui.core.BusyIndicator.hide();
                         }
                     };
+
                     oReader.readAsDataURL(this._file);
                     oDialog.close();
                 }
@@ -76,9 +67,9 @@ sap.ui.define([
                         { label: "FirstName", property: "FirstName" },
                         { label: "LastName", property: "LastName" },
                         { label: "Type", property: "Type" },
-                        { label: "Email" , property: "Email" },
+                        { label: "Email", property: "Email" },
                         { label: "TradeScenario", property: "TradeScenario" },
-                        { label: "MarketScopeRegion", property: "MarketScopeRegion" }, 
+                        { label: "MarketScopeRegion", property: "MarketScopeRegion" },
                         { label: "MarketScopeCountry", property: "MarketScopeCountry" },
                         { label: "CustomerNumber", property: "CustomerNumber" },
                         { label: "SalesOrg", property: "SalesOrg" },
@@ -145,7 +136,7 @@ sap.ui.define([
                 if (successCount > 0) {
                     MessageToast.show(successCount + " record(s) duplicated.");
                 }
-                
+
                 if (failCount > 0) {
                     MessageToast.show(failCount + " record(s) failed to duplicate.");
                 }

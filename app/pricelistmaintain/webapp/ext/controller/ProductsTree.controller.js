@@ -1456,54 +1456,61 @@ sap.ui.define([
                         return;
                     }
 
+                    sap.ui.core.BusyIndicator.show(0);
+
                     const oReader = new FileReader();
                     oReader.onload = async (e) => {
                         const base64 = e.target.result.split(",")[1];
                         const oModel = oRootCtx.getModel();
 
                         try {
-                            const response = await fetch("/odata/v4/price-list/MassUploadItemTermsandConditions", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    file: base64,
-                                    TradeScenario: headerData.TradeScenario,
-                                    MarketScopeRegion: headerData.MarketScopeRegion,
-                                    MarketScopeCountry: headerData.MarketScopeCountry,
-                                    SalesOrg: headerData.SalesOrg,
-                                    DistChannel: headerData.DistChannel,
-                                    CustPriceList: headerData.CustPriceList,
-                                    CustGroup1: headerData.CustGroup1,
-                                    ErpCustomer: headerData.ErpCustomer,
-                                    DeliveringPlant: headerData.DeliveringPlant
-                                })
-                            });
+                            const oOperation = oModel.bindContext("/MassUploadItemTermsandConditions(...)");
 
-                            if (!response.ok) {
-                                throw new Error(await response.text());
-                            }
+                            oOperation.setParameter("file", base64);
+                            oOperation.setParameter("TradeScenario", headerData.TradeScenario);
+                            oOperation.setParameter("MarketScopeRegion", headerData.MarketScopeRegion);
+                            oOperation.setParameter("MarketScopeCountry", headerData.MarketScopeCountry);
+                            oOperation.setParameter("SalesOrg", headerData.SalesOrg);
+                            oOperation.setParameter("DistChannel", headerData.DistChannel);
+                            oOperation.setParameter("CustPriceList", headerData.CustPriceList);
+                            oOperation.setParameter("CustGroup1", headerData.CustGroup1);
+                            oOperation.setParameter("ErpCustomer", headerData.ErpCustomer);
+                            oOperation.setParameter("DeliveringPlant", headerData.DeliveringPlant);
 
-                            // If validation succeed, rebuild tree from draft items.
-                            const result = await response.json();
-                            const rows = result.items;
+                            await oOperation.execute();
+
+                            const oContext = oOperation.getBoundContext();
+                            const result = oContext.getObject();
+                            const rows = result.items || [];
                             const nodes = buildTree(rows);
 
                             this.getView().getModel("tree").setProperty("/nodes", nodes);
                             this.getView().getModel("tree").setProperty("/nodesAll", JSON.parse(JSON.stringify(nodes)));
 
                             MessageToast.show("Upload successful.");
-                            await oModel.refresh(); // force re-read
 
-                            if (this._oUploadDialog) {
-                                this._oUploadDialog.close();
+                            if (oModel) {
+                                await oModel.refresh(); // force re-read ข้อมูลระบบหลัก
+                            }
+
+                            if (oDialog) {
+                                oDialog.close();
                             }
 
                         } catch (err) {
                             MessageToast.show("Upload failed: " + err.message);
+                        } finally {
+                            // ปิดตัวหมุนรอโหลดเมื่อทำงานเสร็จ
+                            sap.ui.core.BusyIndicator.hide();
                         }
                     };
+
+                    oReader.onerror = () => {
+                        MessageToast.show("File reading failed.");
+                        sap.ui.core.BusyIndicator.hide();
+                    };
+
                     oReader.readAsDataURL(this._file);
-                    oDialog.close();
                 }
             });
 
