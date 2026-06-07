@@ -40,7 +40,13 @@ sap.ui.define([
 
         onRefreshPrice: function (oEvent) {
             MessageToast.show("Refresh Pricelist by appending new node from item structure table.");
-            // ExtController._getProductPriceList.apply(this);
+            ExtController.getInstance()._getProductPriceList()
+                .then((newProductList) => {
+                    const result = ExtController.getInstance()._addUpdateProductList(newProductList);
+                    if (result && result.hasChanges) {
+                        ExtController.getInstance()._setTreeTableData(result.productList);
+                    }
+                });
         },
 
         onResetPrice: function (oEvent) {
@@ -52,32 +58,26 @@ sap.ui.define([
                 onClose: function (oAction) {
                     if (oAction === MessageBox.Action.YES) {
 
-                        // ExtController._getProductPriceList.apply(this);
-                        MessageToast.show("Reset the whole pricelist.");
+                        ExtController.getInstance()._getProductPriceList()
+                            .then(function (aRawData) {
+                                ExtController.getInstance()._setTreeTableData(aRawData);
+                                MessageToast.show("Reset the whole pricelist.");
+                            });
+
                     }
                 }.bind(this)
             });
         },
 
-        // onDragStart: function (oEvent) {
-        //     // Below are generated code. can delete            
-        //     const oDraggedItem = oEvent.getParameter("item");
-        //     const oBindingContext = oDraggedItem.getBindingContext("jsonModel");
-        //     const sPath = oBindingContext.getPath();
-        //     const oModel = oBindingContext.getModel();
-        //     const oData = oModel.getProperty(sPath);
-        //     oEvent.setData("draggedNodeData", oData);
-        // },
-
         onDrop: function (oEvent) {
-            // Below are generated code. can delete
+            const oDraggedItem = oEvent.getParameter("draggedControl");
+            const oBindingContext = oDraggedItem.getBindingContext("jsonModel");
+            const oDraggedData = oBindingContext.getModel().getProperty(oBindingContext.getPath());
 
-            // const oDraggedData = oEvent.getParameter("data").draggedNodeData;
-            // const oDroppedItem = oEvent.getParameter("item");
-            // const oBindingContext = oDroppedItem.getBindingContext("jsonModel");
-            // const sPath = oBindingContext.getPath();
-            // const oModel = oBindingContext.getModel();
-            // const oDroppedData = oModel.getProperty(sPath);
+            if (!oDraggedData || oDraggedData.kind !== "Product" || !oDraggedData.MaterialKey) {
+                // MessageBox.error("Only product rows can be moved. Category rows are not allowed.");
+                return;
+            }
 
             // Implement your logic to handle the dropped data and update the model accordingly
             MessageToast.show("Node dropped. Implement logic to update the model.");
@@ -103,7 +103,7 @@ sap.ui.define([
             const oRefreshButton = sap.ui.getCore().byId(idPrefix + "ProductListRefreshBtn");
 
             const iSelectedIndex = aSelectedIndices[0];
-            const oRowContext = oTable.getContextByIndex(iSelectedIndex);            
+            const oRowContext = oTable.getContextByIndex(iSelectedIndex);
 
             if (!oRowContext) {
                 MessageToast.show("No row selected.");
@@ -114,7 +114,7 @@ sap.ui.define([
 
             if (oSelectedData) {
 
-                let sSubSectionId = null;                
+                let sSubSectionId = null;
                 let oObjectPageLayout = null;
                 let oControl = oTable;
 
@@ -143,12 +143,12 @@ sap.ui.define([
 
             if (aSelectedIndices.length > 0) {
                 oDeleteButton.setEnabled(true);
-                oRefreshButton.setEnabled(true);
-                oResetButton.setEnabled(true);
+                // oRefreshButton.setEnabled(true);
+                // oResetButton.setEnabled(true);
             } else {
                 oDeleteButton.setEnabled(false);
-                oRefreshButton.setEnabled(false);
-                oResetButton.setEnabled(false);
+                // oRefreshButton.setEnabled(false);
+                // oResetButton.setEnabled(false);
             }
             // oTable.clearSelection();
         }

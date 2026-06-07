@@ -9,6 +9,8 @@ sap.ui.define([
 	/** Functions for building the tree table (UI Level) **/
 	const H_FIELDS = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
 
+	let _oInstance = null;
+
 	function norm(v) {
 		return (v == null) ? "" : String(v).trim();
 	}
@@ -34,13 +36,17 @@ sap.ui.define([
 				this._productTreeSection = sap.ui.getCore().byId('pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--ProductTreeFragment_ID');
 				this._productTreeTable = sap.ui.getCore().byId('pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--ProductTreeFragment_ID--ProductsTreeTable');
 
-				this._getProductPriceList();
+				_oInstance = this;
+
+				// this._getProductPriceList();
 
 				// this._productTreeTable.collapseAll();
 				// this.productsTreeRefresh();
 
 			}
 		},
+
+		getInstance: function () { return _oInstance; },
 
 		_getProductPriceList: function () {
 			const oView = this.base.getView();
@@ -86,12 +92,15 @@ sap.ui.define([
 			//---------------------------------  After this adapt code			
 			const sPath = oView.getBindingContext().getPath();
 
-			oView.getModel()
+			return oView.getModel()
 				.bindContext(sPath, null, {
-					$select: ["TradeScenario", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg", "DistChannel",
-						"CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant"].join(",")
-				}).requestObject().then((oData) => {
-					const aFilterConfig = [
+					$select: ["TradeScenario", "MarketScopeRegion", "MarketScopeCountry",
+						"SalesOrg", "DistChannel", "CustPriceList", "CustGroup1",
+						"ErpCustomer", "DeliveringPlant"].join(",")
+				})
+				.requestObject()
+				.then((oData) => {
+					const aFilters = [
 						{ path: "TradeScenario", value: oData?.TradeScenario },
 						{ path: "MarketScopeRegion", value: oData?.MarketScopeRegion },
 						{ path: "MarketScopeCountry", value: oData?.MarketScopeCountry },
@@ -101,25 +110,27 @@ sap.ui.define([
 						{ path: "CustGroup1", value: oData?.CustGroup1 },
 						{ path: "ErpCustomer", value: oData?.ErpCustomer },
 						{ path: "DeliveringPlant", value: oData?.DeliveringPlant }
-					];
-
-					const aFilters = aFilterConfig
+					]
 						.filter(item => item.value !== undefined && item.value !== null && item.value !== "")
 						.map(item => new Filter(item.path, FilterOperator.EQ, item.value));
 
-					oView.getModel().bindList("/ProductPricelistTree", null, null, aFilters)
-						.requestContexts(0, 5000)
-						.then((aContexts) => {
-							const aRawData = aContexts.map(oCtx => oCtx.getObject());
-							console.log("Raw data from OData:", aRawData);
-							const aTreeData = this._buildTree(aRawData);
-							oView.getModel('jsonModel').setProperty("/productPriceList", aTreeData);
-						})
-						.catch((oErr) => {
-							console.error("Error fetching ProductPricelistTree data:", oErr);
-						});
+					return oView.getModel()
+						.bindList("/ProductPricelistTree", null, null, aFilters)
+						.requestContexts(0, 5000);
+				})
+				.then((aContexts) => {
+					return aContexts.map(oCtx => oCtx.getObject());
+				})
+				.catch((oErr) => {
+					console.error("Error fetching ProductPricelistTree data:", oErr);
+					return [];
 				});
+		},
 
+		_setTreeTableData: function (aData) {
+			const oView = this.base.getView();
+			const aTreeData = this._buildTree(aData);
+			oView.getModel('jsonModel').setProperty("/productPriceList", aTreeData);
 		},
 
 		_buildTree: function (rows) {
@@ -185,6 +196,25 @@ sap.ui.define([
 			}
 
 			return roots;
+		},
+
+		_addUpdateProductList: function (newList) {
+			const oView = this.base.getView();
+			const currentList = oView.getModel('jsonModel').getProperty("/productPriceList") || [];
+			const updatedList = [...currentList];
+			let hasChanges = false;
+
+			newList.forEach(newItem => {
+				const existingIndex = updatedList.findIndex(item => item.MaterialKey === newItem.MaterialKey);
+				if (existingIndex !== -1) {
+					// Do nothing
+				} else {
+					updatedList.push(newItem);
+					hasChanges = true;
+				}
+			});
+
+			if (hasChanges) { return { productList: updatedList, hasChanges: true }; }
 		},
 
 		_getMockData: function () {

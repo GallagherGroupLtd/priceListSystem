@@ -28,7 +28,8 @@
                     text="Refresh Pricelist"
                     icon="sap-icon://refresh"
                     type="Emphasized"
-                    enabled="false"
+                    enabled="true"
+					visible="true"                    
                     press="handler.onRefreshPrice" />
 
                 <Button
@@ -36,7 +37,8 @@
                     text="Reset Pricelist"
                     icon="sap-icon://reset"
                     type="Emphasized"
-                    enabled="false"
+                    enabled="true"
+					visible="true"                         
                     press="handler.onResetPrice" />
 
                 <ToolbarSeparator id="ProductListToolbarSep_2" />
@@ -120,13 +122,13 @@
                 path: 'jsonModel>/productPriceList',
                 parameters: { arrayNames: ['children'] } 
             }">
-            <!-- <t:dragDropConfig>
+            <t:dragDropConfig>
                 <dnd:DragDropInfo
                     sourceAggregation="rows"
                     targetAggregation="rows"
                     dropPosition="OnOrBetween"
                     drop="handler.onDrop" />
-            </t:dragDropConfig>             -->
+            </t:dragDropConfig>            
             <t:columns>
                 
                 <t:Column id="ColCategoriesAndProducts" width="35%" >
