@@ -496,13 +496,13 @@ service PriceListService {
         key CustGroup1          : String(255) @title: 'Customer Group 1';
         key ErpCustomer         : String(255) @title: 'ERP Customer';
         key DeliveringPlant     : String(255) @title: 'Plant';
+        key MaterialKey         : String(100) @title: 'Material Key';
             MainCategory        : String(255) @title: 'Main Category';
             SubCategory1        : String(255) @title: 'Subcategory 1';
             SubCategory2        : String(255) @title: 'Subcategory 2';
             SubCategory3        : String(255) @title: 'Subcategory 3';
             SubCategory4        : String(255) @title: 'Subcategory 4';
             SubCategory5        : String(255) @title: 'Subcategory 5';
-            MaterialKey         : String(100) @title: 'Material Key';
             Material            : String(100) @title: 'Material Number';
             MaterialDescription : String(100) @title: 'Material Description';
     };

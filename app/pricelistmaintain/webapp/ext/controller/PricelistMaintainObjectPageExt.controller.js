@@ -1,4 +1,4 @@
-Updsap.ui.define([
+sap.ui.define([
 	'sap/ui/core/mvc/ControllerExtension',
 	'sap/ui/model/json/JSONModel',
 	'sap/ui/model/Filter',
@@ -46,9 +46,9 @@ Updsap.ui.define([
 			const oView = this.base.getView();
 
 			// Temp Mock Data
-			var aRawData = this._getMockData();
-			const aTreeData = this._buildTree(aRawData);
-			oView.getModel('jsonModel').setProperty("/productPriceList", aTreeData);
+			// var aRawData = this._getMockData();
+			// const aTreeData = this._buildTree(aRawData);
+			// oView.getModel('jsonModel').setProperty("/productPriceList", aTreeData);
 
 			// const oData = this.base.getView().getBindingContext().getObject();
 
@@ -82,6 +82,43 @@ Updsap.ui.define([
 			// 	}).catch((oErr) => {
 			// 		console.error("Error fetching ProductPricelistTree data:", oErr);
 			// 	});
+
+			//---------------------------------  After this adapt code			
+			const sPath = oView.getBindingContext().getPath();
+
+			oView.getModel()
+				.bindContext(sPath, null, {
+					$select: ["TradeScenario", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg", "DistChannel",
+						"CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant"].join(",")
+				}).requestObject().then((oData) => {
+					const aFilterConfig = [
+						{ path: "TradeScenario", value: oData?.TradeScenario },
+						{ path: "MarketScopeRegion", value: oData?.MarketScopeRegion },
+						{ path: "MarketScopeCountry", value: oData?.MarketScopeCountry },
+						{ path: "SalesOrg", value: oData?.SalesOrg },
+						{ path: "DistChannel", value: oData?.DistChannel },
+						{ path: "CustPriceList", value: oData?.CustPriceList },
+						{ path: "CustGroup1", value: oData?.CustGroup1 },
+						{ path: "ErpCustomer", value: oData?.ErpCustomer },
+						{ path: "DeliveringPlant", value: oData?.DeliveringPlant }
+					];
+
+					const aFilters = aFilterConfig
+						.filter(item => item.value !== undefined && item.value !== null && item.value !== "")
+						.map(item => new Filter(item.path, FilterOperator.EQ, item.value));
+
+					oView.getModel().bindList("/ProductPricelistTree", null, null, aFilters)
+						.requestContexts(0, 5000)
+						.then((aContexts) => {
+							const aRawData = aContexts.map(oCtx => oCtx.getObject());
+							console.log("Raw data from OData:", aRawData);
+							const aTreeData = this._buildTree(aRawData);
+							oView.getModel('jsonModel').setProperty("/productPriceList", aTreeData);
+						})
+						.catch((oErr) => {
+							console.error("Error fetching ProductPricelistTree data:", oErr);
+						});
+				});
 
 		},
 

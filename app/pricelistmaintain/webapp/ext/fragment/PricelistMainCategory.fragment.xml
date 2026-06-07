@@ -21,7 +21,7 @@
                 <smartForm:GroupElement id="MainContextGroupElement" label="Terms and Conditions">
                     <TextArea 
                         id="MainCategoryTermsAndCondContextText" 
-                        value="{Context}" 
+                        value="Mocked Data for Terms and Conditions" 
                         maxLength="1000" 
                         rows="10"
                         width="100%" />

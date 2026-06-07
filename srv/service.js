@@ -1,5 +1,6 @@
 const XLSX = require("xlsx");
 const PDFDocument = require("pdfkit");
+const { log } = require("@sap/cds");
 
 const { SELECT, INSERT } = cds.ql;
 
@@ -1254,6 +1255,8 @@ module.exports = cds.service.impl(async function () {
         // Get mat master data from external DB
         const materialsMaster = await extdb.run(extQuery);
 
+        // console.table(materialsMaster, ["MAIN_CATEGORY", "SUBCATEGORY_1", "SUBCATEGORY_2", "SUBCATEGORY_3", "SUBCATEGORY_4", "SUBCATEGORY_5", "MATERIAL_KEY"]);
+
         // 3. Prepare result (Flatten Data & Inner Join Logic)
         const finalFlatResults = [];
 
@@ -1276,6 +1279,28 @@ module.exports = cds.service.impl(async function () {
                 });
             });
         });
+
+        // 4. Sort result by hierarchy levels (nulls first and then alphabetically)
+        const sortByFields = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
+        finalFlatResults.sort((a, b) => {
+            for (const field of sortByFields) {
+                const valA = a[field];
+                const valB = b[field];
+
+                if (valA === null && valB !== null) return -1;
+                if (valA !== null && valB === null) return 1;
+
+                if (valA !== valB) {
+                    const cleanA = valA || '';
+                    const cleanB = valB || '';
+                    return cleanA.localeCompare(cleanB);
+                }
+
+            }
+            return 0;
+        });
+        
+        // console.table(finalFlatResults, ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5", "MaterialKey", "Material", "MaterialDescription"]);
 
         return finalFlatResults;
     });

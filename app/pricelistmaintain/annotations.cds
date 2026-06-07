@@ -177,10 +177,6 @@ annotate service.PricelistData with {
                 $Type            : 'Common.ValueListParameterInOut',
                 LocalDataProperty: 'CustPriceList',
                 ValueListProperty: 'Code'
-            },
-            {
-                $Type            : 'Common.ValueListParameterDisplayOnly',
-                ValueListProperty: 'Description'
             }
         ]
     };
