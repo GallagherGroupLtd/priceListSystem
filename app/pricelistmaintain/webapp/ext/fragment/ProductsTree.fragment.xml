@@ -7,6 +7,22 @@
     xmlns:dnd="sap.ui.core.dnd">
 
     <VBox id="ProductListVBox" core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/ProductList'}">
+
+        <MessageStrip
+            id="ProductListDeleteModeMessageStrip"
+            text="You are in edit mode. Your changes will not be saved until you click the 'Save' button. Click 'Refresh' to discard your changes."
+            type="Warning"
+            showIcon="true"
+            showCloseButton="true"
+            visible="{= ${jsonModel>/isDeleteMode} }" />
+
+        <MessageStrip
+            id="ProductListReorderModeMessageStrip"
+            text="You are in re-order mode. Drag and drop products to change their order. Click 'Save' to save your changes or 'Refresh' to discard them."
+            type="Warning"
+            showIcon="true"
+            showCloseButton="true"
+            visible="{= ${jsonModel>/isReorderMode} }" />
 	
 		<OverflowToolbar id="ProductListToolbar">
             <Title
@@ -14,7 +30,6 @@
                 text="Product List" />
                 
             <ToolbarSpacer id="ProductListToolbarSep_1" />
-
 
                 <!-- <Button 
                     id="ProductListEditBtn" 
@@ -29,26 +44,40 @@
                     icon="sap-icon://refresh"
                     type="Emphasized"
                     enabled="true"
-					visible="true"                    
+                        visible="true"                         
                     press="handler.onRefreshPrice" />
-
+                
                 <Button
                     id="ProductListResetBtn"
                     text="Reset Pricelist"
                     icon="sap-icon://reset"
                     type="Emphasized"
                     enabled="true"
-					visible="true"                         
+                    visible="{jsonModel>/showReset}"
                     press="handler.onResetPrice" />
 
-                <ToolbarSeparator id="ProductListToolbarSep_2" />
+                <ToggleButton
+                    id="ProductListDeleteModeBtn"
+                    icon="sap-icon://delete"
+                    text="Delete"
+                    tooltip="Toggle delete mode"
+                    visible="{= !${jsonModel>/isReorderMode} }"
+                    press="handler.onToggleDeleteMode" />
 
+                <ToggleButton
+                    id="ProductListReorderModeBtn"
+                    icon="sap-icon://sorting-ranking"
+                    text="Re-order"
+                    tooltip="Toggle re-order mode"
+                    visible="{= !${jsonModel>/isDeleteMode} }"
+                    press="handler.onToggleReorderMode" />
 
                 <Button
                     id="ProductListDeleteBtn"
                     text="Delete"
                     icon="sap-icon://delete"
                     enabled="false"
+                    visible="false"
                     press="handler.onDelete" />
 
                 <ToolbarSeparator id="ProductListToolbarSep_3" />
@@ -124,6 +153,7 @@
             }">
             <t:dragDropConfig>
                 <dnd:DragDropInfo
+                    id="ProductTreeDragDropInfo"
                     sourceAggregation="rows"
                     targetAggregation="rows"
                     dropPosition="OnOrBetween"
