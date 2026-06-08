@@ -41,14 +41,19 @@
 					visible="true"                         
                     press="handler.onResetPrice" />
 
-                <ToolbarSeparator id="ProductListToolbarSep_2" />
-
+                <ToggleButton
+                    id="ProductListDeleteModeBtn"
+                    text="Delete Mode"
+                    icon="sap-icon://delete"
+                    tooltip="Toggle delete mode"
+                    press="handler.onToggleDeleteMode" />
 
                 <Button
                     id="ProductListDeleteBtn"
                     text="Delete"
                     icon="sap-icon://delete"
                     enabled="false"
+                    visible="false"
                     press="handler.onDelete" />
 
                 <ToolbarSeparator id="ProductListToolbarSep_3" />
@@ -124,6 +129,7 @@
             }">
             <t:dragDropConfig>
                 <dnd:DragDropInfo
+                    id="ProductTreeDragDropInfo"
                     sourceAggregation="rows"
                     targetAggregation="rows"
                     dropPosition="OnOrBetween"

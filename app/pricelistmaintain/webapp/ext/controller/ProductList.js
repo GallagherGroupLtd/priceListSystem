@@ -35,7 +35,7 @@ sap.ui.define([
 
         onRefresh: function (oEvent) {
             MessageToast.show("Refresh triggered.");
-            // ExtController._getProductPriceList.apply(this);
+            ExtController._getProductPriceList.apply(this);
         },
 
         onRefreshPrice: function (oEvent) {
@@ -93,7 +93,33 @@ sap.ui.define([
             // MessageToast.show("Row clicked: " + JSON.stringify(oData));
         },
 
-        onSelectionChange: function (oEvent) {
+        onToggleDeleteMode: function (oEvent) {
+            const oToggleButton = oEvent.getSource();
+            const bDeleteMode = oToggleButton.getPressed();
+            const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
+            const oDeleteButton = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
+
+            if (bDeleteMode) {
+                this.bDeleteMode = true;
+                oTable.setSelectionMode('Multi');
+                oDeleteButton.setVisible(true);
+            } else {
+                this.bDeleteMode = false;
+                oTable.setSelectionMode('Single');
+                oDeleteButton.setVisible(false);
+                oTable.clearSelection();
+            }
+        },
+
+        onSelectionChange: function (oEvent) { 
+            if (this.bDeleteMode) {
+                ExtController._onSelectionChangeDeleteMode(oEvent);
+            } else {
+                ExtController._onSelectionChangeDisplayMode(oEvent);
+            }
+        },
+
+        onSelectionChangeDisplayMode: function (oEvent) {
             //Demo code
             MessageToast.show("Row Selection Change:");
             const oTable = oEvent.getSource();
@@ -151,6 +177,7 @@ sap.ui.define([
                 // oResetButton.setEnabled(false);
             }
             // oTable.clearSelection();
-        }
+        },
+
     }
 });
