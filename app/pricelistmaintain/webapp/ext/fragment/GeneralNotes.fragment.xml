@@ -14,9 +14,9 @@
                     labelSpanXL="2" 
                     labelSpanL="2" 
                     labelSpanM="2" 
-                    emptySpanXL="6" 
-                    emptySpanL="6" 
-                    emptySpanM="2" 
+                    emptySpanXL="0" 
+                    emptySpanL="0" 
+                    emptySpanM="0" 
                     columnsXL="1" 
                     columnsL="1" 
                     columnsM="1" />
@@ -24,13 +24,13 @@
 
             <smartForm:Group id="NotesGroup">
                 
-                <smartForm:GroupElement id="NotesGroupElement" label="Context">
+                <smartForm:GroupElement id="NotesGroupElement" label="Notes">
                     <TextArea 
                         id="NotesContextText" 
                         value="{Notes}" 
                         maxLength="5000" 
-                        rows="10"
-                        width="100%" />
+                        rows="6"
+                        width="75%" />
                 </smartForm:GroupElement>
                 
                 <smartForm:GroupElement id="NotesDisableGroupElement" label="Disable">

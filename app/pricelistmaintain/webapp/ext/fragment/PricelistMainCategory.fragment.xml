@@ -5,7 +5,7 @@
                 <smartForm:ColumnLayout id="MainCategoryColumnsLayout" columnsM="2" columnsL="2" columnsXL="2" />
             </smartForm:layout>
 
-			<smartForm:Group id="MainCategoryTermsAndCondGroup" title="Main Category Details">
+			<smartForm:Group id="MainCategoryTermsAndCondGroup" title=" ">
                 <smartForm:GroupElement id="MainCategoryGroupElement" label="Main Category Name">
 					<Input id="MainCategoryInput" value="sub category test name"></Input>
                 </smartForm:GroupElement>
@@ -21,10 +21,10 @@
                 <smartForm:GroupElement id="MainContextGroupElement" label="Terms and Conditions">
                     <TextArea 
                         id="MainCategoryTermsAndCondContextText" 
-                        value="{Context}" 
+                        value="Mocked Data for Terms and Conditions" 
                         maxLength="1000" 
                         rows="10"
-                        width="60%" />
+                        width="100%" />
                 </smartForm:GroupElement>
 				<smartForm:GroupElement id="MainCategoryTermsDisableGroupElement" label="Disable">
 					<HBox id="MainCategoryTermsExtUSerHBox" alignContent="Center">
