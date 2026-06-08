@@ -1,5 +1,0 @@
-<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m" xmlns:macros="sap.fe.macros">
-	<VBox id="VBox1" core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/ProductPricelist'}">
-		<Button id="Button" text="ProductPricelist" press="handler.onPress" />
-	</VBox>
-</core:FragmentDefinition>

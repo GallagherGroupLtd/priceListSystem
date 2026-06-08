@@ -36,38 +36,30 @@ sap.ui.define([
 
                     const oReader = new FileReader();
                     oReader.onload = async (e) => {
-                        // Strip off the "data:...;base64," prefix
                         const base64 = e.target.result.split(",")[1];
-
-                        // Get Model
                         const oModel = this.getModel();
 
+                        const oOperation = oModel.bindContext("/MassUploadTradeScenarios(...)");
+                        oOperation.setParameter("file", base64);
+
                         try {
-                            const response = await fetch("/odata/v4/price-list/MassUploadTradeScenarios", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ file: base64 })
-                            });
-
-                            if (!response.ok) {
-                                throw new Error(await response.text());
-                            }
-
-                            //Refresh model.
-                            oModel.refresh();
-
+                            await oOperation.execute();
                             MessageToast.show("Upload successful.");
-                            if (this._oUploadDialog) {
-                                this._oUploadDialog.close();
-                            }
+                            oModel.refresh();
+                            oDialog.close();
+
                         } catch (err) {
                             MessageToast.show("Upload failed: " + err.message);
+                        } finally {
+                            sap.ui.core.BusyIndicator.hide();
                         }
                     };
+
                     oReader.readAsDataURL(this._file);
                     oDialog.close();
                 }
             });
+
 
             const oDownloadButton = new Button({
                 text: "Download Template",
@@ -138,7 +130,7 @@ sap.ui.define([
                 if (successCount > 0) {
                     MessageToast.show(successCount + " record(s) duplicated.");
                 }
-                
+
                 if (failCount > 0) {
                     MessageToast.show(failCount + " record(s) failed to duplicate.");
                 }

@@ -36,7 +36,7 @@ service PriceListService {
 
     annotate ItemStructure with @odata.draft.enabled;
 
-    entity PriceProductMaintenance            as projection on my.PricelistPartNumberDetermination
+    entity PriceProductMaintenance as projection on my.PricelistPartNumberDetermination
         actions {
             action copyRow() returns PriceProductMaintenance;
         };
@@ -147,7 +147,7 @@ service PriceListService {
         };
 
     annotate ErpPriceStatus with @odata.draft.enabled;
-    
+
     //File Upload Functions
     action MassUploadTradeScenarios(file: String)                    returns String;
     action MassUploadItemStructure(file: String)                     returns String;
@@ -170,7 +170,7 @@ service PriceListService {
         projection on my.PricelistData {
             *,
             MarketScopeRegion || ' (' || MarketScopeCountry || ')' as MarketDisplay : String,
-            Status @(Common.FieldControl: #ReadOnly),
+            Status @(Common.FieldControl: #Mandatory),
 
             items                                                                   : redirected to PricelistItemData
         };
@@ -484,6 +484,65 @@ service PriceListService {
 
     annotate ResolvedPricelistItem with @cds.persistence.skip;
 
+    // Pricelist Maintain -- Product Pricelist Tree Table
+    @readonly
+    entity ProductPricelistTree {
+        key TradeScenario            : String(255) @title: 'Trade Scenario';
+        key MarketScopeRegion        : String(255) @title: 'Region';
+        key MarketScopeCountry       : String(255) @title: 'Country';
+        key SalesOrg                 : String(4)   @title: 'Sales Organization';
+        key DistChannel              : String(2)   @title: 'Distribution Channel';
+        key CustPriceList            : String(20)  @title: 'Customer Pricelist';
+        key CustGroup1               : String(255) @title: 'Customer Group 1';
+        key ErpCustomer              : String(255) @title: 'ERP Customer';
+        key DeliveringPlant          : String(255) @title: 'Plant';
+        key MaterialKey              : String(100) @title: 'Material Key';
+            MainCategory             : String(255) @title: 'Main Category';
+            SubCategory1             : String(255) @title: 'Subcategory 1';
+            SubCategory2             : String(255) @title: 'Subcategory 2';
+            SubCategory3             : String(255) @title: 'Subcategory 3';
+            SubCategory4             : String(255) @title: 'Subcategory 4';
+            SubCategory5             : String(255) @title: 'Subcategory 5';
+            Material                 : String(100) @title: 'Material Number';
+            MaterialDescription      : String(100) @title: 'Material Description';
+            Price                    : String(100);
+            PriceUnit                : String(100);
+            DiscountRate             : String(100);
+            DiscountEffectiveDate    : String(100);
+            PartNumberTermsandCond   : String;
+            MainCategoryTermsandCond : String;
+            SubCategory1TermsandCond : String;
+            SubCategory2TermsandCond : String;
+            SubCategory3TermsandCond : String;
+            SubCategory4TermsandCond : String;
+            SubCategory5TermsandCond : String;
+    };
+
+    // entity ProductPricelistTree    as
+    //     select from my.PricelistItemStructureComponents {
+    //         key TradeScenario,
+    //         key MarketScopeRegion,
+    //         key MarketScopeCountry,
+    //         key SalesOrg,
+    //         key DistChannel,
+    //         key CustPriceList,
+    //         key CustGroup1,
+    //         key ErpCustomer,
+    //         key DeliveringPlant,
+    //             MainCategory,
+    //             SubCategory1,
+    //             SubCategory2,
+    //             SubCategory3,
+    //             SubCategory4,
+    //             SubCategory5,
+    //             _Materials : Association to many ExternalMaterials
+    //                              on  _Materials.MAIN_CATEGORY = $self.MainCategory
+    //                              and _Materials.SUBCATEGORY_1 = $self.SubCategory1
+    //                              and _Materials.SUBCATEGORY_2 = $self.SubCategory2
+    //                              and _Materials.SUBCATEGORY_3 = $self.SubCategory3
+    //                              and _Materials.SUBCATEGORY_4 = $self.SubCategory4
+    //                              and _Materials.SUBCATEGORY_5 = $self.SubCategory5
+    //     };
 
     //For PDF Creation
     action exportTermsPdf(ID: UUID,
@@ -614,8 +673,8 @@ service PriceListService {
 
     @cds.persistence.skip
     entity DiscountAccessSequenceVH {
-        key Code         : String(4);
-            Description  : String(255);
+        key Code        : String(4);
+            Description : String(255);
     }
 
     @cds.persistence.skip
