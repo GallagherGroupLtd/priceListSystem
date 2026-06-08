@@ -1206,19 +1206,18 @@ module.exports = cds.service.impl(async function () {
     });
 
     // Custom logic to get product tree data
-    this.on('READ', 'ProductPricelistTree', async(req) => {
+    this.on('READ', 'ProductPricelistTree', async (req) => {
         const db = cds.transaction(req);
         const extdb = await cds.connect.to('extdb');
 
         // 1. Get main data from item structure
-        let localQuery = SELECT.from('PricelistItemStructureComponents');
+        let localQueryItemStrComp = SELECT.from('PricelistItemStructureComponents');
         if (req.query.SELECT.where) {
-            localQuery.where(req.query.SELECT.where);
+            localQueryItemStrComp.where(req.query.SELECT.where);
         }
+        const results = await db.run(localQueryItemStrComp);
 
-        const results = await db.run(localQuery);
-
-        if (!results || results.length === 0){
+        if (!results || results.length === 0) {
             return [];
         }
 
@@ -1247,12 +1246,16 @@ module.exports = cds.service.impl(async function () {
             orConditions.push(`(${andConditions.join(' AND ')})`);
         });
 
-        const extQuery = `
-            SELECT * FROM "SAPECC"."T_MATERIAL_MASTER_DATA" 
-            WHERE ${orConditions.join(' OR ')}
-        `;
+        // 3. Get pricing parameters
+        let localQueryPricingParam = SELECT.from('PricingParameterDetermination');
+        if (req.query.SELECT.where) {
+            localQueryPricingParam.where(req.query.SELECT.where);
+        }
+        const resultsPricing = await db.run(localQueryPricingParam);
 
-        // Get mat master data from external DB
+
+        // 4. Get material master from external DB
+        const extQuery = `SELECT * FROM "SAPECC"."T_MATERIAL_MASTER_DATA" WHERE ${orConditions.join(' OR ')}`;
         const materialsMaster = await extdb.run(extQuery);
 
         // console.table(materialsMaster, ["MAIN_CATEGORY", "SUBCATEGORY_1", "SUBCATEGORY_2", "SUBCATEGORY_3", "SUBCATEGORY_4", "SUBCATEGORY_5", "MATERIAL_KEY"]);
@@ -1261,7 +1264,7 @@ module.exports = cds.service.impl(async function () {
         const finalFlatResults = [];
 
         results.forEach(row => {
-            const matchingProducts = materialsMaster.filter(mat => 
+            const matchingProducts = materialsMaster.filter(mat =>
                 (mat.MAIN_CATEGORY || null) === (row.MainCategory || null) &&
                 (mat.SUBCATEGORY_1 || null) === (row.SubCategory1 || null) &&
                 (mat.SUBCATEGORY_2 || null) === (row.SubCategory2 || null) &&
@@ -1273,14 +1276,161 @@ module.exports = cds.service.impl(async function () {
             matchingProducts.forEach(mat => {
                 finalFlatResults.push({
                     ...row,
-                    MaterialKey: mat.MATERIAL_KEY, 
+                    MaterialKey: mat.MATERIAL_KEY,
                     Material: mat.MATERIAL,
                     MaterialDescription: mat.MATERIAL_DESCRIPTION
                 });
             });
         });
+        // // 4. Collect unique material keys from the flattened results
+        // const materialKeys = [...new Set(
+        //     finalFlatResults.map(r => r.Material).filter(Boolean)
+        // )];
 
-        // 4. Sort result by hierarchy levels (nulls first and then alphabetically)
+        // if (materialKeys.length > 0 && resultsPricing && resultsPricing.length > 0) {
+
+        //     //Available columns from the table (HANA system view)
+        //     const colQuery = `SELECT COLUMN_NAME FROM SYS.TABLE_COLUMNS WHERE SCHEMA_NAME = 'SAPECC' AND TABLE_NAME  = 'T_PRICELIST_MASTER_DATA' ORDER BY POSITION`;
+        //     const colRows = await extdb.run(colQuery);
+        //     const availableCols = new Set(colRows.map(r => r.COLUMN_NAME));
+
+        //     const ACCESS_SLOTS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+        //     const pricingCombos = [];
+        //     const seenCombos = new Set();
+
+        //     resultsPricing.forEach(p => {
+        //         ACCESS_SLOTS.forEach(slot => {
+        //             const seq = p[`ACCESSSEQUENCE${slot}`];
+        //             const cond = p[`CONDITIONTYPE${slot}`];
+        //             const disc = p[`DISCOUNTACCESSSEQUENCE${slot}`];
+        //             const discontype = p[`DISCOUNTCONDITIONTYPE${slot}`];
+        //             const discprio = p[`DISCOUNTPRIORITY${slot}`];
+        //             const priority = p[`PRIORITY${slot}`];
+        //             if (!seq || !cond) return;
+
+        //             const comboKey = `${seq}::${cond}::${disc}::${discontype}::${discprio}::${priority}`;
+        //             if (seenCombos.has(comboKey)) return;
+        //             seenCombos.add(comboKey);
+
+        //             pricingCombos.push({
+        //                 accessSequence: seq,
+        //                 conditionType: cond,
+        //                 salesOrg: p.SalesOrg || null,
+        //                 distChannel: p.DistChannel || null,
+        //                 custPriceList: p.CustPriceList || null,
+        //                 custGroup1: p.CustGroup1 || null,
+        //                 soldTo: p.ErpCustomer || null
+        //             });
+        //         });
+        //     });
+
+        //     console.log('>>> Pricing Combos:', pricingCombos);
+
+        //     const safe = v => String(v).replace(/'/g, "''");
+        //     const unionParts = pricingCombos.map(combo => {
+        //         const px = combo.accessSequence;
+
+        //         // Helper: check if column exists for this prefix
+        //         const col = suffix => `"${px}_${suffix}"`;
+        //         const has = suffix => availableCols.has(`${px}_${suffix}`);
+
+        //         // Required columns — skip this combo entirely if MATERIAL col is missing
+        //         if (!has('MATERIAL') || !has('CONDITION_TYPE')) return null;
+
+        //         // Build WHERE clauses based on what columns actually exist
+        //         const where = [];
+
+        //         // Material IN list
+        //         const matList = materialKeys.map(m => `'${safe(m)}'`).join(', ');
+        //         where.push(`${col('MATERIAL')} IN (${matList})`);
+
+        //         // Condition type
+        //         where.push(`${col('CONDITION_TYPE')} = '${safe(combo.conditionType)}'`);
+
+        //         // Sales org — if column exists and value available
+        //         if (has('SALES_ORGANIZATION') && combo.salesOrg) {
+        //             where.push(`${col('SALES_ORGANIZATION')} = '${safe(combo.salesOrg)}'`);
+        //         }
+
+        //         // Distribution channel — if column exists and value available
+        //         if (has('DISTRIBUTION_CHANNEL') && combo.distChannel) {
+        //             where.push(`${col('DISTRIBUTION_CHANNEL')} = '${safe(combo.distChannel)}'`);
+        //         }
+
+        //         // Optional columns that only some prefixes have
+        //         if (has('PRICELIST_TYPE') && combo.custPriceList) {
+        //             where.push(`${col('PRICELIST_TYPE')} = '${safe(combo.custPriceList)}'`);
+        //         }
+
+        //         if (has('CUSTOMER_GROUP_1') && combo.custGroup1) {
+        //             where.push(`${col('CUSTOMER_GROUP_1')} = '${safe(combo.custGroup1)}'`);
+        //         }
+
+        //         if (has('SOLDTO') && combo.soldTo) {
+        //             where.push(`${col('SOLDTO')} = '${safe(combo.soldTo)}'`);
+        //         }
+
+        //         // SELECT normalised shape — always same columns regardless of prefix
+        //         // Optional columns → NULL if not available for this prefix
+        //         return `SELECT
+        //         ${col('MATERIAL')}                          AS "MATERIAL",
+        //         ${col('CONDITION_TYPE')}                    AS "CONDITION_TYPE",
+        //         ${has('SALES_ORGANIZATION') ? col('SALES_ORGANIZATION') : 'NULL'} AS "SALES_ORG",
+        //         ${has('DISTRIBUTION_CHANNEL') ? col('DISTRIBUTION_CHANNEL') : 'NULL'} AS "DIST_CHANNEL",
+        //         ${has('VALID_FROM_DATE') ? col('VALID_FROM_DATE') : 'NULL'} AS "VALID_FROM",
+        //         ${has('VALID_TO_DATE') ? col('VALID_TO_DATE') : 'NULL'} AS "VALID_TO",
+        //         ${has('CONDITION_RECORD_NUMBER') ? col('CONDITION_RECORD_NUMBER') : 'NULL'} AS "CONDITION_RECORD_NUMBER",
+        //         '${px}' AS "ACCESS_SEQUENCE",
+        //         "KONP_RATE",
+        //         "KONP_RATE_UNIT",
+        //         "KONP_CONDITION_PRICE_UNIT"
+        //     FROM "SAPECC"."T_PRICELIST_MASTER_DATA"
+        //     WHERE ${where.join(' AND ')}`;
+        //     }).filter(Boolean);
+
+        //     console.log('>>> Price Query Parts:', unionParts);
+
+        //     let priceRecords = [];
+        //     if (unionParts.length > 0) {
+        //         const priceQuery = unionParts.join(' UNION ALL ');
+        //         priceRecords = await extdb.run(priceQuery);
+        //     }
+
+        //     const accessPriority = Object.fromEntries(
+        //         pricingCombos.map((c, i) => [c.accessSequence, i])
+        //     );
+
+        //     const priceByMaterial = new Map();
+        //     priceRecords.forEach(rec => {
+        //         const mat = rec.MATERIAL;
+        //         if (!priceByMaterial.has(mat)) priceByMaterial.set(mat, []);
+        //         priceByMaterial.get(mat).push(rec);
+        //     });
+
+        //     // Sort each material's price records by access sequence priority
+        //     priceByMaterial.forEach((records, mat) => {
+        //         records.sort((a, b) =>
+        //             (accessPriority[a.ACCESS_SEQUENCE] ?? 99) -
+        //             (accessPriority[b.ACCESS_SEQUENCE] ?? 99)
+        //         );
+        //     });
+
+        //     finalFlatResults.forEach(row => {
+        //         const priceRows = priceByMaterial.get(row.Material) || [];
+        //         const best = priceRows[0]; // highest priority record
+        //         if (best) {
+        //             row.Price = best.KONP_RATE || null;
+        //             row.PriceUnit = best.KONP_RATE_UNIT || null;
+        //             row.PriceValidFrom = best.VALID_FROM || null;
+        //             row.PriceValidTo = best.VALID_TO || null;
+        //             row.AccessSequence = best.ACCESS_SEQUENCE || null;
+        //             row.ConditionType = best.CONDITION_TYPE || null;
+        //         }
+        //     });
+        // }
+
+
+        // 8. Sort result by hierarchy levels (nulls first and then alphabetically)
         const sortByFields = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
         finalFlatResults.sort((a, b) => {
             for (const field of sortByFields) {
@@ -1299,7 +1449,7 @@ module.exports = cds.service.impl(async function () {
             }
             return 0;
         });
-        
+
         // console.table(finalFlatResults, ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5", "MaterialKey", "Material", "MaterialDescription"]);
 
         return finalFlatResults;
