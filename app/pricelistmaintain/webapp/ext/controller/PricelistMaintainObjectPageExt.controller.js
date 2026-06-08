@@ -8,6 +8,8 @@ sap.ui.define([
 ], function (ControllerExtension, JSONModel, Filter, FilterOperator, MessageToast, MessageBox) {
 	'use strict';
 
+	const idTreePrefix = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--";
+
 	/** Functions for building the tree table (UI Level) **/
 	const H_FIELDS = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
 
@@ -31,6 +33,24 @@ sap.ui.define([
 
 				const oView = this.base.getView();
 				oView.setModel(new JSONModel(), "jsonModel");
+
+				// initialize UI mode flags
+				const oJson = oView.getModel('jsonModel');
+				if (oJson) {
+					oJson.setProperty('/isDeleteMode', false);
+					oJson.setProperty('/isReorderMode', false);
+					// showReset true when neither mode active
+					oJson.setProperty('/showReset', true);
+					// ensure product list exists
+					oJson.setProperty('/productPriceList', oJson.getProperty('/productPriceList') || []);
+				}
+				
+				oView.getModel('jsonModel').setProperty("/isDeleteMode", false);
+				oView.getModel('jsonModel').setProperty("/isReorderMode", false);
+
+				// initialize deletion snapshot stack and original snapshot holder
+				this._deletedSnapshots = [];
+				this._originalSnapshot = null;
 			},
 
 			onPageReady: function () {
@@ -91,7 +111,7 @@ sap.ui.define([
 			// 		console.error("Error fetching ProductPricelistTree data:", oErr);
 			// 	});
 
-			//---------------------------------  After this adapt code			
+			//---------------------------------  After this adapt code				
 			const sPath = oView.getBindingContext().getPath();
 
 			return oView.getModel()
@@ -236,14 +256,13 @@ sap.ui.define([
 		},
 
 		_onSelectionChangeDisplayMode: function (oEvent) {
-			const idPrefix = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--";
             //Demo code
             MessageToast.show("Row Selection Change:");
             const oTable = oEvent.getSource();
             const aSelectedIndices = oTable.getSelectedIndices();
-            const oDeleteButton = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
-            const oResetButton = sap.ui.getCore().byId(idPrefix + "ProductListResetBtn");
-            const oRefreshButton = sap.ui.getCore().byId(idPrefix + "ProductListRefreshBtn");
+            const oDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteBtn");
+            const oResetButton = sap.ui.getCore().byId(idTreePrefix + "ProductListResetBtn");
+            const oRefreshButton = sap.ui.getCore().byId(idTreePrefix + "ProductListRefreshBtn");
 
             const iSelectedIndex = aSelectedIndices[0];
             const oRowContext = oTable.getContextByIndex(iSelectedIndex);
@@ -378,186 +397,203 @@ sap.ui.define([
 			}
 		},
 
+		// enhanced delete-mode selection handler: keep parents/children in sync
 		_onSelectionChangeDeleteMode: function (oEvent) {
 			if (this._bSuppressSelectionChange) return;
 
-			const idPrefix = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--";
-			MessageToast.show("Row Selection Change in Delete Mode:");
 			const oTable = oEvent.getSource();
-			const aSelectedIndices = oTable.getSelectedIndices();
-			const oDeleteButton = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
-
-			// If user selected all rows, skip ancestor auto-selection to avoid unnecessary work
-			try {
-				const oBinding = oTable.getBinding && oTable.getBinding('rows');
-				const iTotal = oBinding && typeof oBinding.getLength === 'function' ? oBinding.getLength() : null;
-				if (iTotal && aSelectedIndices && aSelectedIndices.length === iTotal) {
-					if (oDeleteButton) { oDeleteButton.setEnabled(aSelectedIndices.length > 0); }
-					return;
-				}
-			} catch (e) {
-				// ignore and continue
-			}
-
-			// get current tree roots from jsonModel
-			const oView = this.getInstance().base.getView();
+			const aSelectedIndices = oTable.getSelectedIndices() || [];
+			const oDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteBtn");
+			const oView = this.getInstance().getView();
 			const aRoots = oView ? (oView.getModel('jsonModel').getProperty("/productPriceList") || []) : [];
 
-			// For each selected row, auto-select eligible ancestor nodes (parents with exactly one child)
+			// build set of currently selected keys
+			const selectedKeys = new Set();
 			for (const idx of aSelectedIndices) {
 				const ctx = oTable.getContextByIndex(idx);
 				if (!ctx) continue;
 				const obj = ctx.getObject && ctx.getObject();
-				if (obj && obj.key) {
-					this._autoSelectAncestorsForKey(oTable, aRoots, obj.key);
-				}
+				if (obj && obj.key) selectedKeys.add(obj.key);
 			}
 
-			// After potential auto-selection, ensure any category that is selected but has no selected leaf children
-			// gets deselected (this handles user-deselection of the last child)
-			const currentSelectedIndices = oTable.getSelectedIndices() || [];
-			const selectedKeys = new Set();
-			for (const i of currentSelectedIndices) {
-				const c = oTable.getContextByIndex(i);
-				if (c && c.getObject) {
-					const o = c.getObject();
-					if (o && o.key) selectedKeys.add(o.key);
-				}
-			}
+			// detect user-clicked row/context (if available)
+			const oRowCtx = oEvent.getParameter && oEvent.getParameter('rowContext');
+			const clickedKey = oRowCtx && oRowCtx.getObject ? oRowCtx.getObject().key : null;
+			const clickedKind = oRowCtx && oRowCtx.getObject ? oRowCtx.getObject().kind : null;
 
-			const indicesToRemove = [];
-			for (const i of currentSelectedIndices) {
-				const c = oTable.getContextByIndex(i);
-				if (!c || !c.getObject) continue;
-				const o = c.getObject();
-				if (!o) continue;
-				if (o.kind === 'Category') {
-					const node = this._findNodeByKey(aRoots, o.key);
-					if (!node) continue;
-					const leafKeys = this._collectLeafKeys(node);
-					// if none of the leaf keys are in selectedKeys, mark this category to be deselected
-					let anySelected = false;
-					for (const lk of leafKeys) {
-						if (selectedKeys.has(lk)) { anySelected = true; break; }
-					}
-					if (!anySelected) {
-						indicesToRemove.push(i);
-					}
-				}
-			}
-
-			if (indicesToRemove.length) {
-				this._bSuppressSelectionChange = true;
-				try {
-					if (typeof oTable.removeSelectionInterval === 'function') {
-						for (const idx of indicesToRemove) {
-							oTable.removeSelectionInterval(idx, idx);
+			// helper: apply selection by keys to the table
+			const applySelectionKeys = (keysSet) => {
+				if (oTable.clearSelection) oTable.clearSelection();
+				let i = 0;
+				while (true) {
+					const ctx = oTable.getContextByIndex(i);
+					if (!ctx) break;
+					const obj = ctx.getObject && ctx.getObject();
+					if (obj && obj.key && keysSet.has(obj.key)) {
+						if (typeof oTable.addSelectionInterval === "function") {
+							oTable.addSelectionInterval(i, i);
+						} else if (typeof oTable.setSelectedIndex === "function") {
+							oTable.setSelectedIndex(i);
 						}
+					}
+					i++;
+				}
+			};
+
+			// If user clicked a Category row explicitly, toggle/select/deselect all its leaf children
+			if (clickedKind === 'Category' && clickedKey) {
+				const catNode = this._findNodeByKey(aRoots, clickedKey);
+				if (catNode) {
+					const leafKeys = this._collectLeafKeys(catNode);
+					if (selectedKeys.has(clickedKey)) {
+						// category selected -> ensure all its leaves are selected
+						for (const k of leafKeys) selectedKeys.add(k);
 					} else {
-						// fallback: rebuild selection without the removed indices
-						const remaining = currentSelectedIndices.filter(i => !indicesToRemove.includes(i));
-						if (oTable.clearSelection) oTable.clearSelection();
-						for (const r of remaining) {
-							if (typeof oTable.addSelectionInterval === 'function') {
-								oTable.addSelectionInterval(r, r);
-							} else if (typeof oTable.setSelectedIndex === 'function') {
-								oTable.setSelectedIndex(r);
-							}
-						}
+						// category deselected -> remove children from selection
+						for (const k of leafKeys) selectedKeys.delete(k);
 					}
-				} finally {
-					this._bSuppressSelectionChange = false;
 				}
 			}
 
-			// Enable delete button if anything selected
-			if (oDeleteButton) { oDeleteButton.setEnabled((oTable.getSelectedIndices() || []).length > 0); }
+			// compute parent selection by traversing all category nodes: if all leaf descendants
+			// of a category are selected then select the category; otherwise deselect it.
+			const traverseAndMarkParents = (nodes) => {
+				if (!nodes || !nodes.length) return;
+				for (const n of nodes) {
+					if (!n) continue;
+					if (n.kind === 'Category') {
+						const leafKeys = this._collectLeafKeys(n);
+						if (leafKeys.length > 0) {
+							const allChildrenSelected = leafKeys.every(k => selectedKeys.has(k));
+							if (allChildrenSelected) selectedKeys.add(n.key);
+							else selectedKeys.delete(n.key);
+						}
+					}
+					// recurse into children categories
+					if (n.children && n.children.length) traverseAndMarkParents(n.children);
+				}
+			};
+			traverseAndMarkParents(aRoots);
+
+			// apply computed selection to table while suppressing recursive handlers
+			this._bSuppressSelectionChange = true;
+			try {
+				applySelectionKeys(selectedKeys);
+			} finally {
+				this._bSuppressSelectionChange = false;
+			}
+
+			// update delete button state
+			const finalCount = (oTable.getSelectedIndices() || []).length;
+			if (oDeleteButton) oDeleteButton.setEnabled(finalCount > 0);
 		},
 
-		// productsTreeRefresh: function () {
-		// 	const oModel = this.getView().getModel();
-		// 	const sPath = this.getView().getBindingContext().sPath + "/items";
+		/**
+		 * Delete selected nodes from jsonModel but keep a snapshot for undo.
+		 */
+		onDelete: function () {
+			const oTable = sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
+			if (!oTable) return;
 
-		// 	oModel.bindList(sPath).requestContexts()
-		// 		.then((aCtx) => {
-		// 			if (aCtx.length == 0) {
-		// 				console.log('No data found: ' + sPath );
-		// 			} else {
-		// 				const rows = aCtx.map(oCtx => oCtx.getObject())
-		// 				const nodes = this._buildTree(rows);
+			const aSelectedIndices = oTable.getSelectedIndices() || [];
+			if (!aSelectedIndices.length) {
+				MessageToast.show("No rows selected to delete.");
+				return;
+			}
 
-		// 				const oTreeModel = this._productTreeSection?.getModel("tree");
-		// 				oTreeModel?.setProperty("/nodes", nodes);
-		//         		oTreeModel?.setProperty("/nodesAll", JSON.parse(JSON.stringify(nodes)));
-		// 			}
-		// 		})
-		// 		.catch((oErr) => {
-		// 			throw oErr;
-		// 		});
+			// take snapshot (deep clone) before modifying
+			const oView = this.base.getView();
+			const aCurrentTree = oView.getModel('jsonModel').getProperty("/productPriceList") || [];
+			const aSnapshot = JSON.parse(JSON.stringify(aCurrentTree));
+			// store original snapshot on first delete so Reset can restore the pre-delete state
+			if (!this._originalSnapshot) {
+				this._originalSnapshot = JSON.parse(JSON.stringify(aSnapshot));
+			}
+			this._deletedSnapshots.push(aSnapshot);
 
-		// },
+			// collect keys to remove (for categories or products)
+			const keysToRemove = new Set();
+			for (const idx of aSelectedIndices) {
+				const ctx = oTable.getContextByIndex(idx);
+				if (!ctx) continue;
+				const obj = ctx.getObject && ctx.getObject();
+				if (obj && obj.key) keysToRemove.add(obj.key);
+			}
 
-		// _buildTree: function (rows) {
-		// 	const byKey = new Map();
-		// 	const roots = [];
+			// filter tree removing nodes whose key is in keysToRemove (recursively)
+			const filterTree = (nodes) => {
+				if (!nodes || !nodes.length) return [];
+				return nodes
+					.map(n => {
+						if (keysToRemove.has(n.key)) return null;
+						const nn = Object.assign({}, n);
+						nn.children = filterTree(nn.children || []);
+						return nn;
+					})
+					.filter(Boolean);
+			};
 
-		// 	const ensureCategoryNode = (key, text, parentKey, level, row) => {
-		// 		if (!byKey.has(key)) {
+			const aNewTree = filterTree(aCurrentTree);
+			oView.getModel('jsonModel').setProperty("/productPriceList", aNewTree);
 
-		// 			// Build category field values from the selected full key path ("Main 1 / Sub 1 / Sub 2"..)
-		// 			const parts = key.split(" / ");
+			// clear table selection and update delete button
+			if (oTable.clearSelection) oTable.clearSelection();
+			const oDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteBtn");
+			if (oDeleteButton) oDeleteButton.setEnabled(false);
 
-		// 			const node = {
-		// 				key,
-		// 				text,
-		// 				kind: "Category",
-		// 				level,
-		// 				children: [],
+			MessageToast.show("Selected items removed (undo available).");
+		},
 
-		// 				// Store hierarchy fields so create-under-node can prefill the values correctly.
-		// 				MainCategory: parts[0] || null,
-		// 				Subcategory1: parts[1] || null,
-		// 				Subcategory2: parts[2] || null,
-		// 				Subcategory3: parts[3] || null,
-		// 				Subcategory4: parts[4] || null,
-		// 				Subcategory5: parts[5] || null
-		// 			};
+		/**
+		 * Restore the last deleted snapshot (undo last delete).
+		 */
+		onRestoreLastDeletion: function () {
+			if (!this._deletedSnapshots || !this._deletedSnapshots.length) {
+				MessageToast.show("No deletion to restore.");
+				return;
+			}
+			const last = this._deletedSnapshots.pop();
+			const oView = this.base.getView();
+			oView.getModel('jsonModel').setProperty("/productPriceList", last);
 
-		// 			byKey.set(key, node);
+			// refresh UI selection state
+			const oTable = sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
+			if (oTable && oTable.clearSelection) oTable.clearSelection();
+			const oDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteBtn");
+			if (oDeleteButton) { oDeleteButton.setEnabled(false); }
 
-		// 			if (parentKey && byKey.has(parentKey)) {
-		// 				byKey.get(parentKey).children.push(node);
-		// 			} else {
-		// 				roots.push(node);
-		// 			}
-		// 		}
-		// 		return byKey.get(key);
-		// 	};
+			MessageToast.show("Last deletion restored.");
+		},
 
-		// 	for (const r of rows) {
-		// 		const parts = H_FIELDS.map(f => norm(r[f])).filter(Boolean);
-		// 		if (!parts.length) continue;
+		/**
+		 * Reset entire tree to original state (before any deletes).
+		 */
+		onResetPrice: function () {
+			const oView = this.base.getView();
+			if (this._originalSnapshot) {
+				oView.getModel('jsonModel').setProperty("/productPriceList", JSON.parse(JSON.stringify(this._originalSnapshot)));
+				this._deletedSnapshots = [];
+				const oTable = sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
+				if (oTable && oTable.clearSelection) oTable.clearSelection();
+				const oDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteBtn");
+				if (oDeleteButton) { oDeleteButton.setEnabled(false); oDeleteButton.setVisible(false); }
+				MessageToast.show("Pricelist reset to original state.");
+				return;
+			}
 
-		// 		let path = "";
-		// 		let parentPath = null;
+			// fallback: if no original snapshot, fetch from backend
+			MessageToast.show("No original snapshot available; fetching from server...");
+			this._getProductPriceList()
+				.then((aRawData) => {
+					this._setTreeTableData(aRawData);
+					MessageToast.show("Pricelist refreshed from server.");
+				})
+				.catch((e) => {
+					console.error(e);
+					MessageToast.show("Failed to refresh pricelist.");
+				});
+		},
 
-		// 		for (let i = 0; i < parts.length; i++) {
-		// 			path = path ? `${path} / ${parts[i]}` : parts[i];
-		// 			ensureCategoryNode(path, parts[i], parentPath, i + 1);
-		// 			parentPath = path;
-		// 		}
-
-		// 		const leaf = {
-		// 			key: "P:" + r.ID,
-		// 			text: r.PricelistPartNumber || "(No Part Number)",
-		// 			kind: "Product",
-		// 			...r,
-		// 			children: []
-		// 		};
-		// 		byKey.get(parentPath).children.push(leaf);
-		// 	}
-
-		// 	return roots;
-		// }
+		// (other helper stubs commented)
 	});
 });
