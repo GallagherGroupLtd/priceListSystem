@@ -62,6 +62,7 @@ sap.ui.define([
 				// ensure toggles are disabled if there's no data
 				this._updateModeToggleEnabled();
 
+
 				// this._getProductPriceList();
 
 				// this._productTreeTable.collapseAll();
@@ -397,18 +398,26 @@ sap.ui.define([
 			}
 		},
 
-		/**
-		 * Enable/disable the Delete and Reorder toggle buttons when there is no tree data.
-		 * If product list is empty -> disable both toggles; otherwise enable them.
-		 */
 		_updateModeToggleEnabled: function () {
-			const oView = this.base && this.base.getView && this.base.getView();
-			const aTree = oView ? (oView.getModel('jsonModel').getProperty('/productPriceList') || []) : [];
-			const bHasData = Array.isArray(aTree) && aTree.length > 0;
 			const oDeleteModeToggle = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteModeBtn");
 			const oReorderModeToggle = sap.ui.getCore().byId(idTreePrefix + "ProductListReorderModeBtn");
-			if (oDeleteModeToggle && typeof oDeleteModeToggle.setEnabled === 'function') oDeleteModeToggle.setEnabled(bHasData);
-			if (oReorderModeToggle && typeof oReorderModeToggle.setEnabled === 'function') oReorderModeToggle.setEnabled(bHasData);
+
+			const oView = this.base && this.base.getView && this.base.getView();
+			const editMode = oView.getModel('ui').getProperty('/editMode');
+
+			if (editMode === 'Display') {
+				// if display mode, toggles should be hidden
+				oDeleteModeToggle.setVisible(false);
+				oReorderModeToggle.setVisible(false);
+				return;
+			}
+
+			const oJsonModel = oView?.getModel('jsonModel') || [];
+			const aTree = oJsonModel?.getProperty('/productPriceList') || [];
+			const bHasData = Array.isArray(aTree) && aTree.length > 0;
+
+			oDeleteModeToggle.setEnabled(bHasData);
+			oReorderModeToggle.setEnabled(bHasData);
 		},
 
 		_autoSelectAncestorsForKey: function (oTable, roots, childKey) {
