@@ -59,6 +59,8 @@ sap.ui.define([
 				this._productTreeTable = sap.ui.getCore().byId('pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--ProductTreeFragment_ID--ProductsTreeTable');
 
 				_oInstance = this;
+				// ensure toggles are disabled if there's no data
+				this._updateModeToggleEnabled();
 
 				// this._getProductPriceList();
 
@@ -122,6 +124,7 @@ sap.ui.define([
 				})
 				.requestObject()
 				.then((oData) => {
+					debugger;
 					const aFilters = [
 						{ path: "TradeScenario", value: oData?.TradeScenario },
 						{ path: "MarketScopeRegion", value: oData?.MarketScopeRegion },
@@ -153,6 +156,8 @@ sap.ui.define([
 			const oView = this.base.getView();
 			const aTreeData = this._buildTree(aData);
 			oView.getModel('jsonModel').setProperty("/productPriceList", aTreeData);
+			// update toggle enablement depending on presence of data
+			this._updateModeToggleEnabled();
 		},
 
 		_buildTree: function (rows) {
@@ -304,11 +309,11 @@ sap.ui.define([
             }
 
             if (aSelectedIndices.length > 0) {
-                oDeleteButton.setEnabled(true);
+				this._setDeleteBtnState(true);
                 // oRefreshButton.setEnabled(true);
                 // oResetButton.setEnabled(true);
             } else {
-                oDeleteButton.setEnabled(false);
+				this._setDeleteBtnState(false);
                 // oRefreshButton.setEnabled(false);
                 // oResetButton.setEnabled(false);
             }
@@ -368,6 +373,42 @@ sap.ui.define([
 				i++;
 			}
 			return -1;
+		},
+
+		/**
+		 * Keep UndoDelete button visibility/enable in sync with Delete button.
+		 * bEnabled: boolean|undefined - if provided, sets enabled state on both buttons
+		 * bVisible: boolean|undefined - if provided, sets visible state on both buttons
+		 */
+		_setDeleteBtnState: function (bEnabled, bVisible) {
+			const oDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteBtn");
+			const oUndoDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListUndoDeleteBtn");
+			// set delete button enabled state if provided
+			if (typeof bEnabled !== 'undefined') {
+				if (oDeleteButton && typeof oDeleteButton.setEnabled === 'function') oDeleteButton.setEnabled(bEnabled);
+			}
+			// Undo button enabled only when there are deleted snapshots available
+			const hasDeleted = Array.isArray(this._deletedSnapshots) && this._deletedSnapshots.length > 0;
+			if (oUndoDeleteButton && typeof oUndoDeleteButton.setEnabled === 'function') oUndoDeleteButton.setEnabled(hasDeleted);
+			// visibility control (explicit)
+			if (typeof bVisible !== 'undefined') {
+				if (oDeleteButton && typeof oDeleteButton.setVisible === 'function') oDeleteButton.setVisible(bVisible);
+				if (oUndoDeleteButton && typeof oUndoDeleteButton.setVisible === 'function') oUndoDeleteButton.setVisible(bVisible);
+			}
+		},
+
+		/**
+		 * Enable/disable the Delete and Reorder toggle buttons when there is no tree data.
+		 * If product list is empty -> disable both toggles; otherwise enable them.
+		 */
+		_updateModeToggleEnabled: function () {
+			const oView = this.base && this.base.getView && this.base.getView();
+			const aTree = oView ? (oView.getModel('jsonModel').getProperty('/productPriceList') || []) : [];
+			const bHasData = Array.isArray(aTree) && aTree.length > 0;
+			const oDeleteModeToggle = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteModeBtn");
+			const oReorderModeToggle = sap.ui.getCore().byId(idTreePrefix + "ProductListReorderModeBtn");
+			if (oDeleteModeToggle && typeof oDeleteModeToggle.setEnabled === 'function') oDeleteModeToggle.setEnabled(bHasData);
+			if (oReorderModeToggle && typeof oReorderModeToggle.setEnabled === 'function') oReorderModeToggle.setEnabled(bHasData);
 		},
 
 		_autoSelectAncestorsForKey: function (oTable, roots, childKey) {
@@ -485,7 +526,7 @@ sap.ui.define([
 
 			// update delete button state
 			const finalCount = (oTable.getSelectedIndices() || []).length;
-			if (oDeleteButton) oDeleteButton.setEnabled(finalCount > 0);
+			this._setDeleteBtnState(finalCount > 0);
 		},
 
 		/**
@@ -534,20 +575,18 @@ sap.ui.define([
 			};
 
 			const aNewTree = filterTree(aCurrentTree);
-			oView.getModel('jsonModel').setProperty("/productPriceList", aNewTree);
+		oView.getModel('jsonModel').setProperty("/productPriceList", aNewTree);
 
 			// clear table selection and update delete button
 			if (oTable.clearSelection) oTable.clearSelection();
-			const oDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteBtn");
-			if (oDeleteButton) oDeleteButton.setEnabled(false);
+			this._setDeleteBtnState(false);
+			// ensure toggles reflect presence/absence of data
+			this._updateModeToggleEnabled();
 
 			MessageToast.show("Selected items removed (undo available).");
 		},
 
-		/**
-		 * Restore the last deleted snapshot (undo last delete).
-		 */
-		onRestoreLastDeletion: function () {
+		onUndoDelete: function () {
 			if (!this._deletedSnapshots || !this._deletedSnapshots.length) {
 				MessageToast.show("No deletion to restore.");
 				return;
@@ -556,13 +595,15 @@ sap.ui.define([
 			const oView = this.base.getView();
 			oView.getModel('jsonModel').setProperty("/productPriceList", last);
 
+			// ensure toggles reflect presence/absence of data after restore
+			this._updateModeToggleEnabled();
+
 			// refresh UI selection state
 			const oTable = sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
 			if (oTable && oTable.clearSelection) oTable.clearSelection();
-			const oDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteBtn");
-			if (oDeleteButton) { oDeleteButton.setEnabled(false); }
+			this._setDeleteBtnState(false);
 
-			MessageToast.show("Last deletion restored.");
+			MessageToast.show("Deletion is undone.");
 		},
 
 		/**
@@ -575,8 +616,9 @@ sap.ui.define([
 				this._deletedSnapshots = [];
 				const oTable = sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
 				if (oTable && oTable.clearSelection) oTable.clearSelection();
-				const oDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteBtn");
-				if (oDeleteButton) { oDeleteButton.setEnabled(false); oDeleteButton.setVisible(false); }
+				this._setDeleteBtnState(false, false);
+				// ensure toggles reflect presence/absence of data after reset
+				this._updateModeToggleEnabled();
 				MessageToast.show("Pricelist reset to original state.");
 				return;
 			}
