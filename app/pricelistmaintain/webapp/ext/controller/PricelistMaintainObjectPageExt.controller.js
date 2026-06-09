@@ -406,9 +406,9 @@ sap.ui.define([
 			const editMode = oView.getModel('ui').getProperty('/editMode');
 
 			if (editMode === 'Display') {
-				// if display mode, toggles should be hidden
-				oDeleteModeToggle.setVisible(false);
-				oReorderModeToggle.setVisible(false);
+				// if display mode, toggles should be disabled
+				oDeleteModeToggle.setEnabled(false);
+				oReorderModeToggle.setEnabled(false);
 				return;
 			}
 
