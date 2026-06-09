@@ -23,9 +23,13 @@
                                         height="10rem"
                                         class="sapUiTinyMarginBottom newsCardImage" />
                                     <VBox id="VBox2" class="sapUiTinyMarginBeginEnd sapUiTinyMarginBottom">
+                                        <Title id="TitleGallagher" text="{tileModel>/heading}" titleStyle="H3" class="sapUiTinyMarginBottom" />
+                                        <Text id="TitleAccess" text="{tileModel>/subHeading}" class="sapUiSmallMarginBottom" />
+                                    </VBox>
+                                    <!-- <VBox id="VBox2" class="sapUiTinyMarginBeginEnd sapUiTinyMarginBottom">
                                         <Title id="TitleGallagher" text="Gallagher New Zealand Pricelist" titleStyle="H3" class="sapUiTinyMarginBottom" />
                                         <Text id="TitleAccess" text="Access the official Gallagher New Zealand pricing information." class="sapUiSmallMarginBottom" />
-                                    </VBox>
+                                    </VBox> -->
                                 </VBox>
                                 
                                 <Title id="TitlePricelist" text="Price Information" level="H2" class="sapUiSmallsapUiTinyMarginBottom sapUiMediumMarginTopMarginTopBottom" />
@@ -120,10 +124,10 @@
                                 <HBox id="HBox2" wrap="Wrap">
                                     <items>
                                         <core:Icon id="IconPhone" src="sap-icon://headset" size="1rem" class="sapUiTinyMarginEnd" color="#333333"/>
-                                        <Link id="LinkPhone" text="+64 993587556" href="tel:+64993587556" class="sapUiMediumMarginEnd" />
+                                        <Link id="LinkPhone" text="{contactModel>/ContactNumber}" href="tel:+64993587556" class="sapUiMediumMarginEnd" />
 
                                         <core:Icon id="IconMail" src="sap-icon://email" size="1rem" class="sapUiTinyMarginEnd" color="#333333"/>
-                                        <Link id="LinkMail" text="pricing@gallagher.com" href="mailto:pricing@gallagher.com" />
+                                        <Link id="LinkMail" text="{contactModel>/ContactEmail}" href="mailto:pricing@gallagher.com" />
                                     </items>
                                 </HBox>
                             </items>
