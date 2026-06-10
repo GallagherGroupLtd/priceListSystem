@@ -51,12 +51,13 @@ annotate service.ItemStructure with @(
     UI.SelectionFields: [ PricelistType,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
 
     // Trade Parameters ---
-    UI.FieldGroup #TradeParameters : {
+    UI.FieldGroup #PriceParameters : {
         $Type : 'UI.FieldGroupType',
         Data : [
             { $Type : 'UI.DataField', Value : PricelistType },
             { $Type : 'UI.DataField', Value : MarketScopeRegion },
-            { $Type : 'UI.DataField', Value : MarketScopeCountry }
+            { $Type : 'UI.DataField', Value : MarketScopeCountry },
+            { $Type : 'UI.DataField', Value : Sequence }
         ]
     },
 
@@ -150,8 +151,8 @@ annotate service.ItemStructure with @(
         {
             $Type : 'UI.ReferenceFacet',
             ID    : 'Facet1',
-            Label : 'Trade Parameters',
-            Target: '@UI.FieldGroup#TradeParameters'
+            Label : 'Pricelist Parameters',
+            Target: '@UI.FieldGroup#PriceParameters'
         },
         {
             $Type : 'UI.ReferenceFacet',
