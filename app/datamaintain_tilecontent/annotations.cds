@@ -47,10 +47,10 @@ annotate service.TileContent with @(
     },
 
     // Selection Fields for Filtering
-    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
+    UI.SelectionFields: [ PricelistType,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
 
     UI.LineItem  : [
-        { Value: TradeScenario },
+        { Value: PricelistType },
         { Value: MarketScopeRegion },
         { Value: MarketScopeCountry },
         {
@@ -120,7 +120,7 @@ annotate service.TileContent with @(
         Data : [
             {
                 $Type: 'UI.DataField',
-                Value: TradeScenario,
+                Value: PricelistType,
             },
             {
                 $Type: 'UI.DataField',
@@ -191,13 +191,13 @@ annotate service.TileContent with @(
 );
 
 annotate service.TileContent with {
-    TradeScenario @(
+    PricelistType @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'TradeScenarioVH',
+            CollectionPath: 'PricelistTypeVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'PricelistType', ValueListProperty: 'PricelistType' }
             ]
         }
     );

@@ -3,7 +3,7 @@ using PriceListService as service from '../../srv/service';
 annotate service.MyRequest with @(
 
     // Selection Fields for Filtering
-    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,ReqStatus,ReqStartDate ],
+    UI.SelectionFields: [ PricelistType,MarketScopeRegion,MarketScopeCountry,ReqStatus,ReqStartDate ],
 
     UI.HeaderInfo : {
         TypeName       : 'My Request',
@@ -54,8 +54,8 @@ annotate service.MyRequest with @(
     UI.LineItem : [
         {
             $Type : 'UI.DataField',
-            Value : TradeScenario,
-            Label : 'Scenario'
+            Value : PricelistType,
+            Label : 'Pricelist Type'
         },
         {
             $Type : 'UI.DataField',
@@ -111,8 +111,8 @@ annotate service.MyRequest with @(
             },
             {
                 $Type : 'UI.DataField',
-                Value : TradeScenario,
-                Label : 'Scenario'
+                Value : PricelistType,
+                Label : 'Pricelist Type'
             },
             {
                 $Type : 'UI.DataField',
@@ -198,13 +198,13 @@ annotate service.MyRequest with @(
 );
 
 annotate service.MyRequest with {
-    TradeScenario @(
+    PricelistType @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'TradeScenarioVH',
+            CollectionPath: 'PricelistTypeVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'PricelistType', ValueListProperty: 'PricelistType' }
             ]
         }
     );

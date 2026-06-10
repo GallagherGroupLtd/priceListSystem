@@ -2,7 +2,7 @@ using PriceListService as service from '../../srv/service';
 annotate service.PriceProductMaintenance with @(
 
     // Selection Fields for Filtering
-    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,MaterialClassification1 ],
+    UI.SelectionFields: [ PricelistType,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel ],
 
     UI.HeaderInfo: {
         TypeName      : 'Price Product Maintenance',
@@ -55,7 +55,6 @@ annotate service.PriceProductMaintenance with @(
         { Value: ProductDescription1 },
         { Value: SalesOrg },
         { Value: DistChannel },
-        { Value: MaterialClassification1 },
         { Value: ProductDescription2 }
     ],
     UI.PresentationVariant : {
@@ -107,10 +106,6 @@ annotate service.PriceProductMaintenance with @(
             {
                 $Type : 'UI.DataField',
                 Value : DistChannel,
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : MaterialClassification1,
             }
         ],
     },
@@ -124,7 +119,7 @@ annotate service.PriceProductMaintenance with @(
             },
             {
                 $Type : 'UI.DataField',
-                Value : MaterialClassification2,
+                Value : MaterialClassification,
             },
             {
                 $Type : 'UI.DataField',
@@ -143,13 +138,13 @@ annotate service.PriceProductMaintenance with @(
 );
 
 annotate service.PriceProductMaintenance with {
-    TradeScenario @(
+    PricelistType @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'TradeScenarioVH',
+            CollectionPath: 'PricelistTypeVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'PricelistType', ValueListProperty: 'PricelistType' }
             ]
         }
     );
@@ -204,25 +199,6 @@ annotate service.PriceProductMaintenance with {
                 { 
                     $Type: 'Common.ValueListParameterInOut', 
                     LocalDataProperty: 'DistChannel', 
-                    ValueListProperty: 'Code' 
-                },
-                { 
-                    $Type: 'Common.ValueListParameterDisplayOnly', 
-                    ValueListProperty: 'Description' 
-                }
-            ]              
-        }        
-    );
-
-    MaterialClassification1 @(
-        Common.ValueListWithFixedValues : true,
-        Common.ValueList: {
-            $Type         : 'Common.ValueList',
-            CollectionPath: 'MatGruop2VH',
-            Parameters: [
-                { 
-                    $Type: 'Common.ValueListParameterInOut', 
-                    LocalDataProperty: 'MaterialClassification1', 
                     ValueListProperty: 'Code' 
                 },
                 { 
