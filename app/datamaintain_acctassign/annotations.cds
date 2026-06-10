@@ -48,7 +48,7 @@ annotate service.AccountAssignment with @(
     },
 
     // Selection Fields for Filtering
-    UI.SelectionFields: [ FirstName,LastName,Email,AccountType,AccountScope,TradeScenario, MarketScopeRegion, MarketScopeCountry ],
+    UI.SelectionFields: [ FirstName,LastName,Email,AccountType,AccountScope,PricelistType, MarketScopeRegion, MarketScopeCountry ],
 
     // Line Items for the List Report
     UI.LineItem: [
@@ -110,7 +110,7 @@ annotate service.AccountAssignment with @(
     UI.FieldGroup #CommercialScope : {
         $Type : 'UI.FieldGroupType',
         Data : [
-            { $Type : 'UI.DataField', Value: TradeScenario, Label: 'TradeScenario' },
+            { $Type : 'UI.DataField', Value: PricelistType, Label: 'Pricelist Type' },
             { $Type : 'UI.DataField', Value: MarketScopeRegion, Label: 'MarketScopeRegion' },
             { $Type : 'UI.DataField', Value: MarketScopeCountry, Label: 'MarketScopeCountry' }
         ]
@@ -148,13 +148,13 @@ annotate service.AccountAssignment with @(
 );
 
 annotate service.AccountAssignment with {
-    TradeScenario @(
+    PricelistType @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'TradeScenarioVH',
+            CollectionPath: 'PricelistTypeVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'PricelistType', ValueListProperty: 'PricelistType' }
             ]
         }
     );
