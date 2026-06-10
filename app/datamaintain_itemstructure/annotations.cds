@@ -48,13 +48,13 @@ annotate service.ItemStructure with @(
     },
 
     // Selection Fields for Filtering
-    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
+    UI.SelectionFields: [ PricelistType,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
 
     // Trade Parameters ---
     UI.FieldGroup #TradeParameters : {
         $Type : 'UI.FieldGroupType',
         Data : [
-            { $Type : 'UI.DataField', Value : TradeScenario },
+            { $Type : 'UI.DataField', Value : PricelistType },
             { $Type : 'UI.DataField', Value : MarketScopeRegion },
             { $Type : 'UI.DataField', Value : MarketScopeCountry }
         ]
@@ -234,15 +234,6 @@ annotate service.ItemStructure with @(
     ],
 
     UI.LineItem: [
-        // { Value: TradeScenario },
-        // { Value: MarketScopeRegion },
-        // { Value: MarketScopeCountry },
-        // { Value: SalesOrg },
-        // { Value: DistChannel },
-        // { Value: CustPriceList },
-        // { Value: CustGroup1 },
-        // { Value: ErpCustomer },
-        // { Value: DeliveringPlant },
         { Value: MainCategory },
         { Value: SubCategory1 },
         { Value: SubCategory2 },
@@ -269,13 +260,13 @@ annotate service.ItemStructure with @(
 );
 
 annotate service.ItemStructure with {
-    TradeScenario @(
+    PricelistType @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'TradeScenarioVH',
+            CollectionPath: 'PricelistTypeVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'PricelistType', ValueListProperty: 'PricelistType' }
             ]
         }
     );

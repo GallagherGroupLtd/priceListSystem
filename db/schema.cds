@@ -13,18 +13,21 @@ entity MaintenanceTableDirectory : managed, cuid {
 
 /** Trade and Market Scenario Determination **/
 entity TradeAndMarketScenarioDetermination : managed, cuid {
-    TradeScenario      : String(255) @title: 'Trade Scenario';
+    PricelistType      : String(255) @title: 'Pricelist Type';
     MarketScopeRegion  : String(255) @title: 'Market Scope Region';
     MarketScopeCountry : String(255) @title: 'Market Scope Country';
+    EmailSubject       : String(255) @title: 'Email Subject';
+    EmailBody          : String(1000) @title: 'Email Body';
 }
 
 /** Pricelist Item Structure Components **/
 entity PricelistItemStructureComponents : managed, cuid {
-    TradeScenario      : String(255) @title: 'Trade Scenario';
+    PricelistType      : String(255) @title: 'Pricelist Type';
     MarketScopeRegion  : String(255) @title: 'Region';
     MarketScopeCountry : String(255) @title: 'Country';
     SalesOrg           : String(4)   @title: 'Sales Organization';
     DistChannel        : String(2)   @title: 'Distribution Channel';
+    Sequence           : String(255) @title: 'Sequence';
     CustPriceList      : String(20)  @title: 'Customer Pricelist';
     CustGroup1         : String(255) @title: 'Customer Group 1';
     ErpCustomer        : String(255) @title: 'ERP Customer';
@@ -45,7 +48,7 @@ entity PricelistItemStructureComponents : managed, cuid {
 
 /** Pricelist Product Maintenance **/
 entity PricelistPartNumberDetermination : managed, cuid {
-    TradeScenario                   : String(255) @title: 'Trade Scenario';
+    PricelistType                   : String(255) @title: 'Pricelist Type';
     MarketScopeRegion               : String(255) @title: 'Region';
     MarketScopeCountry              : String(255) @title: 'Country';    
     SalesOrg                        : String(255) @title: 'Sales Organization';
@@ -62,7 +65,7 @@ entity PricelistPartNumberDetermination : managed, cuid {
 
 /** Terms and Condition Determination **/
 entity TermsAndConditionDetermination : managed, cuid {
-    TradeScenario                 : String(255) @title: 'Trade Scenario';
+    PricelistType                 : String(255) @title: 'Pricelist Type';
     MarketScopeRegion             : String(255) @title: 'Region';
     MarketScopeCountry            : String(255) @title: 'Country';
     SalesOrg                      : String(4)   @title: 'Sales Organization';
@@ -92,7 +95,7 @@ entity TermsAndConditionDetermination : managed, cuid {
 
 /** Pricing Parameter Determination **/
 entity PricingParameterDetermination : managed, cuid {
-    TradeScenario            : String(255) @title : 'Trade Scenario';
+    PricelistType            : String(255) @title : 'Pricelist Type';
     MarketScopeRegion        : String(255) @title : 'Region';
     MarketScopeCountry       : String(255) @title : 'Country';
     SalesOrg                 : String(4)   @title : 'Sales Organization';
@@ -162,7 +165,7 @@ entity PricingParameterDetermination : managed, cuid {
 
 /** Information Tile Content **/
 entity InformationTileContent : managed, cuid {
-    TradeScenario      : String(255) @title: 'Trade Scenario';
+    PricelistType      : String(255) @title: 'Pricelist Type';
     MarketScopeRegion  : String(255) @title: 'Region';
     MarketScopeCountry : String(255) @title: 'Country';
     SalesOrg           : String(4)   @title: 'Sales Organization';
@@ -178,7 +181,7 @@ entity InformationTileContent : managed, cuid {
 
 /** Contact Information **/
 entity ContactInformation : managed, cuid {
-    TradeScenario      : String(255) @title: 'Trade Scenario';
+    PricelistType      : String(255) @title: 'Pricelist Type';
     MarketScopeRegion  : String(255) @title: 'Region';
     MarketScopeCountry : String(255) @title: 'Country';
     InternalAccount    : Boolean     @title: 'Internal Account';
@@ -196,7 +199,7 @@ entity AccountAssignment : managed, cuid {
     AccountScope                       : String(255) @title: 'Account Scope';
     CommercialScope                    : String(255) @title: 'Commercial Scope';
     CustomerNumber                     : String(255) @title: 'Customer Code';
-    TradeScenario                      : String(255) @title: 'Trade Scenario';
+    PricelistType                      : String(255) @title: 'Pricelist Type';
     MarketScopeRegion                  : String(255) @title: 'Region';
     MarketScopeCountry                 : String(255) @title: 'Country';
     SalesOrg                           : String(4)   @title: 'Sales Organization';
@@ -381,7 +384,7 @@ entity ErpPriceStatus : managed, cuid {
 }
 
 entity MyRequest : managed, cuid {
-    TradeScenario         : String(255) @title: 'Trade Scenario';
+    PricelistType         : String(255) @title: 'Pricelist Type';
     MarketScopeRegion     : String(255) @title: 'Region';
     MarketScopeCountry    : String(255) @title: 'Country';    
     ReqStatus             : String(20)   @title: 'Status';

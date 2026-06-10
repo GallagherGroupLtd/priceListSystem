@@ -141,7 +141,7 @@ function andAllXpr(xprs) {
 
 function specificityScore(term, header) {
     const fields = [
-        "TradeScenario",
+        "PricelistType",
         "MarketScopeRegion",
         "MarketScopeCountry",
         "SalesOrg",
@@ -235,7 +235,7 @@ function buildPdfBuffer({ headerCriteria, headerTerms, detailTerms }) {
         // Criteria block
         doc.font("Helvetica").fontSize(9).fillColor("#444");
         doc.text(
-            `TradeScenario: ${headerCriteria.TradeScenario || ""} | Region: ${headerCriteria.MarketScopeRegion || ""} | Country: ${headerCriteria.MarketScopeCountry || ""}`
+            `PricelistType: ${headerCriteria.PricelistType || ""} | Region: ${headerCriteria.MarketScopeRegion || ""} | Country: ${headerCriteria.MarketScopeCountry || ""}`
         );
         doc.text(
             `SalesOrg: ${headerCriteria.SalesOrg || ""} | DistChannel: ${headerCriteria.DistChannel || ""} | CustPriceList: ${headerCriteria.CustPriceList || ""}`
@@ -539,9 +539,9 @@ module.exports = cds.service.impl(async function () {
     // 1. Trade Scenarios
     this.on('MassUploadTradeScenarios', req =>
         handleMassUpload(req, cds.entities.TradeAndMarketScenarioDetermination,
-            ["TradeScenario", "MarketScopeRegion", "MarketScopeCountry"],
+            ["PricelistType", "MarketScopeRegion", "MarketScopeCountry"],
             r => ({
-                TradeScenario: r["Trade Scenario"] || r["TradeScenario"],
+                PricelistType: r["Pricelist Type"] || r["PricelistType"],
                 MarketScopeRegion: r["Market Scope Region"] || r["MarketScopeRegion"],
                 MarketScopeCountry: r["Market Scope Country"] || r["MarketScopeCountry"]
             })
@@ -551,11 +551,11 @@ module.exports = cds.service.impl(async function () {
     // 2. Item Structure
     this.on('MassUploadItemStructure', req =>
         handleMassUpload(req, cds.entities.PricelistItemStructureComponents,
-            ["TradeScenario", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant",
+            ["PricelistType", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant",
                 "MainCategory", "Subcategory1", "Subcategory2", "Subcategory3", "Subcategory4", "Subcategory5",
                 "MainCategoryLocal", "Subcategory1Local", "Subcategory2Local", "Subcategory3Local", "Subcategory4Local", "Subcategory5Local"],
             r => ({
-                TradeScenario: r["Trade Scenario"] || r["TradeScenario"],
+                PricelistType: r["Pricelist Type"] || r["PricelistType"],
                 MarketScopeRegion: r["Market Scope Region"] || r["MarketScopeRegion"],
                 MarketScopeCountry: r["Market Scope Country"] || r["MarketScopeCountry"],
                 SalesOrg: r["Sales Org"] || r["SalesOrg"],
@@ -599,10 +599,10 @@ module.exports = cds.service.impl(async function () {
     // 4. Terms and Conditions
     this.on('MassUploadTermsandCond', req =>
         handleMassUpload(req, cds.entities.TermsAndConditionDetermination,
-            ["TradeScenario", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant",
+            ["PricelistType", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant",
                 "TermsAndCondition", "MainCategory", "Subcategory1", "Subcategory2", "Subcategory3", "Subcategory4", "Subcategory5"],
             r => ({
-                TradeScenario: r["Trade Scenario"] || r["TradeScenario"],
+                PricelistType: r["Pricelist Type"] || r["PricelistType"],
                 MarketScopeRegion: r["Market Scope Region"] || r["MarketScopeRegion"],
                 MarketScopeCountry: r["Market Scope Country"] || r["MarketScopeCountry"],
                 SalesOrg: r["Sales Org"] || r["SalesOrg"],
@@ -625,9 +625,9 @@ module.exports = cds.service.impl(async function () {
     // 5. Pricing Parameters
     this.on('MassUploadPricingParam', req =>
         handleMassUpload(req, cds.entities.PricingParameterDetermination,
-            ["TradeScenario", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant", "ErpPriceCondition", "ErpSequence", "ErpPricingAccessSequence"],
+            ["PricelistType", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant", "ErpPriceCondition", "ErpSequence", "ErpPricingAccessSequence"],
             r => ({
-                TradeScenario: r["Trade Scenario"] || r["TradeScenario"],
+                PricelistType: r["Pricelist Type"] || r["PricelistType"],
                 MarketScopeRegion: r["Market Scope Region"] || r["MarketScopeRegion"],
                 MarketScopeCountry: r["Market Scope Country"] || r["MarketScopeCountry"],
                 SalesOrg: r["Sales Org"] || r["SalesOrg"],
@@ -646,9 +646,9 @@ module.exports = cds.service.impl(async function () {
     // 6. Tile Content
     this.on('MassUploadTileContent', req =>
         handleMassUpload(req, cds.entities.InformationTileContent,
-            ["TradeScenario", "MarketScopeRegion", "MarketScopeCountry", "InformationHeading", "InformationDetails", "ImageLink"],
+            ["PricelistType", "MarketScopeRegion", "MarketScopeCountry", "InformationHeading", "InformationDetails", "ImageLink"],
             r => ({
-                TradeScenario: r["Trade Scenario"] || r["TradeScenario"],
+                PricelistType: r["Pricelist Type"] || r["PricelistType"],
                 MarketScopeRegion: r["Market Scope Region"] || r["MarketScopeRegion"],
                 MarketScopeCountry: r["Market Scope Country"] || r["MarketScopeCountry"],
                 InformationHeading: r["Information Heading"] || r["InformationHeading"],
@@ -661,9 +661,9 @@ module.exports = cds.service.impl(async function () {
     // 7. Contact Info
     this.on('MassUploadContactInfo', req =>
         handleMassUpload(req, cds.entities.ContactInformation,
-            ["TradeScenario", "MarketScopeRegion", "MarketScopeCountry", "ContactEmail", "ContactNumber"],
+            ["PricelistType", "MarketScopeRegion", "MarketScopeCountry", "ContactEmail", "ContactNumber"],
             r => ({
-                TradeScenario: r["Trade Scenario"] || r["TradeScenario"],
+                PricelistType: r["Pricelist Type"] || r["PricelistType"],
                 MarketScopeRegion: r["Market Scope Region"] || r["MarketScopeRegion"],
                 MarketScopeCountry: r["Market Scope Country"] || r["MarketScopeCountry"],
                 ContactEmail: r["Contact E-Mail"] || r["ContactEmail"],
@@ -675,13 +675,13 @@ module.exports = cds.service.impl(async function () {
     // 8. Account Assignment
     this.on('MassUploadAcctAssign', req =>
         handleMassUpload(req, cds.entities.AccountAssignment,
-            ["TradeScenario", "MarketScopeRegion", "MarketScopeCountry", "Type", "FirstName", "LastName", "Email", "CustomerNumber", "SalesOrg", "DistChannel"],
+            ["PricelistType", "MarketScopeRegion", "MarketScopeCountry", "Type", "FirstName", "LastName", "Email", "CustomerNumber", "SalesOrg", "DistChannel"],
             r => ({
                 FirstName: r["FirstName"] || r["FirstName"],
                 LastName: r["LastName"] || r["LastName"],
                 Type: r["Type"] || r["Type"],
                 Email: r["Email"] || r["Email"],
-                TradeScenario: r["TradeScenario"] || r["TradeScenario"],
+                PricelistType: r["PricelistType"] || r["PricelistType"],
                 MarketScopeRegion: r["MarketScopeRegion"] || r["MarketScopeRegion"],
                 MarketScopeCountry: r["MarketScopeCountry"] || r["MarketScopeCountry"],
                 CustomerNumber: r["CustomerNumber"] || r["CustomerNumber"],
@@ -696,7 +696,7 @@ module.exports = cds.service.impl(async function () {
         const db = cds.transaction(req);
 
         const filters = {
-            TradeScenario: req.data.TradeScenario,
+            PricelistType: req.data.PricelistType,
             MarketScopeRegion: req.data.MarketScopeRegion,
             MarketScopeCountry: req.data.MarketScopeCountry,
             SalesOrg: req.data.SalesOrg,
@@ -832,7 +832,7 @@ module.exports = cds.service.impl(async function () {
 
     //     return await db.run(q);
 
-    this.on('READ', 'TradeScenarioVH', () => cds.run(SELECT.distinct.from('TradeAndMarketScenarioDetermination').columns('TradeScenario').orderBy('TradeScenario')));
+    this.on('READ', 'PricelistTypeVH', () => cds.run(SELECT.distinct.from('TradeAndMarketScenarioDetermination').columns('PricelistType').orderBy('PricelistType')));
     this.on('READ', 'MarketRegionVH', () => cds.run(SELECT.distinct.from('TradeAndMarketScenarioDetermination').columns('MarketScopeRegion').orderBy('MarketScopeRegion')));
     this.on('READ', 'MainCategoryVH', () => cds.run(SELECT.distinct.from('PricelistItemStructureComponents').columns('MainCategory').orderBy('MainCategory')));
 
@@ -896,8 +896,8 @@ module.exports = cds.service.impl(async function () {
                 const w = req.query.SELECT.where[i];
                 const next = req.query.SELECT.where[i + 2]; // pattern: ref, '=', val
 
-                if (w.ref && w.ref[0] === 'TradeScenario' && next && next.val) {
-                    filters.TradeScenario = next.val;
+                if (w.ref && w.ref[0] === 'PricelistType' && next && next.val) {
+                    filters.PricelistType = next.val;
                 }
                 if (w.ref && w.ref[0] === 'MarketScopeRegion' && next && next.val) {
                     filters.MarketScopeRegion = next.val;
@@ -1205,7 +1205,7 @@ module.exports = cds.service.impl(async function () {
 
         // 1. Resolve header-level terms
         const headerCriteria = {
-            TradeScenario: req.data.TradeScenario,
+            PricelistType: req.data.PricelistType,
             MarketScopeRegion: req.data.MarketScopeRegion,
             MarketScopeCountry: req.data.MarketScopeCountry,
             SalesOrg: req.data.SalesOrg,

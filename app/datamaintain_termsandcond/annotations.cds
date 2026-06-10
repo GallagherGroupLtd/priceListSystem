@@ -47,10 +47,10 @@ annotate service.TermsAndConditions with @(
     },
 
     // Selection Fields for Filtering
-    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
+    UI.SelectionFields: [ PricelistType,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
 
     UI.LineItem  : [
-        { Value: TradeScenario },
+        { Value: PricelistType },
         { Value: MarketScopeRegion },
         { Value: MarketScopeCountry },
         { Value: SalesOrg },
@@ -85,7 +85,7 @@ annotate service.TermsAndConditions with @(
 
     UI.FieldGroup #TradeParameters : {
         Data: [
-            { Value: TradeScenario, Label: 'Trade Scenario' },
+            { Value: PricelistType, Label: 'Pricelist Type' },
             { Value: MarketScopeRegion, Label: 'Region' },
             { Value: MarketScopeCountry, Label: 'Country' }
         ]
@@ -283,13 +283,13 @@ annotate service.TermsAndConditions with @(
 );
 
 annotate service.TermsAndConditions with {  
-    TradeScenario @(
+    PricelistType @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'TradeScenarioVH',
+            CollectionPath: 'PricelistTypeVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'PricelistType', ValueListProperty: 'PricelistType' }
             ]
         }
     );

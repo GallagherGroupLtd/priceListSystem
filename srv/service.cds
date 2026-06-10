@@ -508,8 +508,8 @@ service PriceListService {
     // entity MarketCountryVH      as projection on my.TradeAndMarketScenarioDetermination;
 
     @cds.persistence.skip
-    entity TradeScenarioVH {
-        key TradeScenario : String(255);
+    entity PricelistTypeVH {
+        key PricelistType : String(255);
     }
 
     @cds.persistence.skip

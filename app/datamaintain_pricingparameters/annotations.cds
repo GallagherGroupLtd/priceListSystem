@@ -1,4 +1,5 @@
 using PriceListService as service from '../../srv/service';
+using PricingParmeterDetail as service2 from '../../srv/service';
 
 annotate service.PricingParameters with @(
     UI.HeaderInfo                : {
@@ -9,6 +10,7 @@ annotate service.PricingParameters with @(
     // Header Section at the top
     UI.HeaderInfo                 : {
         ImageUrl      : 'sap-icon://sales-order-item'
+        // ImageUrl : './images/icon.png'
     },    
     UI.HeaderFacets               : [
         {
@@ -48,7 +50,7 @@ annotate service.PricingParameters with @(
     },
 
     // Selection Fields for Filtering
-    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
+    UI.SelectionFields: [ PricelistType,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
 
     UI.LineItem                  : [
         {Value: ConditionType1},
@@ -79,7 +81,7 @@ annotate service.PricingParameters with @(
         {
             $Type : 'UI.ReferenceFacet',
             ID    : 'Section1',
-            Label : 'Trade Parameters',
+            Label : 'Pricelist Parameters',
             Target: '@UI.FieldGroup#TradeParameters',
         }, 
         {
@@ -208,7 +210,7 @@ annotate service.PricingParameters with @(
         Data : [
             {
                 $Type: 'UI.DataField',
-                Value: TradeScenario,
+                Value: PricelistType,
             },
             {
                 $Type: 'UI.DataField',
@@ -585,13 +587,13 @@ annotate service.PricingParameters with @(
 );
 
 annotate service.PricingParameters with {
-    TradeScenario @(
+    PricelistType @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'TradeScenarioVH',
+            CollectionPath: 'PricelistTypeVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'PricelistType', ValueListProperty: 'PricelistType' }
             ]
         }
     );
@@ -1361,3 +1363,20 @@ annotate service.PricingParameters with {
         }        
     );   
 }
+
+// annotation service.PricingParmeterDetail with @(
+//     UI.LineItem: [
+//             {
+//                 $Type: 'UI.DataField',
+//                 Value: ConditionType,
+//             },
+//             {
+//                 $Type: 'UI.DataField',
+//                 Value: AccessSequence,
+//             },
+//             {
+//                 $Type: 'UI.DataField',
+//                 Value: Priority,
+//             }
+//         ]
+// );
