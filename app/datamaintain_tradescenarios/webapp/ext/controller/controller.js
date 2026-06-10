@@ -65,7 +65,7 @@ sap.ui.define([
                 text: "Download Template",
                 press: () => {
                     const aColumns = [
-                        { label: "TradeScenario", property: "TradeScenario" },
+                        { label: "PricelistType", property: "PricelistType" },
                         { label: "MarketScopeRegion", property: "MarketScopeRegion" },
                         { label: "MarketScopeCountry", property: "MarketScopeCountry" }
                     ];

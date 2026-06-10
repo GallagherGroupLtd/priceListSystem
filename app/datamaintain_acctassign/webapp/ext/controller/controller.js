@@ -68,7 +68,7 @@ sap.ui.define([
                         { label: "LastName", property: "LastName" },
                         { label: "Type", property: "Type" },
                         { label: "Email", property: "Email" },
-                        { label: "TradeScenario", property: "TradeScenario" },
+                        { label: "PricelistType", property: "PricelistType" },
                         { label: "MarketScopeRegion", property: "MarketScopeRegion" },
                         { label: "MarketScopeCountry", property: "MarketScopeCountry" },
                         { label: "CustomerNumber", property: "CustomerNumber" },

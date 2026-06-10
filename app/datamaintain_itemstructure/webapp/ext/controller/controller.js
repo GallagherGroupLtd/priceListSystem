@@ -64,7 +64,7 @@ sap.ui.define([
         text: "Download Item Structure Template",
         press: () => {
           const aColumns = [
-            { label: "TradeScenario", property: "TradeScenario" },
+            { label: "PricelistType", property: "PricelistType" },
             { label: "MarketScopeRegion", property: "MarketScopeRegion" },
             { label: "MarketScopeCountry", property: "MarketScopeCountry" },
             { label: "SalesOrg", property: "SalesOrg" },
