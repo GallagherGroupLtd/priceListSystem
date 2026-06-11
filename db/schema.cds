@@ -50,9 +50,9 @@ entity PricelistItemStructureComponents : managed, cuid {
 entity PricelistPartNumberDetermination : managed, cuid {
     PricelistType                   : String(255) @title: 'Pricelist Type';
     MarketScopeRegion               : String(255) @title: 'Region';
-    MarketScopeCountry              : String(255) @title: 'Country';    
+    MarketScopeCountry              : String(255) @title: 'Country';
     SalesOrg                        : String(255) @title: 'Sales Organization';
-    DistChannel                     : String(2)   @title: 'Distribution Channel';    
+    DistChannel                     : String(2)   @title: 'Distribution Channel';
     ProductID                       : String(30)  @title: 'Product ID';
     ProductDescription1             : String(255) @title: 'Product Description';
     MaterialClassification1         : String(255) @title: 'Material Classification';
@@ -90,7 +90,7 @@ entity TermsAndConditionDetermination : managed, cuid {
     TermsAndConditionCategory : String(255) @title: 'Terms and Conditions Category';
     PricelistFieldName        : String(255) @title: 'Pricelist Fieldname';
     PricelistDataLevel        : String(255) @title: 'Pricelist Data Level';
-    TermsAndConditionContent  : String      @title: 'Terms and Conditions Content';    
+    TermsAndConditionContent  : String      @title: 'Terms and Conditions Content';
 }
 
 /** Pricing Parameter Determination **/
@@ -213,10 +213,10 @@ entity AccountAssignment : managed, cuid {
     ControlDiscountRate                : Boolean     @title: 'Discount Rate';
     ControlWorkflowTile                : Boolean     @title: 'Workflow Tile';
     ContorlPriceListReviewScheduleTile : Boolean     @title: 'Pricelist Review Schedule Tile';
-    ControlPricelistMaintenance :        Boolean     @title: 'Pricelist Maintenance';
-    ControlDataMaintenance :             Boolean     @title: 'Data Maintenance';
-    ControlMyRequestTile :               Boolean     @title: 'My Requests Tile';
-    ControlApplicationLogTile :          Boolean     @title: 'Application Log Tile';
+    ControlPricelistMaintenance        : Boolean     @title: 'Pricelist Maintenance';
+    ControlDataMaintenance             : Boolean     @title: 'Data Maintenance';
+    ControlMyRequestTile               : Boolean     @title: 'My Requests Tile';
+    ControlApplicationLogTile          : Boolean     @title: 'Application Log Tile';
 }
 
 /** Pricing Condition Description **/
@@ -252,7 +252,7 @@ entity StatusValues {
 /** Pricelist Table */
 entity PricelistData : managed, cuid {
     PricelistTitle      : String(255)  @title: 'Pricelist Name';
-    TradeScenario       : String(255)  @title: 'Pricelist Type';
+    PricelistType       : String(255)  @title: 'Pricelist Type';
     MarketScopeRegion   : String(255)  @title: 'Region';
     MarketScopeCountry  : String(255)  @title: 'Country';
     SalesOrg            : String(4)    @title: 'Sales Organization';
@@ -269,19 +269,19 @@ entity PricelistData : managed, cuid {
     Currency            : String(100)  @title: 'Currency';
     Version             : String(20)   @title: 'Version' default '0.1';
 
-    MarketDisplay       : String       @title: 'Market Region'  @cds.persistence.skip; //Virtual Field
+    MarketDisplay      : String       @title: 'Market Region'  @cds.persistence.skip; //Virtual Field
 
-    TermsAndConditions  : String(1000) @title: 'Header Terms and Conditions';
+    TermsAndConditions : String(1000) @title: 'Header Terms and Conditions';
     // TACDisableExtUser   : Boolean     @title: 'Terms and Conditions Disable Flag for External User';
     // TACDisableIntUser   : Boolean     @title: 'Terms and Conditions Disable Flag for Internal User';
 
-    Notes               : String(5000) @title: 'Notes';
+    Notes              : String(5000) @title: 'Notes';
     // NotesDisableExtUser : Boolean     @title: 'Notes Disable Flag for External User';
     // NotesDisableIntUser : Boolean     @title: 'Notes Disable Flag for Internal User';
 
     // Composition: Pricelist owns its items
-    items               : Composition of many PricelistItemData
-                              on items.pricelist = $self;
+    items              : Composition of many PricelistItemData
+                             on items.pricelist = $self;
 }
 
 entity PricelistItemData : managed, cuid {
@@ -319,6 +319,49 @@ entity PricelistItemData : managed, cuid {
     SubCategory3TermsandCond : String      @title: 'Sucategory 3 Terms and Conditions';
     SubCategory4TermsandCond : String      @title: 'Sucategory 4 Terms and Conditions';
     SubCategory5TermsandCond : String      @title: 'Sucategory 5 Terms and Conditions';
+}
+
+entity ProductPriceList : managed, cuid {
+
+    // mapping fields
+    TradeScenario             : String(255) @title: 'Trade Scenario';
+    MarketScopeRegion         : String(255) @title: 'Region';
+    MarketScopeCountry        : String(255) @title: 'Country';
+    SalesOrg                  : String(4)   @title: 'Sales Organization';
+    DistChannel               : String(2)   @title: 'Distribution Channel';
+    CustPriceList             : String(20)  @title: 'Customer Pricelist';
+    CustGroup1                : String(255) @title: 'Customer Group 1';
+    ErpCustomer               : String(255) @title: 'ERP Customer';
+    DeliveringPlant           : String(255) @title: 'Plant';
+    MaterialKey               : String(100) @title: 'Material Key';
+
+    // detail
+    OrderIndex                : Integer;
+    Kind                      : String(50); // 'Category' | 'Product'
+    CategoryLevel             : Integer;    // 0 for main category, 1-5 for subcategories, 6 for product
+    Title                     : String(255);
+    Description               : String(100);
+    Price                     : String(100);
+    PriceUnit                 : String(3);
+    PriceValidFrom            : Date;
+    PriceValidTo              : Date;
+    DiscountRate              : String(100);
+    DiscountEffectiveFromDate : Date;
+    DiscountEffectiveToDate   : Date;
+    PriceChangeIndicator      : Boolean;
+    FuturePrice               : String(100);
+    FuturePriceValidFrom      : Date;
+    FuturePriceValidTo        : Date;
+    Status                    : String(20);
+    StatusValidFromDate       : Date;
+    StatusValidToDate         : Date;
+    Supplier                  : String(255);
+    SupplierSKU               : String(255);
+
+    // heirachy
+    parent                    : Association to ProductPriceList;
+    children                  : Composition of many ProductPriceList
+                                    on children.parent = $self;
 }
 
 /* -------------------------------------- Value Help -------------------------------------- */

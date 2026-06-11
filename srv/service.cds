@@ -518,6 +518,8 @@ service PriceListService {
             SubCategory5TermsandCond : String;
     };
 
+    entity ProductPriceList as projection on my.ProductPriceList;
+
     // entity ProductPricelistTree    as
     //     select from my.PricelistItemStructureComponents {
     //         key PricelistType,
