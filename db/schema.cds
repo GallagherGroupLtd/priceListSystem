@@ -252,7 +252,7 @@ entity StatusValues {
 /** Pricelist Table */
 entity PricelistData : managed, cuid {
     PricelistTitle      : String(255)  @title: 'Pricelist Name';
-    TradeScenario       : String(255)  @title: 'Trade Scenario';
+    TradeScenario       : String(255)  @title: 'Pricelist Type';
     MarketScopeRegion   : String(255)  @title: 'Region';
     MarketScopeCountry  : String(255)  @title: 'Country';
     SalesOrg            : String(4)    @title: 'Sales Organization';
