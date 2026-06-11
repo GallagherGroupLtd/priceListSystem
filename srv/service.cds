@@ -4,7 +4,7 @@ service PriceListService {
     //For URLs
     entity User {
         key email                  : String;
-            AppURL_DMTradeScenario : String;
+            AppURL_DMPricelistType : String;
             AppURL_DMItemStructure : String;
             AppURL_DMPartNumbers   : String;
             AppURL_DMTermsandCond  : String;
@@ -206,7 +206,7 @@ service PriceListService {
     }
 
     action MassUploadItemTermsandConditions(file: String,
-                                            TradeScenario: String,
+                                            PricelistType: String,
                                             MarketScopeRegion: String,
                                             MarketScopeCountry: String,
                                             SalesOrg: String,
@@ -463,7 +463,7 @@ service PriceListService {
             MaterialStatus           : String(100);
             MaterialStatusEffecDate  : String(100);
 
-            TradeScenario            : String(50);
+            PricelistType            : String(50);
             MarketScopeRegion        : String(50);
             MarketScopeCountry       : String(50);
             SalesOrg                 : String(50);
@@ -487,7 +487,7 @@ service PriceListService {
     // Pricelist Maintain -- Product Pricelist Tree Table
     @readonly
     entity ProductPricelistTree {
-        key TradeScenario            : String(255) @title: 'Trade Scenario';
+        key PricelistType            : String(255) @title: 'Pricelist Type';
         key MarketScopeRegion        : String(255) @title: 'Region';
         key MarketScopeCountry       : String(255) @title: 'Country';
         key SalesOrg                 : String(4)   @title: 'Sales Organization';
@@ -518,9 +518,11 @@ service PriceListService {
             SubCategory5TermsandCond : String;
     };
 
+    entity ProductPriceList as projection on my.ProductPriceList;
+
     // entity ProductPricelistTree    as
     //     select from my.PricelistItemStructureComponents {
-    //         key TradeScenario,
+    //         key PricelistType,
     //         key MarketScopeRegion,
     //         key MarketScopeCountry,
     //         key SalesOrg,
@@ -546,7 +548,7 @@ service PriceListService {
 
     //For PDF Creation
     action exportTermsPdf(ID: UUID,
-                          TradeScenario: String,
+                          PricelistType: String,
                           MarketScopeRegion: String,
                           MarketScopeCountry: String,
                           SalesOrg: String,

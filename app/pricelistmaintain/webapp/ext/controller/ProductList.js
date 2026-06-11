@@ -75,17 +75,126 @@ sap.ui.define([
         onExpand: function (oEvent) {
             const oButton = oEvent.getSource();
             const oTreeTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-            oTreeTable.expandToLevel(5);
-            oButton.setVisible(false);
-            sap.ui.getCore().byId(idPrefix + "ProductListCollapseBtn").setVisible(true);
+
+            const aSel = oTreeTable.getSelectedIndices && oTreeTable.getSelectedIndices() || [];
+            if (!aSel.length) {
+                MessageToast.show('Please select a node to expand.');
+                return;
+            }
+            const iIndex = aSel[0];
+            const oCtx = oTreeTable.getContextByIndex(iIndex);
+            if (!oCtx) { MessageToast.show('Unable to determine selected row.'); return; }
+            const oData = oCtx.getObject && oCtx.getObject();
+            if (!oData || oData.kind !== 'Category') {
+                MessageToast.show('Select a node to expand.');
+                return;
+            }
+
+            // find node in model and collect all category nodes in its subtree
+            const oExt = ExtController.getInstance();
+            const oView = oExt.base.getView();
+            const aTree = oView.getModel('jsonModel').getProperty('/productPriceList') || [];
+            const rootNode = oExt._findNodeByKey(aTree, oData.key);
+            if (!rootNode) return;
+
+            const aCats = [];
+            const collect = (n) => {
+                if (!n) return;
+                if (n.kind === 'Category') aCats.push({ key: n.key, level: n.level || 0 });
+                if (n.children && n.children.length) n.children.forEach(collect);
+            };
+            collect(rootNode);
+
+            // expand from top-level down (lower level first)
+            aCats.sort((a, b) => a.level - b.level);
+            for (const c of aCats) {
+                const iRow = oExt._findRowIndexByKey(oTreeTable, c.key);
+                if (iRow >= 0) {
+                    try { oTreeTable.expand(iRow); } catch (e) { /* ignore */ }
+                }
+            }
+
+            // oButton.setVisible(false);
+            // sap.ui.getCore().byId(idPrefix + "ProductListCollapseBtn").setVisible(true);
         },
 
         onCollapse: function (oEvent) {
             const oButton = oEvent.getSource();
             const oTreeTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
+
+            const aSel = oTreeTable.getSelectedIndices && oTreeTable.getSelectedIndices() || [];
+            if (!aSel.length) {
+                MessageToast.show('Please select a node to collapse.');
+                return;
+            }
+            const iIndex = aSel[0];
+            const oCtx = oTreeTable.getContextByIndex(iIndex);
+            if (!oCtx) { MessageToast.show('Unable to determine selected row.'); return; }
+            const oData = oCtx.getObject && oCtx.getObject();
+            if (!oData || oData.kind !== 'Category') {
+                MessageToast.show('Select a node to collapse.');
+                return;
+            }
+
+            const oExt = ExtController.getInstance();
+            const iRow = oExt._findRowIndexByKey(oTreeTable, oData.key);
+            if (iRow >= 0) {
+                try { oTreeTable.collapse(iRow); } catch (e) { /* ignore */ }
+            }
+
+            // oButton.setVisible(false);
+            // sap.ui.getCore().byId(idPrefix + "ProductListExpandBtn").setVisible(true);
+        },
+
+        onSortProducts: function (oEvent) {
+            const oExt = ExtController.getInstance();
+            const oView = oExt.base.getView();
+            const oJson = oView.getModel('jsonModel');
+            const aTree = oJson.getProperty('/productPriceList') || [];
+
+            const getProductDesc = (p) => (p && (p.MaterialDescription || p.text || '')) || '';
+            const getCategoryText = (c) => (c && (c.text || '')) || '';
+
+            const sortRec = (nodes) => {
+                if (!Array.isArray(nodes) || !nodes.length) return nodes;
+                // recurse first
+                for (const n of nodes) {
+                    if (n.children && n.children.length) n.children = sortRec(n.children);
+                }
+                // sort children: categories before products, categories by text, products by description
+                nodes.sort((a, b) => {
+                    if (a.kind === 'Category' && b.kind !== 'Category') return -1;
+                    if (a.kind !== 'Category' && b.kind === 'Category') return 1;
+                    if (a.kind === 'Category' && b.kind === 'Category') {
+                        return getCategoryText(a).localeCompare(getCategoryText(b));
+                    }
+                    // both products
+                    return getProductDesc(a).localeCompare(getProductDesc(b));
+                });
+                return nodes;
+            };
+
+            const aSorted = sortRec(JSON.parse(JSON.stringify(aTree)));
+            oJson.setProperty('/productPriceList', aSorted);
+            const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
+            if (oTable && typeof oTable.clearSelection === 'function') oTable.clearSelection();
+            MessageToast.show('Product list sorted by description.');
+        },
+
+        onExpandAll: function (oEvent) {
+            const oButton = oEvent.getSource();
+            const oTreeTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
+            oTreeTable.expandToLevel(5);
+            oButton.setVisible(false);
+            sap.ui.getCore().byId(idPrefix + "ProductListCollapseAllBtn").setVisible(true);
+        },
+
+        onCollapseAll: function (oEvent) {
+            const oButton = oEvent.getSource();
+            const oTreeTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
             oTreeTable.collapseAll();
             oButton.setVisible(false);
-            sap.ui.getCore().byId(idPrefix + "ProductListExpandBtn").setVisible(true);
+            sap.ui.getCore().byId(idPrefix + "ProductListExpandAllBtn").setVisible(true);
         },
 
         onRefresh: function (oEvent) {
@@ -97,17 +206,19 @@ sap.ui.define([
             MessageToast.show("Refresh Pricelist by appending new node from item structure table.");
             ExtController.getInstance()._getProductPriceList()
                 .then((newProductList) => {
-                    const result = ExtController.getInstance()._addUpdateProductList(newProductList);
-                    if (result && result.hasChanges) {
-                        ExtController.getInstance()._setTreeTableData(result.productList);
-                        // clear any selection after refresh
-                        try {
-                            const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-                            if (oTable && typeof oTable.clearSelection === 'function') oTable.clearSelection();
-                            const oDeleteBtn = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
-                            if (oDeleteBtn) oDeleteBtn.setEnabled(false);
-                        } catch (e) { /* ignore */ }
-                    }
+                    ExtController.getInstance()._updateModeToggleEnabled();
+                    // const result = ExtController.getInstance()._addUpdateProductList(newProductList);
+                    // if (result && result.hasChanges) {
+                    //     debugger;
+                    //     ExtController.getInstance()._setTreeTableData(result.productList);
+                    //     // clear any selection after refresh
+                    //     try {
+                    //         const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
+                    //         if (oTable && typeof oTable.clearSelection === 'function') oTable.clearSelection();
+                    //         ExtController.getInstance()._setDeleteBtnState(false);
+                    //         ExtController.getInstance()._updateModeToggleEnabled();
+                    //     } catch (e) { /* ignore */ }
+                    // }
                 });
         },
 
@@ -128,7 +239,12 @@ sap.ui.define([
 
         onDelete: function (oEvent) {
             // delegate delete operation to extension controller
-            ExtController.getInstance().onDelete();
+            ExtController.getInstance().onDelete(oEvent);
+        },
+
+        onUndoDelete: function (oEvent) {  
+            // delegate undo delete operation to extension controller
+            ExtController.getInstance().onUndoDelete(oEvent);
         },
 
         onDrop: function (oEvent) {
@@ -215,7 +331,7 @@ sap.ui.define([
             if (bDeleteMode) {
                 this.bDeleteMode = true;
                 oTable.setSelectionMode('Multi');
-                oDeleteButton.setVisible(true);
+                ExtController.getInstance()._setDeleteBtnState(undefined, true);
                 // change toggle appearance to 'Finish'
                 try {
                     oToggleButton.setIcon('sap-icon://complete');
@@ -237,7 +353,7 @@ sap.ui.define([
             } else {
                 this.bDeleteMode = false;
                 oTable.setSelectionMode('Single');
-                oDeleteButton.setVisible(false);
+                ExtController.getInstance()._setDeleteBtnState(undefined, false);
                 oTable.clearSelection();
                 // revert toggle appearance to default
                 try {
@@ -359,11 +475,11 @@ sap.ui.define([
             }
 
             if (aSelectedIndices.length > 0) {
-                oDeleteButton.setEnabled(true);
+                ExtController.getInstance()._setDeleteBtnState(true);
                 // oRefreshButton.setEnabled(true);
                 // oResetButton.setEnabled(true);
             } else {
-                oDeleteButton.setEnabled(false);
+                ExtController.getInstance()._setDeleteBtnState(false);
                 // oRefreshButton.setEnabled(false);
                 // oResetButton.setEnabled(false);
             }
