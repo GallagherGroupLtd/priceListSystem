@@ -10,7 +10,7 @@ annotate service.PricelistData with {
     Status              @Common.Label    : 'Status';
     EffectiveDate       @Common.Label    : 'Valid From';
     ExpiryDate          @Common.Label    : 'Valid To';
-    TradeScenario       @Common.Label: 'Pricelist Type'  @mandatory;
+    PricelistType       @Common.Label: 'Pricelist Type'  @mandatory;
     MarketScopeRegion   @Common.Label: 'Region'          @mandatory;
     MarketScopeCountry  @Common.Label: 'Country'         @mandatory;
     Currency            @Common.Label    : 'Currency';
@@ -208,7 +208,7 @@ annotate service.PricelistData with @(
         Status,
         EffectiveDate,
         ExpiryDate,
-        TradeScenario,
+        PricelistType,
         MarketScopeRegion,
         MarketScopeCountry,
         createdBy,
@@ -224,7 +224,7 @@ annotate service.PricelistData with @(
         },
         {
             $Type             : 'UI.DataField',
-            Value             : TradeScenario,
+            Value             : PricelistType,
             @HTML5.CssDefaults: {width: '12rem'}
         },
         {
@@ -405,7 +405,7 @@ annotate service.PricelistData with @(
     // --- FIELD GROUPS --- OBJECT PAGE HEADER
     UI.FieldGroup #PriceListHeaderGroup: {Data: [
         {
-            Value: TradeScenario,
+            Value: PricelistType,
             Label: 'Pricelist Type'
         },
         {
@@ -465,7 +465,7 @@ annotate service.PricelistData with @(
 
     UI.FieldGroup #MarketScope    : {Data: [
         {
-            Value: TradeScenario,
+            Value: PricelistType,
             Label: 'Pricelist Type'
         },
         {

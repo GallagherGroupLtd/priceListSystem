@@ -487,7 +487,7 @@ service PriceListService {
     // Pricelist Maintain -- Product Pricelist Tree Table
     @readonly
     entity ProductPricelistTree {
-        key TradeScenario            : String(255) @title: 'Pricelist Type';
+        key PricelistType            : String(255) @title: 'Pricelist Type';
         key MarketScopeRegion        : String(255) @title: 'Region';
         key MarketScopeCountry       : String(255) @title: 'Country';
         key SalesOrg                 : String(4)   @title: 'Sales Organization';

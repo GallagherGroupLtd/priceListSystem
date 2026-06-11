@@ -149,9 +149,9 @@ sap.ui.define([
 			const oView = this.base.getView();
 
 			// Temp Mock Data
-			var aTreeData = this._getMockData();
+			// var aTreeData = this._getMockData();
 			// const aTreeData = this._buildTree(aRawData);
-			oView.getModel('jsonModel').setProperty("/productPriceList", aTreeData);
+			// oView.getModel('jsonModel').setProperty("/productPriceList", aTreeData);
 
 			// const oData = this.base.getView().getBindingContext().getObject();
 
@@ -228,7 +228,7 @@ sap.ui.define([
 			const oView = this.base.getView();
 			const oJsonModel = oView.getModel('jsonModel');
 
-			const aTreeData = Array.isArray(aData) && aData.length ? aData : this._getMockData();
+			const aTreeData = Array.isArray(aData) && aData.length ? this._buildTreeFromFlatData(aData) : this._getMockData();
 
 			oJsonModel.setProperty("/productPriceList", aTreeData);
 			oJsonModel.setProperty("/originalProductPriceList", JSON.parse(JSON.stringify(aTreeData)));
@@ -323,6 +323,149 @@ sap.ui.define([
 			});
 
 			if (hasChanges) { return { productList: updatedList, hasChanges: true }; }
+		},
+
+		_buildTreeFromFlatData: function (flatData) {
+			const tree = [];
+			const nodeMap = {};
+
+			flatData.forEach((row, index) => {
+				let parentNode = null;
+				let currentPath = "";
+
+				// Helper Function to build or retrieve an existing Category Node
+				const addCategoryNode = (level, titleField, descField) => {
+					const title = row[titleField];
+
+					// If the category field is null or empty, skip creating a node for this level
+					if (!title) return;
+
+					// Create a unique path key (e.g., "Command Centre|Command Centre Licenses")
+					currentPath += (currentPath ? "|" : "") + title;
+					const nodeId = `cat-${level}-${currentPath.replace(/\s+/g, '-')}`;
+
+					// If this category path hasn't been created yet, construct it
+					if (!nodeMap[currentPath]) {
+						const newNode = {
+							ID: nodeId,
+							PricelistType: row.PricelistType,
+							MarketScopeRegion: row.MarketScopeRegion,
+							MarketScopeCountry: row.MarketScopeCountry,
+							SalesOrg: row.SalesOrg,
+							DistChannel: row.DistChannel,
+							CustPriceList: row.CustPriceList,
+							CustGroup1: row.CustGroup1,
+							ErpCustomer: row.ErpCustomer,
+							DeliveringPlant: row.DeliveringPlant,
+
+							Sequence: row.Sequence,
+							OrderIndex: Object.keys(nodeMap).length + 1,
+							Kind: "Category",
+							CategoryLevel: level,
+							Title: title,
+							Description: row[descField] || null,
+
+							// Categories do not hold specific price/discount data
+							Price: null,
+							PriceUnit: null,
+							PriceValidFrom: null,
+							PriceValidTo: null,
+							DiscountRate: null,
+							DiscountEffectiveFromDate: null,
+							DiscountEffectiveToDate: null,
+							PriceChangeIndicator: false,
+							FuturePrice: null,
+							FuturePriceValidFrom: null,
+							FuturePriceValidTo: null,
+							Status: null,
+							StatusValidFromDate: null,
+							StatusValidToDate: null,
+							Supplier: null,
+							SupplierSKU: null,
+
+							// Parent-child relationship fields
+							parent: parentNode ? { ID: parentNode.ID } : null,
+							children: []
+						};
+
+						nodeMap[currentPath] = newNode;
+
+						// Attach to parent's children array, or push to root tree if level 0
+						if (parentNode) {
+							parentNode.children.push(newNode);
+						} else {
+							tree.push(newNode);
+						}
+					}
+					// Shift the parent pointer to the current category to prepare for the next level
+					parentNode = nodeMap[currentPath];
+				};
+
+				// 1. Build Category Hierarchy (Level 0 -> 5)
+				// It will automatically skip levels that are 'null' or empty, so products will attach to the nearest valid category above them
+				addCategoryNode(0, "MainCategory", "MainCategoryLocal");
+				addCategoryNode(1, "SubCategory1", "SubCategory1Local");
+				addCategoryNode(2, "SubCategory2", "SubCategory2Local");
+				addCategoryNode(3, "SubCategory3", "SubCategory3Local");
+				addCategoryNode(4, "SubCategory4", "SubCategory4Local");
+				addCategoryNode(5, "SubCategory5", "SubCategory5Local");
+
+				// 2. Build Product (Leaf Node - Level 6)
+				if (row.Material) {
+					const productNode = {
+						ID: row.ID || row.Material,
+						PricelistType: row.PricelistType,
+						MarketScopeRegion: row.MarketScopeRegion,
+						MarketScopeCountry: row.MarketScopeCountry,
+						SalesOrg: row.SalesOrg,
+						DistChannel: row.DistChannel,
+						CustPriceList: row.CustPriceList,
+						CustGroup1: row.CustGroup1,
+						ErpCustomer: row.ErpCustomer,
+						DeliveringPlant: row.DeliveringPlant,
+
+						Sequence: row.Sequence,
+						OrderIndex: index + 1,
+						Kind: "Product",
+						CategoryLevel: 6, // Product level
+						Title: row.Material,
+						Description: row.MaterialDescription,
+
+						// Map the actual Pricing and Condition data to the product
+						AccessSequence: row.AccessSequence,
+						ConditionType: row.ConditionType,
+						Price: row.Price,
+						PriceUnit: row.PriceUnit,
+						PriceValidFrom: row.PriceValidFrom,
+						PriceValidTo: row.PriceValidTo,
+						DiscountRate: row.DiscountRate || null,
+						DiscountEffectiveFromDate: row.DiscountEffectiveFromDate || null,
+						DiscountEffectiveToDate: row.DiscountEffectiveToDate || null,
+						PriceChangeIndicator: row.PriceChangeIndicator || false,
+						FuturePrice: row.FuturePrice || null,
+						FuturePriceValidFrom: row.FuturePriceValidFrom || null,
+						FuturePriceValidTo: row.FuturePriceValidTo || null,
+						Status: row.Status || null,
+						StatusValidFromDate: row.StatusValidFromDate || null,
+						StatusValidToDate: row.StatusValidToDate || null,
+						Supplier: row.Supplier || null,
+						SupplierSKU: row.SupplierSKU || null,
+
+						parent: parentNode ? { ID: parentNode.ID } : null,
+						children: [] // Products are leaf nodes and have no children
+					};
+
+					// Attach product to its deepest valid category
+					if (parentNode) {
+						parentNode.children.push(productNode);
+					} else {
+						// Fallback: If a product has no categories at all, put it at the root
+						tree.push(productNode);
+					}
+				}
+			});
+
+			return tree;
 		},
 
 		_getMockData: function () {
