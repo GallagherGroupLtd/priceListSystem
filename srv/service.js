@@ -1390,11 +1390,10 @@ module.exports = cds.service.impl(async function () {
             for (const p of resultsPricing) {
                 // Scan both ConditionType slots and DiscountConditionType slots
                 const slotPrefixes = [
-                    { seqKey: 'AccessSequence', condKey: 'ConditionType', prioKey: 'Priority' },
-                    { seqKey: 'DiscountAccessSequence', condKey: 'DiscountConditionType', prioKey: 'DiscountPriority' }
+                    { seqKey: 'AccessSequence', condKey: 'ConditionType', prioKey: 'Priority', isDiscount: false },
+                    { seqKey: 'DiscountAccessSequence', condKey: 'DiscountConditionType', prioKey: 'DiscountPriority', isDiscount: true }
                 ];
-
-                for (const { seqKey, condKey, prioKey } of slotPrefixes) {
+                for (const { seqKey, condKey, prioKey, isDiscount } of slotPrefixes) {
                     for (let i = 1; i <= 10; i++) {
                         const seq = p[`${seqKey}${i}`];
                         const cond = p[`${condKey}${i}`];
@@ -1409,7 +1408,8 @@ module.exports = cds.service.impl(async function () {
                             conditionType: cond,
                             priority: parseInt(p[`${prioKey}${i}`] || i),
                             salesOrg: p.SalesOrg || null,
-                            distChannel: p.DistChannel || null
+                            distChannel: p.DistChannel || null,
+                            isDiscount: isDiscount
                         });
                     }
                 }
@@ -1479,11 +1479,25 @@ module.exports = cds.service.impl(async function () {
         console.log('>>> Raw Price Records from DB:', priceRecords);
 
         const priceByMaterial = new Map();
+        const discountByMaterial = new Map();
+
+        const discountCondTypes = new Set(
+            activeSequences
+                .filter(s => { return s.isDiscount === true; })
+                .map(s => s.conditionType)
+        );
+
         priceRecords.forEach(rec => {
             const mat = rec.MATERIAL;
-            if (!priceByMaterial.has(mat)) priceByMaterial.set(mat, []);
-            priceByMaterial.get(mat).push(rec);
+            if (discountCondTypes.has(rec.CONDITION_TYPE)) {
+                if (!discountByMaterial.has(mat)) discountByMaterial.set(mat, []);
+                discountByMaterial.get(mat).push(rec);
+            } else {
+                if (!priceByMaterial.has(mat)) priceByMaterial.set(mat, []);
+                priceByMaterial.get(mat).push(rec);
+            }
         });
+
 
         // 8. Get discount condition types for value help (if needed in frontend)
         const discountConditionQuery = 'SELECT DISTINCT CODE FROM "SAPECC"."ERP_DISCOUNTCONDTYPE"';
@@ -1493,7 +1507,6 @@ module.exports = cds.service.impl(async function () {
         // 9. Populate Final output with price details based on material matches and access sequence priority
         finalFlatResults.forEach(row => {
             const matPrices = priceByMaterial.get(row.Material) || [];
-
             if (matPrices.length > 0) {
                 matPrices.sort((a, b) => a.PRIORITY - b.PRIORITY);
 
@@ -1505,28 +1518,36 @@ module.exports = cds.service.impl(async function () {
                 row.AccessSequence = highPriorityMatch.ACCESS_SEQUENCE || null;
                 row.ConditionType = highPriorityMatch.CONDITION_TYPE || null;
             }
+
+            const matDiscounts = discountByMaterial.get(row.Material) || [];
+            if (matDiscounts.length > 0) {
+                matDiscounts.sort((a, b) => a.PRIORITY - b.PRIORITY);
+                const highPriorityDiscount = matDiscounts[0];
+                row.DiscountRate = highPriorityDiscount.PRICE || null;
+                row.DiscountEffectiveDate = highPriorityDiscount.VALID_FROM || null;
+                row.DiscountConditionType = highPriorityDiscount.CONDITION_TYPE || null;
+                row.DiscountAccessSequence = highPriorityDiscount.ACCESS_SEQUENCE || null;
+            }
+
         });
 
         // 10. Sort result by hierarchy levels (nulls first and then alphabetically)
         const sortByFields = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
-        finalFlatResults.sort((a, b) => {
-            for (const field of sortByFields) {
-                const valA = a[field];
-                const valB = b[field];
 
-                if (valA === null && valB !== null) return -1;
-                if (valA !== null && valB === null) return 1;
-
-                if (valA !== valB) {
-                    const cleanA = valA || '';
-                    const cleanB = valB || '';
-                    return cleanA.localeCompare(cleanB);
+        const sortedResults = finalFlatResults
+            .filter(row => row.Price != null)
+            .sort((a, b) => {
+                for (const field of sortByFields) {
+                    const valA = a[field];
+                    const valB = b[field];
+                    if (valA === null && valB !== null) return -1;
+                    if (valA !== null && valB === null) return 1;
+                    if (valA !== valB) return (valA || '').localeCompare(valB || '');
                 }
+                return 0;
+            });
 
-            }
-            return 0;
-        });
-        return finalFlatResults;
+        return sortedResults;
     });
 
     //PDF Export
