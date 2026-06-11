@@ -324,7 +324,7 @@ entity PricelistItemData : managed, cuid {
 entity ProductPriceList : managed, cuid {
 
     // mapping fields
-    TradeScenario             : String(255) @title: 'Trade Scenario';
+    PricelistType             : String(255) @title: 'Pricelist Type';
     MarketScopeRegion         : String(255) @title: 'Region';
     MarketScopeCountry        : String(255) @title: 'Country';
     SalesOrg                  : String(4)   @title: 'Sales Organization';
@@ -359,7 +359,7 @@ entity ProductPriceList : managed, cuid {
     SupplierSKU               : String(255);
 
     // heirachy
-    parent                    : Association to ProductPriceList;
+    parent                    : Association to one ProductPriceList;
     children                  : Composition of many ProductPriceList
                                     on children.parent = $self;
 }

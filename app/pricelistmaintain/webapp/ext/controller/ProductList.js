@@ -206,17 +206,19 @@ sap.ui.define([
             MessageToast.show("Refresh Pricelist by appending new node from item structure table.");
             ExtController.getInstance()._getProductPriceList()
                 .then((newProductList) => {
-                    const result = ExtController.getInstance()._addUpdateProductList(newProductList);
-                    if (result && result.hasChanges) {
-                        ExtController.getInstance()._setTreeTableData(result.productList);
-                        // clear any selection after refresh
-                        try {
-                            const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-                            if (oTable && typeof oTable.clearSelection === 'function') oTable.clearSelection();
-                            ExtController.getInstance()._setDeleteBtnState(false);
-                            ExtController.getInstance()._updateModeToggleEnabled();
-                        } catch (e) { /* ignore */ }
-                    }
+                    ExtController.getInstance()._updateModeToggleEnabled();
+                    // const result = ExtController.getInstance()._addUpdateProductList(newProductList);
+                    // if (result && result.hasChanges) {
+                    //     debugger;
+                    //     ExtController.getInstance()._setTreeTableData(result.productList);
+                    //     // clear any selection after refresh
+                    //     try {
+                    //         const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
+                    //         if (oTable && typeof oTable.clearSelection === 'function') oTable.clearSelection();
+                    //         ExtController.getInstance()._setDeleteBtnState(false);
+                    //         ExtController.getInstance()._updateModeToggleEnabled();
+                    //     } catch (e) { /* ignore */ }
+                    // }
                 });
         },
 
@@ -237,12 +239,12 @@ sap.ui.define([
 
         onDelete: function (oEvent) {
             // delegate delete operation to extension controller
-            ExtController.getInstance().onDelete();
+            ExtController.getInstance().onDelete(oEvent);
         },
 
         onUndoDelete: function (oEvent) {  
             // delegate undo delete operation to extension controller
-            ExtController.getInstance().onUndoDelete();
+            ExtController.getInstance().onUndoDelete(oEvent);
         },
 
         onDrop: function (oEvent) {
