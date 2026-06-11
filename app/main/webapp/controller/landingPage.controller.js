@@ -83,10 +83,10 @@ sap.ui.define([
                 const oModel = this.getOwnerComponent().getModel(); //v4 model
                 
                 //Added select query to fetch specific details required for further use.
-                // const srcPath = "/AccountAssignment?$filter=Email eq '" + userEmail + "'&$select=CustomerNumber,Email,FirstName,HasActiveEntity,HasDraftEntity,ID,IsActiveEntity,LastName,MarketScopeCountry,MarketScopeRegion,TradeScenario,SalesOrg";
+                // const srcPath = "/AccountAssignment?$filter=Email eq '" + userEmail + "'&$select=CustomerNumber,Email,FirstName,HasActiveEntity,HasDraftEntity,ID,IsActiveEntity,LastName,MarketScopeCountry,MarketScopeRegion,PricelistType,SalesOrg";
                 const oAccountBinding = oModel.bindList("/AccountAssignment", undefined, undefined, undefined, {
                     $filter: `Email eq '${userEmail}'`,
-                    $select: "CustomerNumber,Email,FirstName,HasActiveEntity,HasDraftEntity,ID,IsActiveEntity,LastName,MarketScopeCountry,MarketScopeRegion,TradeScenario,SalesOrg"
+                    $select: "CustomerNumber,Email,FirstName,HasActiveEntity,HasDraftEntity,ID,IsActiveEntity,LastName,MarketScopeCountry,MarketScopeRegion,PricelistType,SalesOrg"
                 });
 
                 //Reading data from models
@@ -104,7 +104,7 @@ sap.ui.define([
                     ID: userGUID,
                     MarketScopeCountry,
                     MarketScopeRegion,
-                    TradeScenario,
+                    PricelistType,
                     SalesOrg
                 } = oAccount;
 
@@ -113,7 +113,7 @@ sap.ui.define([
                     userGUID,
                     MarketScopeCountry,
                     MarketScopeRegion,
-                    TradeScenario,
+                    PricelistType,
                     SalesOrg
                 });
 
@@ -124,8 +124,8 @@ sap.ui.define([
                     $filter:
                         `MarketScopeCountry eq '${MarketScopeCountry}' and ` +
                         `MarketScopeRegion eq '${MarketScopeRegion}' and ` +
-                        `TradeScenario eq '${TradeScenario}'`,
-                    $select: "HasActiveEntity,HasDraftEntity,ID,ImageLink,InformationDetails,InformationHeading,IsActiveEntity,MarketScopeCountry,MarketScopeRegion,TradeScenario"
+                        `PricelistType eq '${PricelistType}'`,
+                    $select: "HasActiveEntity,HasDraftEntity,ID,ImageLink,InformationDetails,InformationHeading,IsActiveEntity,MarketScopeCountry,MarketScopeRegion,PricelistType"
                 });
 
                 const aTileCtx = await oTileBinding.requestContexts();
@@ -151,7 +151,7 @@ sap.ui.define([
                     $filter:
                         `MarketScopeCountry eq '${MarketScopeCountry}' and ` +
                         `MarketScopeRegion eq '${MarketScopeRegion}' and ` +
-                        `TradeScenario eq '${TradeScenario}'`,
+                        `PricelistType eq '${PricelistType}'`,
                     $select: "ContactEmail,ContactNumber,ExternalAccount,HasActiveEntity,HasDraftEntity,ID,InternalAccount,IsActiveEntity"
                 });
 
