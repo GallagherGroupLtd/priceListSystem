@@ -47,7 +47,7 @@ annotate service.ContactInfo with @(
     },
 
     // Selection Fields for Filtering
-    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry ],
+    UI.SelectionFields: [ PricelistType,MarketScopeRegion,MarketScopeCountry ],
 
     UI.LineItem  : [
         {
@@ -96,7 +96,7 @@ annotate service.ContactInfo with @(
         Data : [
             {
                 $Type : 'UI.DataField',
-                Value : TradeScenario,
+                Value : PricelistType,
             },
             {
                 $Type : 'UI.DataField',
@@ -132,13 +132,13 @@ annotate service.ContactInfo with @(
 );
 
 annotate service.ContactInfo with {
-    TradeScenario @(
+    PricelistType @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'TradeScenarioVH',
+            CollectionPath: 'PricelistTypeVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'PricelistType', ValueListProperty: 'PricelistType' }
             ]
         }
     );

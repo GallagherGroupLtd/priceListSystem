@@ -10,7 +10,7 @@ annotate service.PricelistData with {
     Status              @Common.Label    : 'Status';
     EffectiveDate       @Common.Label    : 'Valid From';
     ExpiryDate          @Common.Label    : 'Valid To';
-    TradeScenario       @Common.Label: 'Trade Scenario'  @mandatory;
+    TradeScenario       @Common.Label: 'Pricelist Type'  @mandatory;
     MarketScopeRegion   @Common.Label: 'Region'          @mandatory;
     MarketScopeCountry  @Common.Label: 'Country'         @mandatory;
     Currency            @Common.Label    : 'Currency';
@@ -53,16 +53,16 @@ annotate service.PricelistData with {
         }
     );
 
-    // Value Help: TradeScenario
-    TradeScenario       @(
+    // Value Help: PricelistType
+    PricelistType       @(
         Common.ValueListWithFixedValues: true,
         Common.ValueList               : {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'TradeScenarioVH',
+            CollectionPath: 'PricelistTypeVH',
             Parameters    : [{
                 $Type            : 'Common.ValueListParameterInOut',
-                LocalDataProperty: TradeScenario,
-                ValueListProperty: 'TradeScenario'
+                LocalDataProperty: PricelistType,
+                ValueListProperty: 'PricelistType'
             }]
         }
     );
@@ -406,7 +406,7 @@ annotate service.PricelistData with @(
     UI.FieldGroup #PriceListHeaderGroup: {Data: [
         {
             Value: TradeScenario,
-            Label: 'Trade Scenario'
+            Label: 'Pricelist Type'
         },
         {
             Value: MarketScopeRegion,
@@ -466,7 +466,7 @@ annotate service.PricelistData with @(
     UI.FieldGroup #MarketScope    : {Data: [
         {
             Value: TradeScenario,
-            Label: 'Trade Scenario'
+            Label: 'Pricelist Type'
         },
         {
             Value: MarketScopeRegion,
@@ -562,8 +562,8 @@ annotate service.PricelistItemData with {
             },
             {
                 $Type            : 'Common.ValueListParameterIn',
-                LocalDataProperty: TradeScenario,
-                ValueListProperty: 'TradeScenario'
+                LocalDataProperty: PricelistType,
+                ValueListProperty: 'PricelistType'
             },
             {
                 $Type            : 'Common.ValueListParameterIn',
