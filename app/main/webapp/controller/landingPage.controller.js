@@ -76,7 +76,7 @@ sap.ui.define([
             //Fetching email from json model home
             const userEmail = this.getView().getModel("home").getProperty("/userEmail");
             //Fetching the reference of the oData model defined in manifest.json file with the name mainService
-            const mainModel = this.getView().getModel("mainService");
+            const mainModel = this.getView().getModel();
 
             //using email as a filter, reading entity: AccountAssignment, to fetch user commercial scope
             //Added select query to fetch specific details required for further use.
