@@ -85,7 +85,7 @@ sap.ui.define([
 
     function findTermsInChildren(children, categoryField, categoryValue, termsField) {
         for (const child of children) {
-            if (child.kind === "Product" && child[categoryField] === categoryValue) {
+            if (child.Kind === "Product" && child[categoryField] === categoryValue) {
                 return child[termsField] || "";
             }
             if (child.children && child.children.length > 0) {
@@ -256,160 +256,160 @@ sap.ui.define([
 
         //Node Selection Change Logic
         onSelectionChange: function (oEvent) {
-            const oTable = oEvent.getSource();
-            const iIndex = oTable.getSelectedIndex();
+            // const oTable = oEvent.getSource();
+            // const iIndex = oTable.getSelectedIndex();
 
-            const bHasSelection = iIndex >= 0;
-            this.getView().getModel().setProperty("/hasSelection", bHasSelection);
+            // const bHasSelection = iIndex >= 0;
+            // this.getView().getModel().setProperty("/hasSelection", bHasSelection);
 
-            const termsCondModel = this.getView().getModel();
-            termsCondModel.setProperty("/hasSelection", bHasSelection);
+            // const termsCondModel = this.getView().getModel();
+            // termsCondModel.setProperty("/hasSelection", bHasSelection);
 
-            const bEditMode = this._isEditMode();
+            // const bEditMode = this._isEditMode();
 
-            this._selectedNode = bHasSelection ? oTable.getContextByIndex(iIndex).getObject() : null;
+            // this._selectedNode = bHasSelection ? oTable.getContextByIndex(iIndex).getObject() : null;
 
-            // Delete is only enebales during edit mode and if a row is selected.
-            this.byId("ProductsTreeDeleteBtn").setEnabled(bHasSelection && bEditMode);
+            // // Delete is only enebales during edit mode and if a row is selected.
+            // this.byId("ProductsTreeDeleteBtn").setEnabled(bHasSelection && bEditMode);
 
-            //Terms buttons should be visible if node selected AND in edit OR create mode
-            const showTerms = bHasSelection && (this._isEditMode() || this._isCreateMode());
-            termsCondModel.setProperty("/termsEditable", showTerms);
-            this._updateTermsUI();
+            // //Terms buttons should be visible if node selected AND in edit OR create mode
+            // const showTerms = bHasSelection && (this._isEditMode() || this._isCreateMode());
+            // termsCondModel.setProperty("/termsEditable", showTerms);
+            // this._updateTermsUI();
 
-            //Terms and Conditions
-            if (this._selectedNode) {
-                //Only enable 'Edit' is the selected node is Product and in Create/Edit Mode
-                if (this._selectedNode.kind === "Product") {
-                    this.byId("editBtn").setEnabled(bHasSelection && bEditMode);
-                } else {
-                    this.byId("editBtn").setEnabled(false);
-                }
+            // //Terms and Conditions
+            // if (this._selectedNode) {
+            //     //Only enable 'Edit' is the selected node is Product and in Create/Edit Mode
+            //     if (this._selectedNode.Kind === "Product") {
+            //         this.byId("editBtn").setEnabled(bHasSelection && bEditMode);
+            //     } else {
+            //         this.byId("editBtn").setEnabled(false);
+            //     }
 
-                //Update of Terms and Conditions Input Box Value
-                let fieldName, categoryField, categoryValue;
+            //     //Update of Terms and Conditions Input Box Value
+            //     let fieldName, categoryField, categoryValue;
 
 
-                if (this._selectedNode.kind === "Category") {
-                    switch (this._selectedNode.level) {
-                        case 1:
-                            fieldName = "MainCategoryTermsandCond";
-                            categoryField = "MainCategory";
-                            break;
-                        case 2:
-                            fieldName = "SubCategory1TermsandCond";
-                            categoryField = "Subcategory1";
-                            break;
-                        case 3:
-                            fieldName = "SubCategory2TermsandCond";
-                            categoryField = "Subcategory2";
-                            break;
-                        case 4:
-                            fieldName = "SubCategory3TermsandCond";
-                            categoryField = "Subcategory3";
-                            break;
-                        case 5:
-                            fieldName = "SubCategory4TermsandCond";
-                            categoryField = "Subcategory4";
-                            break;
-                        case 6:
-                            fieldName = "SubCategory5TermsandCond";
-                            categoryField = "Subcategory5";
-                            break;
-                    }
-                    categoryValue = this._selectedNode[categoryField];
+            //     if (this._selectedNode.Kind === "Category") {
+            //         switch (this._selectedNode.level) {
+            //             case 1:
+            //                 fieldName = "MainCategoryTermsandCond";
+            //                 categoryField = "MainCategory";
+            //                 break;
+            //             case 2:
+            //                 fieldName = "SubCategory1TermsandCond";
+            //                 categoryField = "Subcategory1";
+            //                 break;
+            //             case 3:
+            //                 fieldName = "SubCategory2TermsandCond";
+            //                 categoryField = "Subcategory2";
+            //                 break;
+            //             case 4:
+            //                 fieldName = "SubCategory3TermsandCond";
+            //                 categoryField = "Subcategory3";
+            //                 break;
+            //             case 5:
+            //                 fieldName = "SubCategory4TermsandCond";
+            //                 categoryField = "Subcategory4";
+            //                 break;
+            //             case 6:
+            //                 fieldName = "SubCategory5TermsandCond";
+            //                 categoryField = "Subcategory5";
+            //                 break;
+            //         }
+            //         categoryValue = this._selectedNode[categoryField];
 
-                } else if (this._selectedNode.kind === "Product") {
-                    fieldName = "PartNumberTermsandCond";
-                }
+            //     } else if (this._selectedNode.Kind === "Product") {
+            //         fieldName = "PartNumberTermsandCond";
+            //     }
 
-                if (fieldName) {
-                    let termsValue = "";
+            //     if (fieldName) {
+            //         let termsValue = "";
 
-                    if (this._selectedNode.kind === "Category") {
-                        const allRows = this.getView().getModel("tree").getProperty("/nodesAll") || [];
+            //         if (this._selectedNode.Kind === "Category") {
+            //             const allRows = this.getView().getModel("tree").getProperty("/nodesAll") || [];
 
-                        for (const row of allRows) {
-                            termsValue = findTermsInChildren(row.children || [], categoryField, categoryValue, fieldName);
-                            if (termsValue)
-                                break;
-                        }
-                    } else {
-                        termsValue = this._selectedNode[fieldName] || "";
-                    }
+            //             for (const row of allRows) {
+            //                 termsValue = findTermsInChildren(row.children || [], categoryField, categoryValue, fieldName);
+            //                 if (termsValue)
+            //                     break;
+            //             }
+            //         } else {
+            //             termsValue = this._selectedNode[fieldName] || "";
+            //         }
 
-                    this.byId("TermsContentBox").setValue(termsValue);
-                }
-            } else {
-                this.byId("TermsContentBox").setValue("");
-            }
+            //         this.byId("TermsContentBox").setValue(termsValue);
+            //     }
+            // } else {
+            //     this.byId("TermsContentBox").setValue("");
+            // }
         },
 
         onSelectionChangeV2: function (oEvent) {
-            // // 1. Call the original, untouched function to handle standard states & buttons
-            // this.onSelectionChange(oEvent);
+            // // // 1. Call the original, untouched function to handle standard states & buttons
+            // // this.onSelectionChange(oEvent);
 
-            // 2. Execute the new logic for the Fragment and Navigation
-            const oTable = oEvent.getSource();
-            const iIndex = oTable.getSelectedIndex();
+            // // 2. Execute the new logic for the Fragment and Navigation
+            // const oTable = oEvent.getSource();
+            // const iIndex = oTable.getSelectedIndex();
 
-            // The exact Fiori Elements prefix for your Custom SubSection fragment
-            const sFePrefix = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::PricelistMainCategory--";
+            // // The exact Fiori Elements prefix for your Custom SubSection fragment
+            // const sFePrefix = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::PricelistMainCategory--";
 
-            if (iIndex >= 0) {
-                const oSelectedNode = oTable.getContextByIndex(iIndex).getObject();
+            // if (iIndex >= 0) {
+            //     const oSelectedNode = oTable.getContextByIndex(iIndex).getObject();
 
-                if (oSelectedNode) {
-                    const sCategoryName = oSelectedNode.text || "";
+            //     if (oSelectedNode) {
+            //         const sCategoryName = oSelectedNode.text || "";
 
-                    // Fetch inputs using the exact absolute IDs
-                    const oMainCatInput = sap.ui.getCore().byId(sFePrefix + "MainCategoryInput");
-                    const oPublishedCatInput = sap.ui.getCore().byId(sFePrefix + "PublishedMainCategoryInput");
+            //         // Fetch inputs using the exact absolute IDs
+            //         const oMainCatInput = sap.ui.getCore().byId(sFePrefix + "MainCategoryInput");
+            //         const oPublishedCatInput = sap.ui.getCore().byId(sFePrefix + "PublishedMainCategoryInput");
 
-                    if (oMainCatInput) {
-                        oMainCatInput.setValue(sCategoryName);
-                    }
-                    if (oPublishedCatInput) {
-                        oPublishedCatInput.setValue(sCategoryName);
-                    }
+            //         if (oMainCatInput) {
+            //             oMainCatInput.setValue(sCategoryName);
+            //         }
+            //         if (oPublishedCatInput) {
+            //             oPublishedCatInput.setValue(sCategoryName);
+            //         }
 
-                    // ====================================================================
-                    // Navigate/Scroll to the Subsection (Native UI5 Approach)
-                    // ====================================================================
+            //         // ====================================================================
+            //         // Navigate/Scroll to the Subsection (Native UI5 Approach)
+            //         // ====================================================================
 
-                    // 1. Traverse up the UI tree to find the Fiori ObjectPageLayout container
-                    let oControl = this.getView();
-                    let oObjectPageLayout = null;
+            //         // 1. Traverse up the UI tree to find the Fiori ObjectPageLayout container
+            //         let oControl = this.getView();
+            //         let oObjectPageLayout = null;
 
-                    while (oControl) {
-                        if (oControl.isA && oControl.isA("sap.uxap.ObjectPageLayout")) {
-                            oObjectPageLayout = oControl;
-                            break;
-                        }
-                        oControl = oControl.getParent && oControl.getParent();
-                    }
+            //         while (oControl) {
+            //             if (oControl.isA && oControl.isA("sap.uxap.ObjectPageLayout")) {
+            //                 oObjectPageLayout = oControl;
+            //                 break;
+            //             }
+            //             oControl = oControl.getParent && oControl.getParent();
+            //         }
 
-                    const sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::PricelistMainCategory";
+            //         const sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::PricelistMainCategory";
 
-                    // 2. Tell the ObjectPageLayout to scroll smoothly to your subsection
-                    if (oObjectPageLayout) {
-                        oObjectPageLayout.scrollToSection(sSubSectionId);
-                    } else {
-                        // 3. Ultimate Fallback: Direct DOM scroll if the ObjectPageLayout isn't found
-                        const oSubSection = sap.ui.getCore().byId(sSubSectionId);
-                        if (oSubSection && oSubSection.getDomRef()) {
-                            oSubSection.getDomRef().scrollIntoView({ behavior: "smooth" });
-                        }
-                    }
-                } else {
-                    // Clear the inputs if the user deselects the row
-                    const oMainCatInput = sap.ui.getCore().byId(sFePrefix + "MainCategoryInput");
-                    const oPublishedCatInput = sap.ui.getCore().byId(sFePrefix + "PublishedMainCategoryInput");
+            //         // 2. Tell the ObjectPageLayout to scroll smoothly to your subsection
+            //         if (oObjectPageLayout) {
+            //             oObjectPageLayout.scrollToSection(sSubSectionId);
+            //         } else {
+            //             // 3. Ultimate Fallback: Direct DOM scroll if the ObjectPageLayout isn't found
+            //             const oSubSection = sap.ui.getCore().byId(sSubSectionId);
+            //             if (oSubSection && oSubSection.getDomRef()) {
+            //                 oSubSection.getDomRef().scrollIntoView({ behavior: "smooth" });
+            //             }
+            //         }
+            //     } else {
+            //         // Clear the inputs if the user deselects the row
+            //         const oMainCatInput = sap.ui.getCore().byId(sFePrefix + "MainCategoryInput");
+            //         const oPublishedCatInput = sap.ui.getCore().byId(sFePrefix + "PublishedMainCategoryInput");
 
-                    if (oMainCatInput) oMainCatInput.setValue("");
-                    if (oPublishedCatInput) oPublishedCatInput.setValue("");
-                }
-            }
+            //         if (oMainCatInput) oMainCatInput.setValue("");
+            //         if (oPublishedCatInput) oPublishedCatInput.setValue("");
+            //     }
+            // }
         },
 
         _getSelectedNodeNow: function () {
@@ -498,7 +498,7 @@ sap.ui.define([
                     const oListBinding = oModel.bindList(sItemsPath);
                     const aDraftCtx = await oListBinding.requestContexts(0, 5000);
 
-                    if (this._selectedNode.kind === "Category") {
+                    if (this._selectedNode.Kind === "Category") {
                         // Update all child product contexts under this category
                         aDraftCtx.forEach(ctx => {
                             const obj = ctx.getObject();
@@ -508,7 +508,7 @@ sap.ui.define([
                                 ctx.setProperty(fieldName, newValue);
                             }
                         });
-                    } else if (this._selectedNode.kind === "Product") {
+                    } else if (this._selectedNode.Kind === "Product") {
                         // Product nodes have IDs, so we can match directly
                         const targetCtx = aDraftCtx.find(ctx => {
                             const obj = ctx.getObject();
@@ -563,7 +563,7 @@ sap.ui.define([
         },
 
         _termsFieldForNode: function (node) {
-            if (node.kind === "Product") return "PartNumberTermsandCond";
+            if (node.Kind === "Product") return "PartNumberTermsandCond";
             switch (node.level) {
                 case 1: return "MainCategoryTermsandCond";
                 case 2: return "SubCategory1TermsandCond";
@@ -963,7 +963,7 @@ sap.ui.define([
                 return;
             }
 
-            if (node.kind === "Category") {
+            if (node.Kind === "Category") {
                 MessageBox.confirm("Delete this category and all its subnodes?", {
                     title: "Delete",
                     actions: [MessageBox.Action.OK, MessageBox.Action.CANCEL],
@@ -976,7 +976,7 @@ sap.ui.define([
                 return;
             }
 
-            if (node.kind === "Product") {
+            if (node.Kind === "Product") {
                 MessageBox.confirm("Delete this product?", {
                     title: "Delete",
                     actions: [MessageBox.Action.OK, MessageBox.Action.CANCEL],
@@ -1057,7 +1057,7 @@ sap.ui.define([
             const draftContexts = [];
 
             const collect = (n) => {
-                if (n.kind === "Product") {
+                if (n.Kind === "Product") {
                     if (n.ID) {
                         // Persisted product row
                         productIds.push(n.ID);
@@ -1086,13 +1086,13 @@ sap.ui.define([
             const prune = (arr) => {
                 const out = [];
                 for (const n of (arr || [])) {
-                    if (n.kind === "Category" && n.key === branchKey) continue; // remove branch
+                    if (n.Kind === "Category" && n.key === branchKey) continue; // remove branch
 
                     if (n.children && n.children.length) {
                         n.children = prune(n.children);
                     }
 
-                    if (n.kind === "Category") {
+                    if (n.Kind === "Category") {
                         if ((n.children || []).length > 0) out.push(n);
                     } else {
                         out.push(n);
@@ -1115,7 +1115,7 @@ sap.ui.define([
             const prune = (arr) => {
                 const out = [];
                 for (const n of (arr || [])) {
-                    if (n.kind === "Product") {
+                    if (n.Kind === "Product") {
                         const matchKey = (targetKey && n.key === targetKey);
                         const matchId = (targetId && n.ID === targetId);
                         if (matchKey || matchId) continue;
@@ -1127,7 +1127,7 @@ sap.ui.define([
                         n.children = prune(n.children);
                     }
 
-                    if (n.kind === "Category") {
+                    if (n.Kind === "Category") {
                         if ((n.children || []).length > 0) out.push(n);
                     } else {
                         out.push(n);
@@ -1149,12 +1149,12 @@ sap.ui.define([
             const sortTree = (arr) => {
                 arr.sort((a, b) => {
                     // Categories always first
-                    if (a.kind !== b.kind) {
-                        return a.kind === "Category" ? -1 : 1;
+                    if (a.Kind !== b.Kind) {
+                        return a.Kind === "Category" ? -1 : 1;
                     }
 
                     // Sort products by Part Number
-                    if (a.kind === "Product") {
+                    if (a.Kind === "Product") {
                         const pa = a.PricelistPartNumber || "";
                         const pb = b.PricelistPartNumber || "";
                         return asc ? pa.localeCompare(pb) : pb.localeCompare(pa);
@@ -1283,7 +1283,7 @@ sap.ui.define([
             if (this._pnQuery && this._pnQuery.trim()) {
                 const pq = this._pnQuery.trim().toLowerCase();
                 const matchPN = (node) => {
-                    if (node.kind !== "Product") return false;
+                    if (node.Kind !== "Product") return false;
                     return ((node.PricelistPartNumber || "").toLowerCase().includes(pq));
                 };
                 working = this._filterTree(working, matchPN);
@@ -1296,9 +1296,9 @@ sap.ui.define([
             const result = [];
 
             for (const n of (nodes || [])) {
-                if (n.kind === "Product") {
+                if (n.Kind === "Product") {
                     if (predicate(n)) result.push({ ...n, children: [] });
-                } else if (n.kind === "Category") {
+                } else if (n.Kind === "Category") {
                     const filteredChildren = this._filterTree(n.children || [], predicate);
 
                     // Keep category if any child matches OR category itself matches hierarchy predicate
@@ -1344,7 +1344,7 @@ sap.ui.define([
 
         _flattenProductsFromTree: function (nodes, result = []) {
             (nodes || []).forEach(n => {
-                if (n.kind === "Product") {
+                if (n.Kind === "Product") {
                     result.push({
                         MainCategory: n.MainCategory || "",
                         Subcategory1: n.Subcategory1 || "",

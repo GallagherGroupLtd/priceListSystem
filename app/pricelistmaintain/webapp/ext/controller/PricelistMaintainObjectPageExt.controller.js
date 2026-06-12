@@ -252,7 +252,7 @@ sap.ui.define([
 					const node = {
 						key: key,
 						text: text,       // This will display the category name (e.g., "Command Centre" or "Software Features")
-						kind: "Category",
+						Kind: "Category",
 						level: level,
 						children: [],
 
@@ -295,7 +295,7 @@ sap.ui.define([
 				const leaf = {
 					key: r?.MaterialKey, // Used MaterialKey for uniqueness
 					text: r?.Material,
-					kind: "Product",
+					Kind: "Product",
 					...r, // Spreads all properties (Material, MaterialKey, ID, etc.) into the node so columns can bind to them
 					children: [] // Empty array tells the TreeTable this is a leaf node
 				};
@@ -756,8 +756,23 @@ sap.ui.define([
 
 			const oSelectedData = oRowContext.getObject();
 
+			// Keep oSelectedData and find from table 
+			// Main and Sub get from table ???? and Product from table + Tree table ???
+
 			if (oSelectedData) {
 
+				// Get the view and set the selected node data to a model for use in other sections of the Main/Sub Category
+				const oView = _oInstance._getView(oTable);
+				if (oView) {
+					let oSelectedModel = oView.getModel("selectedNode");
+					if (!oSelectedModel) {
+						oSelectedModel = new sap.ui.model.json.JSONModel({});
+						oView.setModel(oSelectedModel, "selectedNode");
+					}
+					oSelectedModel.setData(oSelectedData);
+				}
+
+				// Scroll to the appropriate section based on the selected node's kind and category level
 				let sSubSectionId = null;
 				let oObjectPageLayout = null;
 				let oControl = oTable;
@@ -770,9 +785,24 @@ sap.ui.define([
 					oControl = oControl.getParent && oControl.getParent();
 				}
 
-				switch (oSelectedData.kind) {
+				switch (oSelectedData.Kind) {
+					case "Category":
+
+
+
+						// Scroll to the appropriate section based on category level
+						if (oSelectedData.CategoryLevel === 0) {
+							sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::PricelistMainCategory";
+						} else {
+							sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::PricelistSubCategory";
+						}
+						break;
 					case "Product":
+
+						// Get the view and set the selected note data to a model for use in other sections of the Product
+
 						sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductDetails";
+						break;
 				}
 
 				if (oObjectPageLayout) {
@@ -795,6 +825,17 @@ sap.ui.define([
 				// oResetButton.setEnabled(false);
 			}
 			// oTable.clearSelection();
+		},
+
+		_getView: function (oControl) {
+			let oC = oControl;
+			while (oC) {
+				if (oC.isA && oC.isA("sap.ui.core.mvc.View")) {
+					return oC;
+				}
+				oC = oC.getParent && oC.getParent();
+			}
+			return null;
 		},
 
 		// suppress re-entrant selection handling when we programmatically change selection
@@ -828,7 +869,7 @@ sap.ui.define([
 			const leaves = [];
 			const walk = (n) => {
 				if (!n) return;
-				if (n.kind === 'Product') {
+				if (n.Kind === 'Product') {
 					leaves.push(n.key);
 					return;
 				}
@@ -943,7 +984,7 @@ sap.ui.define([
 		// 	// detect user-clicked row/context (if available)
 		// 	const oRowCtx = oEvent.getParameter && oEvent.getParameter('rowContext');
 		// 	const clickedKey = oRowCtx && oRowCtx.getObject ? oRowCtx.getObject().key : null;
-		// 	const clickedKind = oRowCtx && oRowCtx.getObject ? oRowCtx.getObject().kind : null;
+		// 	const clickedKind = oRowCtx && oRowCtx.getObject ? oRowCtx.getObject().Kind : null;
 
 		// 	// helper: apply selection by keys to the table
 		// 	const applySelectionKeys = (keysSet) => {
@@ -985,7 +1026,7 @@ sap.ui.define([
 		// 		if (!nodes || !nodes.length) return;
 		// 		for (const n of nodes) {
 		// 			if (!n) continue;
-		// 			if (n.kind === 'Category') {
+		// 			if (n.Kind === 'Category') {
 		// 				const leafKeys = this._collectLeafKeys(n);
 		// 				if (leafKeys.length > 0) {
 		// 					const allChildrenSelected = leafKeys.every(k => selectedKeys.has(k));

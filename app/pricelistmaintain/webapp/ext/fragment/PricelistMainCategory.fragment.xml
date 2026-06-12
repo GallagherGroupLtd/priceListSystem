@@ -7,10 +7,10 @@
 
 			<smartForm:Group id="MainCategoryTermsAndCondGroup" title=" ">
                 <smartForm:GroupElement id="MainCategoryGroupElement" label="Main Category Name">
-					<Input id="MainCategoryInput" value="sub category test name"></Input>
+					<Input id="MainCategoryInput" value="{selectedNode>CategoryName}"></Input>
                 </smartForm:GroupElement>
 				<smartForm:GroupElement id="MainCategoryNameGroupElement" label="Published Main Category Name">
-					<Input id="PublishedMainCategoryInput" value="sub category published name"></Input>
+					<Input id="PublishedMainCategoryInput" value="{selectedNode>PublishedCategoryName}"></Input>
                 </smartForm:GroupElement>
             </smartForm:Group>
 

@@ -6,7 +6,7 @@
     xmlns:macros="sap.fe.macros"
     xmlns:dnd="sap.ui.core.dnd">
 
-    <VBox id="ProductListVBox" core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/ProductList'}">
+    <VBox id="ProductListVBox" core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/ProductList'}" fitContainer="true" height="100%">
 
         <MessageStrip
             id="ProductListDeleteModeMessageStrip"
@@ -169,11 +169,13 @@
             enableColumnReordering="true"
             enableColumnFreeze="true"
             rowSelectionChange="handler.onSelectionChange"
+            rowMode="Auto"
             width="100%"
             rows="{
                 path: 'jsonModel>/productPriceList',
                 parameters: { arrayNames: ['children'] } 
             }">
+
             <t:dragDropConfig>
                 <dnd:DragDropInfo
                     id="ProductTreeDragDropInfo"
@@ -209,6 +211,13 @@
                     <Label id="LblValidity" text="Price Validity" textAlign="Center" width="100%"/>
                     <t:template>
                         <Text id="TxtValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>PriceValidFrom} || '') + ' - ' + (${jsonModel>PriceValidTo} || '') : '' }"/>
+                    </t:template>
+                </t:Column>
+
+                <t:Column id="ColDiscountRate" width="7%" hAlign="Center">
+                    <Label id="LblDiscountRate" text="Discount Rate" textAlign="Center" width="100%"/>
+                    <t:template>
+                        <Text id="TxtDiscountRate" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountRate} || '') : '' }" />
                     </t:template>
                 </t:Column>
 
