@@ -96,46 +96,71 @@
 					visible="true"
                     press="handler.onNavigate"/>
 
-                <Button
-                    id="ProductListExpandBtn"
-                    icon="sap-icon://expand"
-                    tooltip="Expand"
-					visible="true"
-                    press="handler.onExpand"/>
+<Button
+    id="ProductListExpandBtn"
+    text="Expand"
+    icon="sap-icon://expand"
+    tooltip="Expand"
+    visible="true"
+    enabled="{jsonModel>/hasVisibleProductTreeData}"
+    press="handler.onExpand"/>
 
-                <Button
-                    id="ProductListCollapseBtn"
-                    icon="sap-icon://collapse"
-                    tooltip="Collapse"
-					visible="true"
-                    press="handler.onCollapse"/>
+<Button
+    id="ProductListCollapseBtn"
+    text="Collapse"
+    icon="sap-icon://collapse"
+    tooltip="Collapse"
+    visible="true"
+    enabled="{jsonModel>/hasVisibleProductTreeData}"
+    press="handler.onCollapse"/>
 
-                <Button
-                    id="ProductListExpandAllBtn"
-                    icon="sap-icon://expand-all"
-                    tooltip="Expand all"
-					visible="true"
-                    press="handler.onExpandAll"/>
+<Button
+    id="ProductListExpandAllBtn"
+    text="Expand All"
+    icon="sap-icon://expand-all"
+    tooltip="Expand all"
+    visible="true"
+    enabled="{jsonModel>/hasVisibleProductTreeData}"
+    press="handler.onExpandAll"/>
 
-				<Button
-                    id="ProductListCollapseAllBtn"
-                    text="Collapse"
-                    icon="sap-icon://collapse-all"
-                    tooltip="Collapse all"
-					visible="false"
-                    press="handler.onCollapseAll"/>
+<Button
+    id="ProductListCollapseAllBtn"
+    text="Collapse"
+    icon="sap-icon://collapse-all"
+    tooltip="Collapse all"
+    visible="false"
+    enabled="{jsonModel>/hasVisibleProductTreeData}"
+    press="handler.onCollapseAll"/>
 
-                <Button
-                    id="ProductListSortBtn"
-                    icon="sap-icon://sort"
-                    tooltip="Sort by Description"
-                    press="handler.onSortProducts" />
+<Button
+    id="ProductListSortBtn"
+    icon="sap-icon://sort"
+    tooltip="Sort by Description"
+    enabled="{jsonModel>/hasVisibleProductTreeData}"
+    press="handler.onSortProducts" />
 
-                <Button
+<Button
+    id="ProductListHierarchyFilterBtn"
+    icon="sap-icon://filter"
+    text="{= ${jsonModel>/productFilterCount} > 0 ? 'Filter (' + ${jsonModel>/productFilterCount} + ')' : 'Filter' }"
+    type="{= ${jsonModel>/productFilterCount} > 0 ? 'Emphasized' : 'Default' }"
+    tooltip="Filter"
+    enabled="{jsonModel>/hasTreeData}"
+    press="handler.onOpenHierarchyFilter"/>
+
+<Button
+    id="ProductListClearFilterBtn"
+    icon="sap-icon://clear-filter"
+    text="Clear Filter"
+    visible="{= ${jsonModel>/productFilterCount} > 0 }"
+    enabled="{jsonModel>/hasTreeData}"
+    press="handler.onClearHierarchyFilter"/>
+
+                <!-- <Button
                     id="ProductListHierarchyFilterBtn"
                     icon="sap-icon://filter"
                     tooltip="Filter"
-                    press="handler.onOpenHierarchyFilter"/>
+                    press="handler.onOpenHierarchyFilter"/> -->
 
                 <!-- <Button 
                     id="ProductListChangeColumnBtn" 

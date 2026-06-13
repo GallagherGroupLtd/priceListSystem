@@ -126,6 +126,22 @@ sap.ui.define([
             oTreeTable.collapse(iIndex);
         },
 
+        onExpandAll: function (oEvent) {
+            const oButton = oEvent.getSource();
+            const oTreeTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
+            oTreeTable.expandToLevel(5);
+            oButton.setVisible(false);
+            sap.ui.getCore().byId(idPrefix + "ProductListCollapseAllBtn").setVisible(true);
+        },
+
+        onCollapseAll: function (oEvent) {
+            const oButton = oEvent.getSource();
+            const oTreeTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
+            oTreeTable.collapseAll();
+            oButton.setVisible(false);
+            sap.ui.getCore().byId(idPrefix + "ProductListExpandAllBtn").setVisible(true);
+        },
+
         onSortProducts: function (oEvent) {
             const oExt = ExtController.getInstance();
             const oView = oExt.base.getView();
@@ -161,20 +177,12 @@ sap.ui.define([
             MessageToast.show('Product list sorted by description.');
         },
 
-        onExpandAll: function (oEvent) {
-            const oButton = oEvent.getSource();
-            const oTreeTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-            oTreeTable.expandToLevel(5);
-            oButton.setVisible(false);
-            sap.ui.getCore().byId(idPrefix + "ProductListCollapseAllBtn").setVisible(true);
+        onOpenHierarchyFilter: function () {
+            ExtController.getInstance().onOpenHierarchyFilter();
         },
 
-        onCollapseAll: function (oEvent) {
-            const oButton = oEvent.getSource();
-            const oTreeTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-            oTreeTable.collapseAll();
-            oButton.setVisible(false);
-            sap.ui.getCore().byId(idPrefix + "ProductListExpandAllBtn").setVisible(true);
+        onClearHierarchyFilter: function () {
+            ExtController.getInstance().onClearHierarchyFilter();
         },
 
         onRefresh: function (oEvent) {
@@ -491,6 +499,15 @@ sap.ui.define([
                 oExt._onSelectionChangeDisplayMode(oEvent);
             }
         },
+
+        onOpenHierarchyFilter: function () {
+            ExtController.getInstance().onOpenHierarchyFilter();
+        },
+
+        onClearHierarchyFilter: function () {
+            ExtController.getInstance().onClearHierarchyFilter();
+        },
+        
         // onSelectionChange: function (oEvent) {
         //     if (this.bDeleteMode) {
         //         ExtController._onSelectionChangeDeleteMode(oEvent);
