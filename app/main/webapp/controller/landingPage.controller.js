@@ -166,8 +166,8 @@ sap.ui.define([
                         const oContact = aContactCtx[i].getObject();
                         const oPhoneIcon = new Icon({src: "sap-icon://headset", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
                         const oEmailIcon = new Icon({src: "sap-icon://email", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
-                        const oPhoneLink = new Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, class:"sapUiMediumMarginEnd", style: "padding: 0.5rem;"});
-                        const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, class:"sapUiMediumMarginEnd",style: "padding: 0.5rem;"});
+                        const oPhoneLink = new Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, width: "3rem", class:"sapUiMediumMarginEnd", style: "padding: 1rem;"});
+                        const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, width: "3rem", class:"sapUiMediumMarginEnd", style: "padding: 1rem;"});
                         
                         const oHBox = new sap.m.HBox({
                            wrap: "Wrap",
