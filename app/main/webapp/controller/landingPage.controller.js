@@ -160,13 +160,25 @@ sap.ui.define([
                 const aContactCtx = await oContactBinding.requestContexts();
 
                 if (aContactCtx.length) {
+                    //Checking maximum lenth of contact details. so that padding remains consistent.
+                    let maxLength = 0;
+                    for(let i=0; i<aContactCtx.length; i++){
+                        const oContact_1 = aContactCtx[i].getObject();
+                        const phnDetailsLength = oContact_1.ContactNumber ? oContact_1.ContactNumber.length : 0;
+                        if(maxLength < phnDetailsLength){
+                            maxLength = phnDetailsLength;
+                        }
+                    }
+
+
                     //If multiple contact records are found, all of them have to be displayed vertically.
                     const oVBox = this.getView().byId("contactBox");
                     for(let i=0; i<aContactCtx.length; i++){
                         const oContact = aContactCtx[i].getObject();
+                        const contactNumber = oContact.ContactNumber.padEnd(maxLength, " "); //Padding the contact number to ensure consistent alignment of email links, even if contact numbers have different lengths.
                         const oPhoneIcon = new Icon({src: "sap-icon://headset", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
                         const oEmailIcon = new Icon({src: "sap-icon://email", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
-                        const oPhoneLink = new Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, width: "100%"});
+                        const oPhoneLink = new Link({text: contactNumber, href: "tel:" + oContact.ContactNumber, width: "100%"});
                         const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, width: "100%"});
                         
                         const oInnerHBoxPhone = new sap.m.HBox({
