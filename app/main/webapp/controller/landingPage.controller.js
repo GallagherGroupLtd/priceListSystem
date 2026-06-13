@@ -1,5 +1,3 @@
-const { width } = require("pdfkit/js/page");
-
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageToast",
