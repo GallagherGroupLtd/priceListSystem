@@ -161,14 +161,13 @@ sap.ui.define([
 
                 if (aContactCtx.length) {
                     //If multiple contact records are found, all of them have to be displayed vertically.
-                    const oPhoneIcon = new Icon({src: "sap-icon://headset", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
-                    const oEmailIcon = new Icon({src: "sap-icon://email", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
                     const oVBox = this.getView().byId("contactBox");
                     for(let i=0; i<aContactCtx.length; i++){
                         const oContact = aContactCtx[i].getObject();
-
-                        const oPhoneLink = new Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, class:"sapUiMediumMarginEnd"});
-                        const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, class:"sapUiMediumMarginEnd"});
+                        const oPhoneIcon = new Icon({src: "sap-icon://headset", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
+                        const oEmailIcon = new Icon({src: "sap-icon://email", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
+                        const oPhoneLink = new Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, class:"sapUiMediumMarginEnd", style: "padding: 0.5rem;"});
+                        const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, class:"sapUiMediumMarginEnd",style: "padding: 0.5rem;"});
                         
                         const oHBox = new sap.m.HBox({
                            wrap: "Wrap",
