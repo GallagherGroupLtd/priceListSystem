@@ -8,8 +8,10 @@ sap.ui.define([
     'sap/m/MessageBox',
     'sap/m/library',
     'sap/ui/model/Filter',
-    'sap/ui/model/FilterOperator'
-], function (Controller, MessageToast, JSONModel, DateFormat, MessageBox, mobileLibrary, Filter, FilterOperator) {
+    'sap/ui/model/FilterOperator',
+    'sap/ui/core/Icon',
+    'sap/m/Link'
+], function (Controller, MessageToast, JSONModel, DateFormat, MessageBox, mobileLibrary, Filter, FilterOperator, Icon, Link) {
     "use strict";
     var URLHelper = mobileLibrary.URLHelper;
 
@@ -161,19 +163,18 @@ sap.ui.define([
 
                 if (aContactCtx.length) {
                     //If multiple contact records are found, all of them have to be displayed vertically.
+                    const oPhoneIcon = new Icon({src: "sap-icon://headset", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
+                    const oEmailIcon = new Icon({src: "sap-icon://email", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
                     for(let i=0; i<aContactCtx.length; i++){
                         const oContact = aContactCtx[i].getObject();
                         const oVBox = this.getView().byId("contactVBox");
+
+                        const oPhoneLink = new Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, class:"sapUiMediumMarginEnd"});
+                        const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, class:"sapUiMediumMarginEnd"});
                         
                         const oHBox = new sap.m.HBox({
                            wrap: "Wrap",
-                           items: [
-                            {new sap.ui.core.Icon({src: "sap-icon://headset", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"})}, 
-                            {new sap.m.Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, class:"sapUiMediumMarginEnd"})},
-                            {new sap.ui.core.Icon({src: "sap-icon://email", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"})}, 
-                            {new sap.m.Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, class:"sapUiMediumMarginEnd"})},
-                           ] // Configure the HBox properties
-                        });
+                           items: [oPhoneIcon, oPhoneLink, oEmailIcon, oEmailLink]});
 
                         oVBox.addItem(oHBox);
                     }
