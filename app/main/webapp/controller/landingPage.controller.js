@@ -166,16 +166,28 @@ sap.ui.define([
                         const oContact = aContactCtx[i].getObject();
                         const oPhoneIcon = new Icon({src: "sap-icon://headset", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
                         const oEmailIcon = new Icon({src: "sap-icon://email", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
-                        const oPhoneLink = new Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, width: "100%", style: "padding-right: 15rem !important; padding-left: 0.5rem !important;"});
-                        const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, width: "100%", style: "padding-right: 15rem !important; padding-left: 0.5rem !important;"});
+                        const oPhoneLink = new Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, width: "100%"});
+                        const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, width: "100%"});
                         
-                        const oHBox = new sap.m.HBox({
+                        const oInnerHBoxPhone = new sap.m.HBox({
                            wrap: "Wrap",
                            width: "100%",
-                           class: "sapUiSmallMarginTop sapUiSmallMarginBottom sapUiTinyMarginBeginEnd sapUiSmallPadding contactBox",
-                           items: [oPhoneIcon, oPhoneLink, oEmailIcon, oEmailLink]});
+                           class: "innerHBox",
+                           items: [oPhoneIcon, oPhoneLink]});
 
-                        oVBox.addItem(oHBox);
+                        const oInnerHBoxEmail = new sap.m.HBox({
+                           wrap: "Wrap",
+                           width: "100%",
+                           class: "innerHBox",
+                           items: [oEmailIcon, oEmailLink]});
+
+                       const oOuterHBox = new sap.m.HBox({
+                           wrap: "Wrap",
+                           width: "100%",
+                           class: "outerHBox",
+                           items: [oInnerHBoxPhone, oInnerHBoxEmail]});
+
+                        oVBox.addItem(oOuterHBox);
                     }
                     // const oContact = aContactCtx[0].getObject();
 
