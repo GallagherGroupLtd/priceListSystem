@@ -171,21 +171,23 @@ sap.ui.define([
                         
                         const oInnerHBoxPhone = new sap.m.HBox({
                            wrap: "Wrap",
-                           width: "100%",
+                           width: "50%",
                            class: "innerHBox",
+                           columnGap: "0.5rem",
                            items: [oPhoneIcon, oPhoneLink]});
 
                         const oInnerHBoxEmail = new sap.m.HBox({
                            wrap: "Wrap",
-                           width: "100%",
+                           width: "50%",
                            class: "innerHBox",
+                           columnGap: "0.5rem",
                            items: [oEmailIcon, oEmailLink]});
 
                        const oOuterHBox = new sap.m.HBox({
                            wrap: "Wrap",
                            width: "100%",
                            class: "outerHBox",
-                           columnGap: "15rem !important",
+                           columnGap: "15rem",
                            items: [oInnerHBoxPhone, oInnerHBoxEmail]});
 
                         oVBox.addItem(oOuterHBox);
