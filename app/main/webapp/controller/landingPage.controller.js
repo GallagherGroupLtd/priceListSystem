@@ -165,7 +165,7 @@ sap.ui.define([
                     const oEmailIcon = new Icon({src: "sap-icon://email", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
                     for(let i=0; i<aContactCtx.length; i++){
                         const oContact = aContactCtx[i].getObject();
-                        const oVBox = this.getView().byId("contactVBox");
+                        const oVBox = this.getView().byId("contactBox");
 
                         const oPhoneLink = new Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, class:"sapUiMediumMarginEnd"});
                         const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, class:"sapUiMediumMarginEnd"});
