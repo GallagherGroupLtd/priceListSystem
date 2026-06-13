@@ -1207,7 +1207,7 @@ module.exports = cds.service.impl(async function () {
 
     // Custom logic to get product tree data
     this.on('READ', 'ProductPricelistTree', async (req) => {
-        
+
         function extractWhereValue(whereArr, fieldName) {
             if (!whereArr) return null;
             for (let i = 0; i < whereArr.length; i++) {
@@ -1288,9 +1288,9 @@ module.exports = cds.service.impl(async function () {
         // 4. Get pricing parameters
         let localQueryPricingParam = SELECT.from('PricingParameterDetermination');
         if (req.query.SELECT.where) {
-                        localQueryPricingParam.where(req.query.SELECT.where);
-                                    localQueryPricingParam.orderBy({ createdAt: 'desc' });
-                                            
+            localQueryPricingParam.where(req.query.SELECT.where);
+            localQueryPricingParam.orderBy({ createdAt: 'desc' });
+
         }
         const resultsPricing = await db.run(localQueryPricingParam);
 
@@ -1351,7 +1351,7 @@ module.exports = cds.service.impl(async function () {
                 }
             }
         }
-        // console.log('>>> Active Access Sequences & Condition Types:', activeSequences);
+        console.log('>>> Active Access Sequences & Condition Types:', activeSequences);
 
         // 7. Get available columns in T_PRICELIST_MASTER_DATA to ensure we only query existing ones in dynamic SQL
         //    Create dynamic UNION ALL query to fetch prices based on active access sequences
@@ -1383,12 +1383,20 @@ module.exports = cds.service.impl(async function () {
             }
 
             if (has('VALID_FROM_DATE')) {
-                whereConditions.push(`${col('VALID_FROM_DATE')} <= CURRENT_DATE`);
-            }
-            if (has('VALID_TO_DATE')) {
-                whereConditions.push(`${col('VALID_TO_DATE')} >= CURRENT_DATE`);
+                whereConditions.push(`${col('VALID_FROM_DATE')} IS NOT NULL`);
+                whereConditions.push(`${col('VALID_FROM_DATE')} <> ''`);
+                whereConditions.push(
+                    `TO_DATE(${col('VALID_FROM_DATE')}, 'MM/DD/YY') <= CURRENT_DATE`
+                );
             }
 
+            if (has('VALID_TO_DATE')) {
+                whereConditions.push(`${col('VALID_TO_DATE')} IS NOT NULL`);
+                whereConditions.push(`${col('VALID_TO_DATE')} <> ''`);
+                whereConditions.push(
+                    `TO_DATE(${col('VALID_TO_DATE')}, 'MM/DD/YY') >= CURRENT_DATE`
+                );
+            }
             return `SELECT 
                     '${px}' AS "ACCESS_SEQUENCE",
                     ${combo.priority} AS "PRIORITY",
@@ -1402,8 +1410,8 @@ module.exports = cds.service.impl(async function () {
                 WHERE ${whereConditions.join(' AND ')}`;
 
         }).filter(Boolean);
-        // console.log('>>> Generated UNION ALL Query for Pricing:', unionParts.join('\nUNION ALL\n'));
-        
+        console.log('>>> Generated UNION ALL Query for Pricing:', unionParts.join('\nUNION ALL\n'));
+
         let priceRecords = [];
         if (unionParts.length > 0) {
             const priceQuery = unionParts.join(' UNION ALL ');

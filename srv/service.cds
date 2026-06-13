@@ -171,7 +171,7 @@ service PriceListService {
             *,
             MarketScopeRegion || ' (' || MarketScopeCountry || ')' as MarketDisplay : String,
             Status @(Common.FieldControl: #Mandatory),
-
+            
             items                                                                   : redirected to PricelistItemData
         };
 

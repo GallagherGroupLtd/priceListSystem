@@ -1343,6 +1343,8 @@ sap.ui.define([
 			this._getProductPriceList()
 				.then((aRawData) => {
 					this._setTreeTableData(aRawData);
+					sap.ui.getCore().applyChanges();
+					this.byId("ProductPriceListTreeTable").invalidate();					
 					MessageToast.show("Pricelist refreshed from server.");
 				})
 				.catch((e) => {
