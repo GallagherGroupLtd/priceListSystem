@@ -1,3 +1,5 @@
+const { wrap } = require("pdfkit");
+
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageToast",
@@ -158,14 +160,31 @@ sap.ui.define([
                 const aContactCtx = await oContactBinding.requestContexts();
 
                 if (aContactCtx.length) {
-                    const oContact = aContactCtx[0].getObject();
+                    //If multiple contact records are found, all of them have to be displayed vertically.
+                    for(let i=0; i<aContactCtx.length; i++){
+                        const oContact = aContactCtx[i].getObject();
+                        const oVBox = this.getView().byId("contactVBox");
+                        
+                        const oHBox = new sap.m.HBox({
+                           wrap: "Wrap",
+                           items: [
+                            {new sap.ui.core.Icon({src: "sap-icon://headset", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"})}, 
+                            {new sap.m.Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, class:"sapUiMediumMarginEnd"})},
+                            {new sap.ui.core.Icon({src: "sap-icon://email", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"})}, 
+                            {new sap.m.Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, class:"sapUiMediumMarginEnd"})},
+                           ] // Configure the HBox properties
+                        });
 
-                    const oContactModel = new JSONModel({
-                        contactEmail: oContact.ContactEmail,
-                        contactNumber: oContact.ContactNumber
-                    });
+                        oVBox.addItem(oHBox);
+                    }
+                    // const oContact = aContactCtx[0].getObject();
 
-                    this.getView().setModel(oContactModel, "contactModel");
+                    // const oContactModel = new JSONModel({
+                    //     contactEmail: oContact.ContactEmail,
+                    //     contactNumber: oContact.ContactNumber
+                    // });
+
+                    // this.getView().setModel(oContactModel, "contactModel");
                 } else {
                     MessageToast.show("No contact information found for the user's market scope.");  //Will change to console log if required after testing, to avoid showing technical messages to end users.
                 }
