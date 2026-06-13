@@ -1,3 +1,5 @@
+const { width } = require("pdfkit/js/page");
+
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/m/MessageToast",
@@ -166,11 +168,12 @@ sap.ui.define([
                         const oContact = aContactCtx[i].getObject();
                         const oPhoneIcon = new Icon({src: "sap-icon://headset", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
                         const oEmailIcon = new Icon({src: "sap-icon://email", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
-                        const oPhoneLink = new Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, width: "3rem", class:"sapUiMediumMarginEnd", style: "padding: 1rem;"});
-                        const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, width: "3rem", class:"sapUiMediumMarginEnd", style: "padding: 1rem;"});
+                        const oPhoneLink = new Link({text: oContact.ContactNumber, href: "tel:" + oContact.ContactNumber, width: "100%", class:"sapUiMediumMarginEnd", style: "padding: 2rem;"});
+                        const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, width: "100%", class:"sapUiMediumMarginEnd", style: "padding: 2rem;"});
                         
                         const oHBox = new sap.m.HBox({
                            wrap: "Wrap",
+                           width: "100%",
                            class: "sapUiSmallMarginTop sapUiSmallMarginBottom sapUiTinyMarginBeginEnd sapUiSmallPadding contactBox",
                            items: [oPhoneIcon, oPhoneLink, oEmailIcon, oEmailLink]});
 
