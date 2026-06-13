@@ -50,6 +50,9 @@ annotate service.ContactInfo with @(
     UI.SelectionFields: [ PricelistType,MarketScopeRegion,MarketScopeCountry ],
 
     UI.LineItem  : [
+        { Value: PricelistType },
+        { Value: MarketScopeRegion },
+        { Value: MarketScopeCountry },
         {
             Value: ContactEmail,
             Label: 'E-mail Address'
