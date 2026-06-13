@@ -121,7 +121,7 @@
                                 </HBox>
 
                                 <Title id="TitleContactUs" text="Contact Us" level="H2" class="sapUiSmallMarginTop sapUiMediumMarginToprginTopBottom" />
-                                <VBox id="contactBox">
+                                <VBox id="contactBox" width="100%" class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiTinyMarginBeginEnd sapUiSmallPadding contactBox">
                                 </VBox>
                                 <!-- <HBox id="HBox2" wrap="Wrap">
                                     <items>
