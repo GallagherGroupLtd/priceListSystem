@@ -50,9 +50,6 @@ annotate service.ContactInfo with @(
     UI.SelectionFields: [ PricelistType,MarketScopeRegion,MarketScopeCountry ],
 
     UI.LineItem  : [
-        { Value: PricelistType },
-        { Value: MarketScopeRegion },
-        { Value: MarketScopeCountry },
         {
             Value: ContactEmail,
             Label: 'E-mail Address'
@@ -62,7 +59,10 @@ annotate service.ContactInfo with @(
             Label: 'Phone Number'
         },
         { Value: InternalAccount },
-        { Value: ExternalAccount },        
+        { Value: ExternalAccount },
+        { Value: PricelistType },
+        { Value: MarketScopeRegion },
+        { Value: MarketScopeCountry }
     ],
     UI.PresentationVariant : {
         SortOrder      : [
