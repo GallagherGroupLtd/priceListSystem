@@ -147,53 +147,28 @@ sap.ui.define([
 
 		_getProductPriceList: function () {
 			const oView = this.base.getView();
+			const oModel = oView.getModel();
+			const oContext = oView.getBindingContext();
 
-			// Temp Mock Data
-			// var aTreeData = this._getMockData();
-			// const aTreeData = this._buildTree(aRawData);
-			// oView.getModel('jsonModel').setProperty("/productPriceList", aTreeData);
+			if (!oContext) {
+				return Promise.resolve([]);
+			}
 
-			// const oData = this.base.getView().getBindingContext().getObject();
+			const sPath = oContext.getPath();
 
-			// const aFilterConfig = [
-			// 	{ path: "TradeScenario", value: oData?.TradeScenario },
-			// 	{ path: "MarketScopeRegion", value: oData?.MarketScopeRegion },
-			// 	{ path: "MarketScopeCountry", value: oData?.MarketScopeCountry },
-			// 	{ path: "SalesOrg", value: oData?.SalesOrg },
-			// 	{ path: "DistChannel", value: oData?.DistChannel },
-			// 	{ path: "CustPriceList", value: oData?.CustPriceList },
-			// 	{ path: "CustGroup1", value: oData?.CustGroup1 },
-			// 	{ path: "ErpCustomer", value: oData?.ErpCustomer },
-			// 	{ path: "DeliveringPlant", value: oData?.DeliveringPlant }
-			// ];
-
-			// const aFilters = [];
-			// aFilterConfig.forEach(item => {
-			// 	if (item.value !== undefined && item.value !== null && item.value !== "") {
-			// 		aFilters.push(new Filter(item.path, FilterOperator.EQ, item.value));
-			// 	}
-			// });
-
-			// debugger;
-
-			// oView.getModel().bindList("/ProductPricelistTree", null, null, aFilters)
-			// 	.requestContexts()
-			// 	.then((aContexts) => {
-			// 		aRawData = aContexts.map(oCtx => oCtx.getObject());
-			// 		const aTreeData = this._buildTree(aRawData);
-			// 		oView.getModel('jsonModel').setProperty("/productPriceList", aTreeData);
-			// 	}).catch((oErr) => {
-			// 		console.error("Error fetching ProductPricelistTree data:", oErr);
-			// 	});
-
-			//---------------------------------  After this adapt code				
-			const sPath = oView.getBindingContext().getPath();
-
-			return oView.getModel()
+			return oModel
 				.bindContext(sPath, null, {
-					$select: ["PricelistType", "MarketScopeRegion", "MarketScopeCountry",
-						"SalesOrg", "DistChannel", "CustPriceList", "CustGroup1",
-						"ErpCustomer", "DeliveringPlant"].join(",")
+					$select: [
+						"PricelistType",
+						"MarketScopeRegion",
+						"MarketScopeCountry",
+						"SalesOrg",
+						"DistChannel",
+						"CustPriceList",
+						"CustGroup1",
+						"ErpCustomer",
+						"DeliveringPlant"
+					].join(",")
 				})
 				.requestObject()
 				.then((oData) => {
@@ -211,24 +186,39 @@ sap.ui.define([
 						.filter(item => item.value !== undefined && item.value !== null && item.value !== "")
 						.map(item => new Filter(item.path, FilterOperator.EQ, item.value));
 
-					return oView.getModel()
+					return oModel
 						.bindList("/ProductPricelistTree", null, null, aFilters)
 						.requestContexts(0, 5000);
 				})
 				.then((aContexts) => {
 					return aContexts.map(oCtx => oCtx.getObject());
-				})
-				.catch((oErr) => {
-					console.error("Error fetching ProductPricelistTree data:", oErr);
-					return [];
 				});
 		},
 
-		_setTreeTableData: function (aData) {
-			const oView = this.base.getView();
-			const oJsonModel = oView.getModel('jsonModel');
+		// _setTreeTableData: function (aData) {
+		// 	const oView = this.base.getView();
+		// 	const oJsonModel = oView.getModel('jsonModel');
 
-			const aTreeData = Array.isArray(aData) && aData.length ? this._buildTreeFromFlatData(aData) : this._getMockData();
+		// 	const aTreeData = Array.isArray(aData) && aData.length ? this._buildTreeFromFlatData(aData) : this._getMockData();
+
+		// 	oJsonModel.setProperty("/productPriceList", aTreeData);
+		// 	oJsonModel.setProperty("/originalProductPriceList", JSON.parse(JSON.stringify(aTreeData)));
+		// 	oJsonModel.setProperty("/pendingDeletedIds", []);
+		// 	oJsonModel.setProperty("/selectedKeys", []);
+
+		// 	this._deletedSnapshots = [];
+		// 	this._originalSnapshot = JSON.parse(JSON.stringify(aTreeData));
+
+		// 	this._updateModeToggleEnabled();
+		// },
+
+		_setTreeTableData: function (aFlatData) {
+			const oView = this.base.getView();
+			const oJsonModel = oView.getModel("jsonModel");
+
+			const aTreeData = Array.isArray(aFlatData) && aFlatData.length
+				? this._buildTreeFromFlatData(aFlatData)
+				: [];
 
 			oJsonModel.setProperty("/productPriceList", aTreeData);
 			oJsonModel.setProperty("/originalProductPriceList", JSON.parse(JSON.stringify(aTreeData)));
@@ -238,6 +228,9 @@ sap.ui.define([
 			this._deletedSnapshots = [];
 			this._originalSnapshot = JSON.parse(JSON.stringify(aTreeData));
 
+			oJsonModel.updateBindings(true);
+
+			this._setDeleteBtnState(false);
 			this._updateModeToggleEnabled();
 		},
 

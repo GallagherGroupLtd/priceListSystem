@@ -1207,7 +1207,7 @@ module.exports = cds.service.impl(async function () {
 
     // Custom logic to get product tree data
     this.on('READ', 'ProductPricelistTree', async (req) => {
-        
+
         function extractWhereValue(whereArr, fieldName) {
             if (!whereArr) return null;
             for (let i = 0; i < whereArr.length; i++) {
@@ -1288,9 +1288,9 @@ module.exports = cds.service.impl(async function () {
         // 4. Get pricing parameters
         let localQueryPricingParam = SELECT.from('PricingParameterDetermination');
         if (req.query.SELECT.where) {
-                        localQueryPricingParam.where(req.query.SELECT.where);
-                                    localQueryPricingParam.orderBy({ createdAt: 'desc' });
-                                            
+            localQueryPricingParam.where(req.query.SELECT.where);
+            localQueryPricingParam.orderBy({ createdAt: 'desc' });
+
         }
         const resultsPricing = await db.run(localQueryPricingParam);
 
@@ -1382,11 +1382,29 @@ module.exports = cds.service.impl(async function () {
                 whereConditions.push(`${col('DISTRIBUTION_CHANNEL')} = '${safe(combo.distChannel)}'`);
             }
 
+            // if (has('VALID_FROM_DATE')) {
+            //     whereConditions.push(`${col('VALID_FROM_DATE')} <= CURRENT_DATE`);
+            // }
+            // if (has('VALID_TO_DATE')) {
+            //     whereConditions.push(`${col('VALID_TO_DATE')} >= CURRENT_DATE`);
+            // }
+
             if (has('VALID_FROM_DATE')) {
-                whereConditions.push(`${col('VALID_FROM_DATE')} <= CURRENT_DATE`);
+                whereConditions.push(`(
+                    ${col('VALID_FROM_DATE')} IS NULL
+                    OR TRIM(${col('VALID_FROM_DATE')}) = ''
+                    OR ${col('VALID_FROM_DATE')} = '00000000'
+                    OR ${col('VALID_FROM_DATE')} <= TO_DATS(CURRENT_DATE)
+                )`);
             }
+
             if (has('VALID_TO_DATE')) {
-                whereConditions.push(`${col('VALID_TO_DATE')} >= CURRENT_DATE`);
+                whereConditions.push(`(
+                    ${col('VALID_TO_DATE')} IS NULL
+                    OR TRIM(${col('VALID_TO_DATE')}) = ''
+                    OR ${col('VALID_TO_DATE')} = '00000000'
+                    OR ${col('VALID_TO_DATE')} >= TO_DATS(CURRENT_DATE)
+                )`);
             }
 
             return `SELECT 
@@ -1403,7 +1421,7 @@ module.exports = cds.service.impl(async function () {
 
         }).filter(Boolean);
         // console.log('>>> Generated UNION ALL Query for Pricing:', unionParts.join('\nUNION ALL\n'));
-        
+
         let priceRecords = [];
         if (unionParts.length > 0) {
             const priceQuery = unionParts.join(' UNION ALL ');
