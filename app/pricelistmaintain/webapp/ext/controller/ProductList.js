@@ -40,13 +40,9 @@ sap.ui.define([
     }
 
     return {
-        /**
-         * Generated event handler.
-         *
-         * @param oEvent the event object provided by the event provider.
-         */
-        onPress: function (oEvent) {
-            MessageToast.show("Custom handler invoked.");
+
+        onNavigate: function (oEvent) {
+            ExtController.getInstance().onNavigate(oEvent);
         },
 
         onExpand: function (oEvent) {
@@ -483,72 +479,85 @@ sap.ui.define([
         },
 
         onSelectionChange: function (oEvent) {
-            if (this.bDeleteMode) {
-                ExtController._onSelectionChangeDeleteMode(oEvent);
+            const oExt = ExtController.getInstance();
+
+            oExt._handleProductTreeSelectionChange(oEvent);
+
+            const mMode = oExt._getProductTreeModeState();
+
+            if (mMode.deleteMode) {
+                oExt._onSelectionChangeDeleteMode(oEvent);
             } else {
-                ExtController._onSelectionChangeDisplayMode(oEvent);
+                oExt._onSelectionChangeDisplayMode(oEvent);
             }
         },
+        // onSelectionChange: function (oEvent) {
+        //     if (this.bDeleteMode) {
+        //         ExtController._onSelectionChangeDeleteMode(oEvent);
+        //     } else {
+        //         ExtController._onSelectionChangeDisplayMode(oEvent);
+        //     }
+        // },
 
-        onSelectionChangeDisplayMode: function (oEvent) {
-            //Demo code
-            MessageToast.show("Row Selection Change:");
-            const oTable = oEvent.getSource();
-            const aSelectedIndices = oTable.getSelectedIndices();
-            const oDeleteButton = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
-            const oResetButton = sap.ui.getCore().byId(idPrefix + "ProductListResetBtn");
-            const oRefreshButton = sap.ui.getCore().byId(idPrefix + "ProductListRefreshBtn");
+        // onSelectionChangeDisplayMode: function (oEvent) {
+        //     //Demo code
+        //     MessageToast.show("Row Selection Change:");
+        //     const oTable = oEvent.getSource();
+        //     const aSelectedIndices = oTable.getSelectedIndices();
+        //     const oDeleteButton = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
+        //     const oResetButton = sap.ui.getCore().byId(idPrefix + "ProductListResetBtn");
+        //     const oRefreshButton = sap.ui.getCore().byId(idPrefix + "ProductListRefreshBtn");
 
-            const iSelectedIndex = aSelectedIndices[0];
-            const oRowContext = oTable.getContextByIndex(iSelectedIndex);
+        //     const iSelectedIndex = aSelectedIndices[0];
+        //     const oRowContext = oTable.getContextByIndex(iSelectedIndex);
 
-            if (!oRowContext) {
-                MessageToast.show("No row selected.");
-                return;
-            }
+        //     if (!oRowContext) {
+        //         MessageToast.show("No row selected.");
+        //         return;
+        //     }
 
-            const oSelectedData = oRowContext.getObject();
+        //     const oSelectedData = oRowContext.getObject();
 
-            if (oSelectedData) {
+        //     if (oSelectedData) {
 
-                let sSubSectionId = null;
-                let oObjectPageLayout = null;
-                let oControl = oTable;
+        //         let sSubSectionId = null;
+        //         let oObjectPageLayout = null;
+        //         let oControl = oTable;
 
-                while (oControl) {
-                    if (oControl.isA && oControl.isA("sap.uxap.ObjectPageLayout")) {
-                        oObjectPageLayout = oControl;
-                        break;
-                    }
-                    oControl = oControl.getParent && oControl.getParent();
-                }
+        //         while (oControl) {
+        //             if (oControl.isA && oControl.isA("sap.uxap.ObjectPageLayout")) {
+        //                 oObjectPageLayout = oControl;
+        //                 break;
+        //             }
+        //             oControl = oControl.getParent && oControl.getParent();
+        //         }
 
-                switch (oSelectedData.Kind) {
-                    case "Product":
-                        sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductDetails";
-                }
+        //         switch (oSelectedData.Kind) {
+        //             case "Product":
+        //                 sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductDetails";
+        //         }
 
-                if (oObjectPageLayout) {
-                    oObjectPageLayout.scrollToSection(sSubSectionId);
-                } else {
-                    const oSubSection = sap.ui.getCore().byId(sSubSectionId);
-                    if (oSubSection && oSubSection.getDomRef()) {
-                        oSubSection.getDomRef().scrollIntoView({ behavior: "smooth" });
-                    }
-                }
-            }
+        //         if (oObjectPageLayout) {
+        //             oObjectPageLayout.scrollToSection(sSubSectionId);
+        //         } else {
+        //             const oSubSection = sap.ui.getCore().byId(sSubSectionId);
+        //             if (oSubSection && oSubSection.getDomRef()) {
+        //                 oSubSection.getDomRef().scrollIntoView({ behavior: "smooth" });
+        //             }
+        //         }
+        //     }
 
-            if (aSelectedIndices.length > 0) {
-                ExtController.getInstance()._setDeleteBtnState(true);
-                // oRefreshButton.setEnabled(true);
-                // oResetButton.setEnabled(true);
-            } else {
-                ExtController.getInstance()._setDeleteBtnState(false);
-                // oRefreshButton.setEnabled(false);
-                // oResetButton.setEnabled(false);
-            }
-            // oTable.clearSelection();
-        }
+        //     if (aSelectedIndices.length > 0) {
+        //         ExtController.getInstance()._setDeleteBtnState(true);
+        //         // oRefreshButton.setEnabled(true);
+        //         // oResetButton.setEnabled(true);
+        //     } else {
+        //         ExtController.getInstance()._setDeleteBtnState(false);
+        //         // oRefreshButton.setEnabled(false);
+        //         // oResetButton.setEnabled(false);
+        //     }
+        //     // oTable.clearSelection();
+        // }
 
     }
 });

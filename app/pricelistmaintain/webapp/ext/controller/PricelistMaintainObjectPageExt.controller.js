@@ -54,6 +54,8 @@ sap.ui.define([
 				// initialize deletion snapshot stack and original snapshot holder
 				this._deletedSnapshots = [];
 				this._originalSnapshot = null;
+
+				this._initProductDetailSectionState();
 			},
 
 			onPageReady: function () {
@@ -65,11 +67,18 @@ sap.ui.define([
 				// ensure toggles are disabled if there's no data
 				this._updateModeToggleEnabled();
 
-
 				// this._getProductPriceList();
 
 				// this._productTreeTable.collapseAll();
 				// this.productsTreeRefresh();
+
+				this._bindProductDetailSubSections();
+				this._clearProductDetailSections();
+				this._updateProductListNavButtonState({
+					singleSelected: false,
+					deleteMode: false,
+					reorderMode: false
+				});
 
 			},
 			editFlow: {
@@ -232,6 +241,13 @@ sap.ui.define([
 
 			this._setDeleteBtnState(false);
 			this._updateModeToggleEnabled();
+
+			this._clearProductDetailSections();
+			this._updateProductListNavButtonState({
+				singleSelected: false,
+				deleteMode: false,
+				reorderMode: false
+			});
 		},
 
 		_buildTree: function (rows) {
@@ -730,94 +746,8 @@ sap.ui.define([
 			];
 		},
 
-		_onSelectionChangeDisplayMode: function (oEvent) {
-			//Demo code
-			MessageToast.show("Row Selection Change:");
-			const oTable = oEvent.getSource();
-			const aSelectedIndices = oTable.getSelectedIndices();
-			const oDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteBtn");
-			const oResetButton = sap.ui.getCore().byId(idTreePrefix + "ProductListResetBtn");
-			const oRefreshButton = sap.ui.getCore().byId(idTreePrefix + "ProductListRefreshBtn");
-
-			const iSelectedIndex = aSelectedIndices[0];
-			const oRowContext = oTable.getContextByIndex(iSelectedIndex);
-
-			if (!oRowContext) {
-				MessageToast.show("No row selected.");
-				return;
-			}
-
-			const oSelectedData = oRowContext.getObject();
-
-			// Keep oSelectedData and find from table 
-			// Main and Sub get from table ???? and Product from table + Tree table ???
-
-			if (oSelectedData) {
-
-				// Get the view and set the selected node data to a model for use in other sections of the Main/Sub Category
-				const oView = _oInstance._getView(oTable);
-				if (oView) {
-					let oSelectedModel = oView.getModel("selectedNode");
-					if (!oSelectedModel) {
-						oSelectedModel = new sap.ui.model.json.JSONModel({});
-						oView.setModel(oSelectedModel, "selectedNode");
-					}
-					oSelectedModel.setData(oSelectedData);
-				}
-
-				// Scroll to the appropriate section based on the selected node's kind and category level
-				let sSubSectionId = null;
-				let oObjectPageLayout = null;
-				let oControl = oTable;
-
-				while (oControl) {
-					if (oControl.isA && oControl.isA("sap.uxap.ObjectPageLayout")) {
-						oObjectPageLayout = oControl;
-						break;
-					}
-					oControl = oControl.getParent && oControl.getParent();
-				}
-
-				switch (oSelectedData.Kind) {
-					case "Category":
-
-
-
-						// Scroll to the appropriate section based on category level
-						if (oSelectedData.CategoryLevel === 0) {
-							sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::PricelistMainCategory";
-						} else {
-							sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::PricelistSubCategory";
-						}
-						break;
-					case "Product":
-
-						// Get the view and set the selected note data to a model for use in other sections of the Product
-
-						sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductDetails";
-						break;
-				}
-
-				if (oObjectPageLayout) {
-					oObjectPageLayout.scrollToSection(sSubSectionId);
-				} else {
-					const oSubSection = sap.ui.getCore().byId(sSubSectionId);
-					if (oSubSection && oSubSection.getDomRef()) {
-						oSubSection.getDomRef().scrollIntoView({ behavior: "smooth" });
-					}
-				}
-			}
-
-			if (aSelectedIndices.length > 0) {
-				this._setDeleteBtnState(true);
-				// oRefreshButton.setEnabled(true);
-				// oResetButton.setEnabled(true);
-			} else {
-				this._setDeleteBtnState(false);
-				// oRefreshButton.setEnabled(false);
-				// oResetButton.setEnabled(false);
-			}
-			// oTable.clearSelection();
+		_onSelectionChangeDisplayMode: function () {
+			this._setDeleteBtnState(false);
 		},
 
 		_getView: function (oControl) {
@@ -1416,8 +1346,414 @@ sap.ui.define([
 			walk(aOriginalTree || [], false);
 
 			return aResult.length ? aResult : Array.from(oDeletedSet);
-		}
+		},
 
-		// (other helper stubs commented)
+		_bindDetailSubSection: function (sSubSectionKey, sJsonPath) {
+			const sPrefix = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::";
+			const oSubSection = sap.ui.getCore().byId(sPrefix + sSubSectionKey);
+
+			if (oSubSection && typeof oSubSection.bindElement === "function") {
+				oSubSection.bindElement({
+					path: sJsonPath,
+					model: "jsonModel"
+				});
+			}
+		},
+
+		_getProductTreeModeState: function () {
+			const oView = this.base.getView();
+			const oJsonModel = oView.getModel("jsonModel");
+			const editMode = oView.getModel("ui").getProperty("/editMode");
+
+			const bDisplayMode = editMode === "Display";
+
+			return {
+				editMode: editMode,
+				displayMode: bDisplayMode,
+				deleteMode: !bDisplayMode && !!oJsonModel.getProperty("/isDeleteMode"),
+				reorderMode: !bDisplayMode && !!oJsonModel.getProperty("/isReorderMode")
+			};
+		},
+
+		_handleProductTreeSelectionChange: function (oEvent) {
+			const oTable = oEvent.getSource();
+			const mMode = this._getProductTreeModeState();
+
+			const aSelectedIndices = oTable.getSelectedIndices ? oTable.getSelectedIndices() : [];
+			const bSingleSelected = aSelectedIndices.length === 1;
+
+			let oSelectedContext = null;
+			let oSelectedData = null;
+
+			if (bSingleSelected) {
+				oSelectedContext = oTable.getContextByIndex(aSelectedIndices[0]);
+				oSelectedData = oSelectedContext && oSelectedContext.getObject();
+			}
+
+			this._updateProductListNavButtonState({
+				singleSelected: bSingleSelected,
+				deleteMode: mMode.deleteMode,
+				reorderMode: mMode.reorderMode
+			});
+
+			// Delete mode = multiple selection behavior, no navigation/detail sections
+			if (mMode.deleteMode) {
+				this._clearProductDetailSections();
+				return;
+			}
+
+			// Reorder mode = no navigation/detail sections
+			if (mMode.reorderMode) {
+				this._clearProductDetailSections();
+				return;
+			}
+
+			// Display mode or normal edit mode:
+			// no single selection = hide all details
+			if (!bSingleSelected || !oSelectedContext || !oSelectedData) {
+				this._clearProductDetailSections();
+				return;
+			}
+
+			this._updateDetailSectionsBySelectedContext(oSelectedContext);
+		},
+
+		_updateProductListNavButtonState: function (mState) {
+			const oNavButton = sap.ui.getCore().byId(idTreePrefix + "ProductListNavBtn");
+
+			if (!oNavButton) {
+				return;
+			}
+
+			if (mState.reorderMode) {
+				oNavButton.setVisible(false);
+				oNavButton.setEnabled(false);
+				return;
+			}
+
+			if (mState.deleteMode) {
+				oNavButton.setVisible(true);
+				oNavButton.setEnabled(false);
+				return;
+			}
+
+			oNavButton.setVisible(true);
+			oNavButton.setEnabled(!!mState.singleSelected);
+		},
+
+		_onSelectionChangeDisplayMode: function (oEvent) {
+			this._setDeleteBtnState(false);
+		},
+
+		_onSelectionChangeDeleteMode: function (oEvent) {
+			const oTable = oEvent.getSource();
+			const aSelectedIndices = oTable.getSelectedIndices ? oTable.getSelectedIndices() : [];
+
+			this._setDeleteBtnState(aSelectedIndices.length > 0);
+		},
+
+		_clearProductDetailSections: function () {
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+
+			oJsonModel.setProperty("/selectedMainCategory", null);
+			oJsonModel.setProperty("/selectedSubCategory1", null);
+			oJsonModel.setProperty("/selectedSubCategory2", null);
+			oJsonModel.setProperty("/selectedSubCategory3", null);
+			oJsonModel.setProperty("/selectedSubCategory4", null);
+			oJsonModel.setProperty("/selectedSubCategory5", null);
+			oJsonModel.setProperty("/selectedProduct", null);
+
+			oJsonModel.setProperty("/showMainCategoryDetails", false);
+			oJsonModel.setProperty("/showSubCategory1Details", false);
+			oJsonModel.setProperty("/showSubCategory2Details", false);
+			oJsonModel.setProperty("/showSubCategory3Details", false);
+			oJsonModel.setProperty("/showSubCategory4Details", false);
+			oJsonModel.setProperty("/showSubCategory5Details", false);
+			oJsonModel.setProperty("/showProductDetails", false);
+
+			oJsonModel.updateBindings(true);
+
+			this._syncProductDetailSubSectionVisibility();
+		},
+
+		_updateDetailSectionsBySelectedContext: function (oCtx) {
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+
+			this._clearProductDetailSections();
+
+			if (!oCtx) {
+				return;
+			}
+
+			const aChain = this._getNodeChainFromContext(oCtx);
+
+			aChain.forEach(function (oNode) {
+				if (!oNode) {
+					return;
+				}
+
+				if (oNode.Kind === "Product" || oNode.CategoryLevel === 6) {
+					oJsonModel.setProperty("/selectedProduct", oNode);
+					oJsonModel.setProperty("/showProductDetails", true);
+					return;
+				}
+
+				switch (oNode.CategoryLevel) {
+					case 0:
+						oJsonModel.setProperty("/selectedMainCategory", oNode);
+						oJsonModel.setProperty("/showMainCategoryDetails", true);
+						break;
+
+					case 1:
+						oJsonModel.setProperty("/selectedSubCategory1", oNode);
+						oJsonModel.setProperty("/showSubCategory1Details", true);
+						break;
+
+					case 2:
+						oJsonModel.setProperty("/selectedSubCategory2", oNode);
+						oJsonModel.setProperty("/showSubCategory2Details", true);
+						break;
+
+					case 3:
+						oJsonModel.setProperty("/selectedSubCategory3", oNode);
+						oJsonModel.setProperty("/showSubCategory3Details", true);
+						break;
+
+					case 4:
+						oJsonModel.setProperty("/selectedSubCategory4", oNode);
+						oJsonModel.setProperty("/showSubCategory4Details", true);
+						break;
+
+					case 5:
+						oJsonModel.setProperty("/selectedSubCategory5", oNode);
+						oJsonModel.setProperty("/showSubCategory5Details", true);
+						break;
+				}
+			});
+
+			oJsonModel.updateBindings(true);
+
+			this._syncProductDetailSubSectionVisibility();
+		},
+
+		_getNodeChainFromContext: function (oCtx) {
+			const oModel = oCtx.getModel();
+			const sPath = oCtx.getPath();
+			const aParts = sPath.split("/").filter(Boolean);
+
+			const aChain = [];
+			let sCurrentPath = "";
+
+			aParts.forEach(function (sPart) {
+				sCurrentPath += "/" + sPart;
+
+				// Only array index parts are actual tree nodes.
+				// Example:
+				// /productPriceList/0/children/1/children/0
+				if (/^\d+$/.test(sPart)) {
+					const oNode = oModel.getProperty(sCurrentPath);
+
+					if (oNode && (oNode.Kind === "Category" || oNode.Kind === "Product")) {
+						aChain.push(oNode);
+					}
+				}
+			});
+
+			return aChain;
+		},
+
+		_getTargetSubSectionKeyByNode: function (oNode) {
+			if (!oNode) {
+				return null;
+			}
+
+			if (oNode.Kind === "Product" || oNode.CategoryLevel === 6) {
+				return "ProductDetails";
+			}
+
+			if (oNode.CategoryLevel === 0) {
+				return "PricelistMainCategory";
+			}
+
+			if (oNode.CategoryLevel >= 1 && oNode.CategoryLevel <= 5) {
+				return "PricelistSubCategory" + oNode.CategoryLevel;
+			}
+
+			return null;
+		},
+
+		onNavigate: function (oEvent) {
+			const oSource = oEvent && oEvent.getSource ? oEvent.getSource() : null;
+
+			// Important:
+			// Prevent browser/UI5 from restoring focus to the toolbar button,
+			// which can scroll the page back to the tree after navigation.
+			if (oSource && oSource.getDomRef && oSource.getDomRef()) {
+				oSource.getDomRef().blur();
+			}
+
+			if (document.activeElement && document.activeElement.blur) {
+				document.activeElement.blur();
+			}
+
+			const oTable = this._productTreeTable || sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
+
+			if (!oTable) {
+				MessageToast.show("Tree table not found.");
+				return;
+			}
+
+			const mMode = this._getProductTreeModeState();
+
+			if (mMode.deleteMode || mMode.reorderMode) {
+				MessageToast.show("Navigation is disabled in this mode.");
+				return;
+			}
+
+			const aSelectedIndices = oTable.getSelectedIndices ? oTable.getSelectedIndices() : [];
+
+			if (aSelectedIndices.length !== 1) {
+				MessageToast.show("Please select one node first.");
+				return;
+			}
+
+			const oCtx = oTable.getContextByIndex(aSelectedIndices[0]);
+			const oSelectedData = oCtx && oCtx.getObject();
+
+			if (!oSelectedData) {
+				MessageToast.show("No row selected.");
+				return;
+			}
+
+			// Make required Main/Sub/Product sections visible first
+			this._updateDetailSectionsBySelectedContext(oCtx);
+
+			// Important:
+			// Apply visibility changes before trying to scroll.
+			sap.ui.getCore().applyChanges();
+
+			const sSubSectionKey = this._getTargetSubSectionKeyByNode(oSelectedData);
+
+			if (!sSubSectionKey) {
+				MessageToast.show("Unable to determine target section.");
+				return;
+			}
+
+			const sSubSectionId =
+				"pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::" +
+				sSubSectionKey;
+
+			const oSubSection = sap.ui.getCore().byId(sSubSectionId);
+
+			if (!oSubSection) {
+				MessageToast.show("Target section not found.");
+				return;
+			}
+
+			let oObjectPageLayout = null;
+			let oControl = oTable;
+
+			while (oControl) {
+				if (oControl.isA && oControl.isA("sap.uxap.ObjectPageLayout")) {
+					oObjectPageLayout = oControl;
+					break;
+				}
+
+				oControl = oControl.getParent && oControl.getParent();
+			}
+
+			if (oObjectPageLayout) {
+				// Use 0 duration to avoid animation fighting with focus/layout recalculation.
+				oObjectPageLayout.scrollToSection(sSubSectionId, 0);
+				return;
+			}
+
+			if (oSubSection.getDomRef()) {
+				oSubSection.getDomRef().scrollIntoView({
+					behavior: "auto",
+					block: "start"
+				});
+			}
+		},
+
+		_initProductDetailSectionState: function () {
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+
+			oJsonModel.setProperty("/showMainCategoryDetails", false);
+			oJsonModel.setProperty("/showSubCategory1Details", false);
+			oJsonModel.setProperty("/showSubCategory2Details", false);
+			oJsonModel.setProperty("/showSubCategory3Details", false);
+			oJsonModel.setProperty("/showSubCategory4Details", false);
+			oJsonModel.setProperty("/showSubCategory5Details", false);
+			oJsonModel.setProperty("/showProductDetails", false);
+
+			oJsonModel.setProperty("/selectedMainCategory", null);
+			oJsonModel.setProperty("/selectedSubCategory1", null);
+			oJsonModel.setProperty("/selectedSubCategory2", null);
+			oJsonModel.setProperty("/selectedSubCategory3", null);
+			oJsonModel.setProperty("/selectedSubCategory4", null);
+			oJsonModel.setProperty("/selectedSubCategory5", null);
+			oJsonModel.setProperty("/selectedProduct", null);
+		},
+
+		_bindProductDetailSubSections: function () {
+			this._bindDetailSubSection("PricelistMainCategory", "/selectedMainCategory");
+
+			this._bindDetailSubSection("PricelistSubCategory1", "/selectedSubCategory1");
+			this._bindDetailSubSection("PricelistSubCategory2", "/selectedSubCategory2");
+			this._bindDetailSubSection("PricelistSubCategory3", "/selectedSubCategory3");
+			this._bindDetailSubSection("PricelistSubCategory4", "/selectedSubCategory4");
+			this._bindDetailSubSection("PricelistSubCategory5", "/selectedSubCategory5");
+
+			this._bindDetailSubSection("ProductDetails", "/selectedProduct");
+		},
+
+		_setDetailSubSectionVisible: function (sSubSectionKey, bVisible) {
+			const sPrefix = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::";
+			const oSubSection = sap.ui.getCore().byId(sPrefix + sSubSectionKey);
+
+			if (oSubSection && typeof oSubSection.setVisible === "function") {
+				oSubSection.setVisible(bVisible);
+			}
+		},
+
+		_syncProductDetailSubSectionVisibility: function () {
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+
+			this._setDetailSubSectionVisible(
+				"PricelistMainCategory",
+				!!oJsonModel.getProperty("/showMainCategoryDetails")
+			);
+
+			this._setDetailSubSectionVisible(
+				"PricelistSubCategory1",
+				!!oJsonModel.getProperty("/showSubCategory1Details")
+			);
+
+			this._setDetailSubSectionVisible(
+				"PricelistSubCategory2",
+				!!oJsonModel.getProperty("/showSubCategory2Details")
+			);
+
+			this._setDetailSubSectionVisible(
+				"PricelistSubCategory3",
+				!!oJsonModel.getProperty("/showSubCategory3Details")
+			);
+
+			this._setDetailSubSectionVisible(
+				"PricelistSubCategory4",
+				!!oJsonModel.getProperty("/showSubCategory4Details")
+			);
+
+			this._setDetailSubSectionVisible(
+				"PricelistSubCategory5",
+				!!oJsonModel.getProperty("/showSubCategory5Details")
+			);
+
+			this._setDetailSubSectionVisible(
+				"ProductDetails",
+				!!oJsonModel.getProperty("/showProductDetails")
+			);
+		}
 	});
 });

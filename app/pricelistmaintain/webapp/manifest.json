@@ -166,7 +166,7 @@
                         "placement": "Before",
                         "anchor": "ProductPricelistFacet"
                       },
-                      "title": "Gallagher Products1.8"
+                      "title": "Gallagher Products1.14"
                     },
                     "ProductPricelistFacet": {
                       "subSections": {
@@ -178,20 +178,52 @@
                           },
                           "title": "Main Category Details"
                         },
-                        "PricelistSubCategory": {
+                        "PricelistSubCategory1": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
                           "position": {
                             "placement": "After",
                             "anchor": "PricelistMainCategory"
                           },
-                          "title": "Sub Category Details"
+                          "title": "Sub Category 1 Details"
+                        },
+                        "PricelistSubCategory2": {
+                          "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "PricelistSubCategory1"
+                          },
+                          "title": "Sub Category 2 Details"
+                        },
+                        "PricelistSubCategory3": {
+                          "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "PricelistSubCategory2"
+                          },
+                          "title": "Sub Category 3 Details"
+                        },
+                        "PricelistSubCategory4": {
+                          "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "PricelistSubCategory3"
+                          },
+                          "title": "Sub Category 4 Details"
+                        },
+                        "PricelistSubCategory5": {
+                          "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "PricelistSubCategory4"
+                          },
+                          "title": "Sub Category 5 Details"
                         },
                         "ProductDetails": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductDetails",
                           "title": "Product Details",
                           "position": {
                             "placement": "After",
-                            "anchor": "PricelistSubCategory"
+                            "anchor": "PricelistSubCategory5"
                           }
                         }
                       }
