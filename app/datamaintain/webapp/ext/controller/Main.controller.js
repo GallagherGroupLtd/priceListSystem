@@ -100,7 +100,7 @@ sap.ui.define(
                         sSemanticObject = "DataMaintainPP";
                         sAction = "maintain";                            
                         break;
-                    case "Tile Content":
+                    case "Tile Contents":
                         sSemanticObject = "DataMaintainTile";
                         sAction = "maintain";                            
                         break;
