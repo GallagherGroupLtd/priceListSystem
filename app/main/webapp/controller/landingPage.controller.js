@@ -185,6 +185,7 @@ sap.ui.define([
                            wrap: "Wrap",
                            width: "100%",
                            class: "outerHBox",
+                           columnGap: "15rem !important",
                            items: [oInnerHBoxPhone, oInnerHBoxEmail]});
 
                         oVBox.addItem(oOuterHBox);
