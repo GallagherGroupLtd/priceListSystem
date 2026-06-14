@@ -1382,6 +1382,13 @@ module.exports = cds.service.impl(async function () {
                 whereConditions.push(`${col('DISTRIBUTION_CHANNEL')} = '${safe(combo.distChannel)}'`);
             }
 
+            // if (has('VALID_FROM_DATE')) {
+            //     whereConditions.push(`${col('VALID_FROM_DATE')} <= CURRENT_DATE`);
+            // }
+            // if (has('VALID_TO_DATE')) {
+            //     whereConditions.push(`${col('VALID_TO_DATE')} >= CURRENT_DATE`);
+            // }
+
             if (has('VALID_FROM_DATE')) {
                 whereConditions.push(`${col('VALID_FROM_DATE')} IS NOT NULL`);
                 whereConditions.push(`${col('VALID_FROM_DATE')} <> ''`);
@@ -1410,7 +1417,7 @@ module.exports = cds.service.impl(async function () {
                 WHERE ${whereConditions.join(' AND ')}`;
 
         }).filter(Boolean);
-        console.log('>>> Generated UNION ALL Query for Pricing:', unionParts.join('\nUNION ALL\n'));
+        // console.log('>>> Generated UNION ALL Query for Pricing:', unionParts.join('\nUNION ALL\n'));
 
         let priceRecords = [];
         if (unionParts.length > 0) {
