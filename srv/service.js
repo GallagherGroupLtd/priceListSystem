@@ -1242,6 +1242,9 @@ module.exports = cds.service.impl(async function () {
         const headerSalesOrg = extractWhereValue(whereClause, 'SalesOrg') ?? results.find(r => r.SalesOrg)?.SalesOrg ?? null;
         const headerDistChannel = extractWhereValue(whereClause, 'DistChannel') ?? results.find(r => r.DistChannel)?.DistChannel ?? null;
         const headerDeliveringPlant = extractWhereValue(whereClause, 'DeliveringPlant') ?? results.find(r => r.DeliveringPlant)?.DeliveringPlant ?? null;
+
+        const headerCustPriceList = extractWhereValue(whereClause, 'CustPriceList') ?? results.find(r => r.CustPriceList)?.CustPriceList ?? null;
+        const headerErpCustomer = extractWhereValue(whereClause, 'ErpCustomer') ?? results.find(r => r.ErpCustomer)?.ErpCustomer ?? null;
         let orConditions = [];
 
         results.forEach(row => {
@@ -1317,7 +1320,7 @@ module.exports = cds.service.impl(async function () {
             });
         });
         // console.table(partNumberResults, ["ProductID", "SalesOrg", "DistChannel", "PricelistType", "MarketScopeRegion", "MarketScopeCountry", "ProductStatus", "StatusValidity"]);
-        console.log('>>> Part Number Determination Map:', partNumberDeterminationMap);
+        // console.log('>>> Part Number Determination Map:', partNumberDeterminationMap);
 
         // 4. Get pricing parameters
         let localQueryPricingParam = SELECT.from('PricingParameterDetermination');
@@ -1395,6 +1398,78 @@ module.exports = cds.service.impl(async function () {
 
         const safe = v => String(v).replace(/'/g, "''");
 
+        // const unionParts = activeSequences.map(combo => {
+        //     const px = combo.accessSequence;
+        //     const col = suffix => `"${px}_${suffix}"`;
+        //     const has = suffix => availableCols.has(`${px}_${suffix}`);
+
+        //     if (!has('MATERIAL') || !has('CONDITION_TYPE')) return null;
+
+        //     const whereConditions = [];
+        //     const matList = materialKeys.map(m => `'${safe(m)}'`).join(', ');
+
+        //     whereConditions.push(`${col('MATERIAL')} IN (${matList})`);
+        //     whereConditions.push(`${col('CONDITION_TYPE')} = '${safe(combo.conditionType)}'`);
+
+        //     if (has('SALES_ORGANIZATION') && combo.salesOrg) {
+        //         whereConditions.push(`${col('SALES_ORGANIZATION')} = '${safe(combo.salesOrg)}'`);
+        //     }
+
+        //     if (has('DISTRIBUTION_CHANNEL') && combo.distChannel) {
+        //         whereConditions.push(`${col('DISTRIBUTION_CHANNEL')} = '${safe(combo.distChannel)}'`);
+        //     }
+
+        //     if (has('VALID_FROM_DATE')) {
+        //         whereConditions.push(`${col('VALID_FROM_DATE')} IS NOT NULL`);
+        //         whereConditions.push(`${col('VALID_FROM_DATE')} <> ''`);
+        //         whereConditions.push(
+        //             `TO_DATE(${col('VALID_FROM_DATE')}, 'MM/DD/YY') <= CURRENT_DATE`
+        //         );
+        //     }
+
+        //     if (has('VALID_TO_DATE')) {
+        //         whereConditions.push(`${col('VALID_TO_DATE')} IS NOT NULL`);
+        //         whereConditions.push(`${col('VALID_TO_DATE')} <> ''`);
+        //         whereConditions.push(
+        //             `TO_DATE(${col('VALID_TO_DATE')}, 'MM/DD/YY') >= CURRENT_DATE`
+        //         );
+        //     }
+
+        //     const alreadyMapped = new Set(['MATERIAL', 'CONDITION_TYPE', 'VALID_FROM_DATE', 'VALID_TO_DATE']);
+        //     const extraCols = [...availableCols]
+        //         .filter(c => c.startsWith(`${px}_`) && !alreadyMapped.has(c.replace(`${px}_`, '')))
+        //         .map(c => `${col(c.replace(`${px}_`, ''))} AS "${c.replace(`${px}_`, '')}"`)
+        //         .join(',\n    ');            
+
+        //     return `SELECT 
+        //             '${px}' AS "ACCESS_SEQUENCE",
+        //             ${combo.priority} AS "PRIORITY",
+        //             ${col('MATERIAL')} AS "MATERIAL",
+        //             ${col('CONDITION_TYPE')} AS "CONDITION_TYPE",
+        //             "KONP_RATE" AS "PRICE",
+        //             "KONP_RATE_UNIT" AS "PRICE_UNIT",
+        //             ${has('VALID_FROM_DATE') ? col('VALID_FROM_DATE') : 'NULL'} AS "VALID_FROM",
+        //             ${has('VALID_TO_DATE') ? col('VALID_TO_DATE') : 'NULL'} AS "VALID_TO"
+        //             ${extraCols ? ',\n    ' + extraCols : ''}
+        //         FROM "SAPECC"."T_PRICELIST_MASTER_DATA"
+        //         WHERE ${whereConditions.join(' AND ')}`;
+        // }).filter(Boolean);
+
+        const alreadyMapped = new Set(['MATERIAL', 'CONDITION_TYPE', 'VALID_FROM_DATE', 'VALID_TO_DATE']);
+
+        // First pass: collect ALL unique extra suffixes across ALL sequences
+        const allExtraSuffixes = new Set();
+        activeSequences.forEach(combo => {
+            [...availableCols]
+                .filter(c => c.startsWith(`${combo.accessSequence}_`))
+                .forEach(c => {
+                    const suffix = c.replace(`${combo.accessSequence}_`, '');
+                    if (!alreadyMapped.has(suffix)) allExtraSuffixes.add(suffix);
+                });
+        });
+        const extraSuffixList = [...allExtraSuffixes];
+
+        // Second pass: build union parts
         const unionParts = activeSequences.map(combo => {
             const px = combo.accessSequence;
             const col = suffix => `"${px}_${suffix}"`;
@@ -1404,55 +1479,55 @@ module.exports = cds.service.impl(async function () {
 
             const whereConditions = [];
             const matList = materialKeys.map(m => `'${safe(m)}'`).join(', ');
-
             whereConditions.push(`${col('MATERIAL')} IN (${matList})`);
             whereConditions.push(`${col('CONDITION_TYPE')} = '${safe(combo.conditionType)}'`);
 
-            if (has('SALES_ORGANIZATION') && combo.salesOrg) {
+            if (has('SALES_ORGANIZATION') && combo.salesOrg)
                 whereConditions.push(`${col('SALES_ORGANIZATION')} = '${safe(combo.salesOrg)}'`);
-            }
-
-            if (has('DISTRIBUTION_CHANNEL') && combo.distChannel) {
+            if (has('DISTRIBUTION_CHANNEL') && combo.distChannel)
                 whereConditions.push(`${col('DISTRIBUTION_CHANNEL')} = '${safe(combo.distChannel)}'`);
-            }
-
             if (has('VALID_FROM_DATE')) {
                 whereConditions.push(`${col('VALID_FROM_DATE')} IS NOT NULL`);
                 whereConditions.push(`${col('VALID_FROM_DATE')} <> ''`);
-                whereConditions.push(
-                    `TO_DATE(${col('VALID_FROM_DATE')}, 'MM/DD/YY') <= CURRENT_DATE`
-                );
+                whereConditions.push(`TO_DATE(${col('VALID_FROM_DATE')}, 'MM/DD/YY') <= CURRENT_DATE`);
             }
-
             if (has('VALID_TO_DATE')) {
                 whereConditions.push(`${col('VALID_TO_DATE')} IS NOT NULL`);
                 whereConditions.push(`${col('VALID_TO_DATE')} <> ''`);
-                whereConditions.push(
-                    `TO_DATE(${col('VALID_TO_DATE')}, 'MM/DD/YY') >= CURRENT_DATE`
-                );
+                whereConditions.push(`TO_DATE(${col('VALID_TO_DATE')}, 'MM/DD/YY') >= CURRENT_DATE`);
             }
-            return `SELECT 
-                    '${px}' AS "ACCESS_SEQUENCE",
-                    ${combo.priority} AS "PRIORITY",
-                    ${col('MATERIAL')} AS "MATERIAL",
-                    ${col('CONDITION_TYPE')} AS "CONDITION_TYPE",
-                    "KONP_RATE" AS "PRICE",
-                    "KONP_RATE_UNIT" AS "PRICE_UNIT",
-                    ${has('VALID_FROM_DATE') ? col('VALID_FROM_DATE') : 'NULL'} AS "VALID_FROM",
-                    ${has('VALID_TO_DATE') ? col('VALID_TO_DATE') : 'NULL'} AS "VALID_TO"
-                FROM "SAPECC"."T_PRICELIST_MASTER_DATA"
-                WHERE ${whereConditions.join(' AND ')}`;
 
+            // Use superset — NULL for columns this sequence doesn't have
+            const extraCols = extraSuffixList
+                .map(suffix => has(suffix) ? `${col(suffix)} AS "${suffix}"` : `NULL AS "${suffix}"`)
+                .join(',\n    ');
+
+            // console.log(`>>> Generated extra columns for sequence ${px}:`, extraCols);
+            // console.log('>>> Generated UNION ALL Query for Pricing:', unionParts.join('\nUNION ALL\n'));
+
+            return `SELECT 
+                '${px}' AS "ACCESS_SEQUENCE",
+                ${combo.priority} AS "PRIORITY",
+                ${col('MATERIAL')} AS "MATERIAL",
+                ${col('CONDITION_TYPE')} AS "CONDITION_TYPE",
+                "KONP_RATE" AS "PRICE",
+                "KONP_RATE_UNIT" AS "PRICE_UNIT",
+                ${has('VALID_FROM_DATE') ? col('VALID_FROM_DATE') : 'NULL'} AS "VALID_FROM",
+                ${has('VALID_TO_DATE') ? col('VALID_TO_DATE') : 'NULL'} AS "VALID_TO"
+                ${extraCols ? ',\n    ' + extraCols : ''}
+            FROM "SAPECC"."T_PRICELIST_MASTER_DATA"
+            WHERE ${whereConditions.join(' AND ')}`;
         }).filter(Boolean);
-        // console.log('>>> Generated UNION ALL Query for Pricing:', unionParts.join('\nUNION ALL\n'));
 
         let priceRecords = [];
         if (unionParts.length > 0) {
             const priceQuery = unionParts.join(' UNION ALL ');
             priceRecords = await extdb.run(priceQuery);
         }
-        // console.log('>>> Raw Price Records from DB:', priceRecords);
 
+        // console.table(priceRecords, ["ACCESS_SEQUENCE", "PRIORITY", "MATERIAL", "CONDITION_TYPE", "PRICE", "PRICE_UNIT", "VALID_FROM", "VALID_TO", ...extraSuffixList]);
+
+        // 8. Separate price records into price vs discount maps based on condition type
         const priceByMaterial = new Map();
         const discountByMaterial = new Map();
 
@@ -1462,17 +1537,33 @@ module.exports = cds.service.impl(async function () {
                 .map(s => s.conditionType)
         );
 
+        // Build combo lookup map for easy access inside forEach
+        const comboMap = new Map(activeSequences.map(c => [c.accessSequence, c]));
+
+        // Define extra filter conditions per access sequence
+        // Return true = pass (allow push), false = skip
+        const accessSequenceFilters = {
+            'A916': (rec) => rec.PRICELIST_TYPE === headerCustPriceList,
+            'A305': (rec) => rec.SOLDTO === headerErpCustomer,
+        };
+
         priceRecords.forEach(rec => {
             const mat = rec.MATERIAL;
+            const combo = comboMap.get(rec.ACCESS_SEQUENCE);
+            const filterFn = accessSequenceFilters[rec.ACCESS_SEQUENCE];
+
+            if (filterFn && combo && !filterFn(rec, combo)) return;
+
             if (discountCondTypes.has(rec.CONDITION_TYPE)) {
                 if (!discountByMaterial.has(mat)) discountByMaterial.set(mat, []);
                 discountByMaterial.get(mat).push(rec);
             } else {
                 if (!priceByMaterial.has(mat)) priceByMaterial.set(mat, []);
+                // console.log('>>> Adding price record for material', mat, 'with access sequence', rec.ACCESS_SEQUENCE);
                 priceByMaterial.get(mat).push(rec);
             }
         });
-
+        // console.table(priceRecords, ["ACCESS_SEQUENCE", "PRIORITY", "MATERIAL", "CONDITION_TYPE", "PRICE", "PRICE_UNIT", "VALID_FROM", "VALID_TO", ...extraSuffixList]);
 
         // 9. Get discount condition types for value help (if needed in frontend)
         const discountConditionQuery = 'SELECT DISTINCT CODE FROM "SAPECC"."ERP_DISCOUNTCONDTYPE"';
@@ -1506,14 +1597,12 @@ module.exports = cds.service.impl(async function () {
 
             const partNumberDet = partNumberDeterminationMap.get(row.Material) || [];
             if (partNumberDet.length > 0) {
-                console.log(`>>> Found Part Number Determination entries for Material ${row.Material}:`, partNumberDet);
-                const partNumberEntry = partNumberDet[0]; // Assuming the first entry is the most relevant one based on some priority
+                const partNumberEntry = partNumberDet[0];
                 row.Status = partNumberEntry.ProductStatus || null;
                 row.StatusValidFromDate = partNumberEntry.StatusValidity || null;
                 row.StatusValidToDate = partNumberEntry.StatusValidity || null;
                 row.Supplier = partNumberEntry.Supplier || null;
                 row.SupplierSKU = partNumberEntry.SupplierSKU || null;
-                console.log(`>>> Matched Part Number Determination for Material ${row.Material}:`, partNumberEntry);
             }
         });
         // console.log('>>> Final Flat Results before Sorting:', finalFlatResults);
