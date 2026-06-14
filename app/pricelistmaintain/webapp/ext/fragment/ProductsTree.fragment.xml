@@ -4,7 +4,8 @@
     xmlns:t="sap.ui.table"
     xmlns:mvc="sap.ui.core.mvc" 
     xmlns:macros="sap.fe.macros"
-    xmlns:dnd="sap.ui.core.dnd">
+    xmlns:dnd="sap.ui.core.dnd"
+    xmlns:rowmodes="sap.ui.table.rowmodes">
 
     <VBox id="ProductListVBox" core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/ProductList'}" fitContainer="true" height="100%">
 
@@ -196,14 +197,18 @@
             id="ProductPriceListTreeTable"
             selectionMode="Single"
             enableColumnReordering="true"
-            enableColumnFreeze="true"
+            enableColumnFreeze="false"
             rowSelectionChange="handler.onSelectionChange"
-            rowMode="Auto"
             width="100%"
             rows="{
                 path: 'jsonModel>/productPriceList',
                 parameters: { arrayNames: ['children'] } 
             }">
+
+            <t:rowMode>
+                <rowmodes:Auto id="ProductPriceListTreeRowAuto"
+                    minRowCount="20"/>
+            </t:rowMode>
 
             <t:dragDropConfig>
                 <dnd:DragDropInfo

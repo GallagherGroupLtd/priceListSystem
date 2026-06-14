@@ -1351,7 +1351,7 @@ module.exports = cds.service.impl(async function () {
                 }
             }
         }
-        // console.log('>>> Active Access Sequences & Condition Types:', activeSequences);
+        console.log('>>> Active Access Sequences & Condition Types:', activeSequences);
 
         // 7. Get available columns in T_PRICELIST_MASTER_DATA to ensure we only query existing ones in dynamic SQL
         //    Create dynamic UNION ALL query to fetch prices based on active access sequences
@@ -1390,23 +1390,20 @@ module.exports = cds.service.impl(async function () {
             // }
 
             if (has('VALID_FROM_DATE')) {
-                whereConditions.push(`(
-                    ${col('VALID_FROM_DATE')} IS NULL
-                    OR TRIM(${col('VALID_FROM_DATE')}) = ''
-                    OR ${col('VALID_FROM_DATE')} = '00000000'
-                    OR ${col('VALID_FROM_DATE')} <= TO_DATS(CURRENT_DATE)
-                )`);
+                whereConditions.push(`${col('VALID_FROM_DATE')} IS NOT NULL`);
+                whereConditions.push(`${col('VALID_FROM_DATE')} <> ''`);
+                whereConditions.push(
+                    `TO_DATE(${col('VALID_FROM_DATE')}, 'MM/DD/YY') <= CURRENT_DATE`
+                );
             }
 
             if (has('VALID_TO_DATE')) {
-                whereConditions.push(`(
-                    ${col('VALID_TO_DATE')} IS NULL
-                    OR TRIM(${col('VALID_TO_DATE')}) = ''
-                    OR ${col('VALID_TO_DATE')} = '00000000'
-                    OR ${col('VALID_TO_DATE')} >= TO_DATS(CURRENT_DATE)
-                )`);
+                whereConditions.push(`${col('VALID_TO_DATE')} IS NOT NULL`);
+                whereConditions.push(`${col('VALID_TO_DATE')} <> ''`);
+                whereConditions.push(
+                    `TO_DATE(${col('VALID_TO_DATE')}, 'MM/DD/YY') >= CURRENT_DATE`
+                );
             }
-
             return `SELECT 
                     '${px}' AS "ACCESS_SEQUENCE",
                     ${combo.priority} AS "PRIORITY",
