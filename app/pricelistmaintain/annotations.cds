@@ -211,6 +211,8 @@ annotate service.PricelistData with @(
         PricelistType,
         MarketScopeRegion,
         MarketScopeCountry,
+        Currency,
+        Version,
         createdBy,
         createdAt,
         PublishedDate
