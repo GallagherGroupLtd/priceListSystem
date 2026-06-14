@@ -226,6 +226,11 @@ annotate service.PricelistData with @(
         },
         {
             $Type             : 'UI.DataField',
+            Value             : Status,
+            @HTML5.CssDefaults: {width: '8rem'}
+        },
+        {
+            $Type             : 'UI.DataField',
             Value             : PricelistType,
             @HTML5.CssDefaults: {width: '12rem'}
         },
@@ -246,11 +251,6 @@ annotate service.PricelistData with @(
         },
         {
             $Type             : 'UI.DataField',
-            Value             : Status,
-            @HTML5.CssDefaults: {width: '8rem'}
-        },
-        {
-            $Type             : 'UI.DataField',
             Value             : EffectiveDate,
             @HTML5.CssDefaults: {width: '8rem'}
         },
@@ -259,7 +259,31 @@ annotate service.PricelistData with @(
             Value             : ExpiryDate,
             @HTML5.CssDefaults: {width: '8rem'}
         },
-
+        {
+            $Type     : 'UI.DataField',
+            Value     : PublishedBy,
+            @HTML5.CssDefaults: {width: '8rem'}
+        },
+        {
+            $Type         : 'UI.DataField',
+            Value         : PublishedDate,
+            @HTML5.CssDefaults: {width: '8rem'}
+        },
+        {
+            $Type         : 'UI.DataField',
+            Value         : createdBy,
+            @HTML5.CssDefaults: {width: '8rem'}
+        },
+        {
+            $Type         : 'UI.DataField',
+            Value         : createdAt,
+            @HTML5.CssDefaults: {width: '8rem'}
+        },
+        {
+            $Type         : 'UI.DataField',
+            Value         : Version,
+            @HTML5.CssDefaults: {width: '8rem'}
+        },
         {
             $Type         : 'UI.DataField',
             Value         : SalesOrg,
@@ -289,31 +313,6 @@ annotate service.PricelistData with @(
             $Type         : 'UI.DataField',
             Value         : DeliveringPlant,
             @UI.Importance: #Low
-        },
-        {
-            $Type         : 'UI.DataField',
-            Value         : createdAt,
-            @UI.Importance: #Low
-        },
-        {
-            $Type         : 'UI.DataField',
-            Value         : createdBy,
-            @UI.Importance: #Low
-        },
-        {
-            $Type         : 'UI.DataField',
-            Value         : PublishedDate,
-            @UI.Importance: #Low
-        },
-        {
-            $Type         : 'UI.DataField',
-            Value         : Version,
-            @UI.Importance: #Low
-        },
-        {
-            $Type     : 'UI.DataField',
-            Value     : PublishedBy,
-            @UI.Hidden: true
         },
         {
             $Type     : 'UI.DataField',
