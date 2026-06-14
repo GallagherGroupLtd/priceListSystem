@@ -180,6 +180,8 @@ service PriceListService {
             *
         };
 
+    entity ProductPriceListTreeLayout as projection on my.ProductPriceListTreeLayout;
+
     type UploadValidatedItem {
         PricelistPartNumber      : String;
         PartNumberDescr          : String;

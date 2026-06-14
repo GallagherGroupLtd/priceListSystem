@@ -364,6 +364,12 @@ entity ProductPriceList : managed, cuid {
                                     on children.parent = $self;
 }
 
+entity ProductPriceListTreeLayout : managed {
+    key userId  : String(255);
+    key tableId : String(50);
+        config  : LargeString; 
+}
+
 /* -------------------------------------- Value Help -------------------------------------- */
 
 /* Sales Org Table */

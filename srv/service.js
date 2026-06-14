@@ -1284,6 +1284,40 @@ module.exports = cds.service.impl(async function () {
         const materialsMaster = await extdb.run(extQuery);
         // console.table(materialsMaster, ["MAIN_CATEGORY", "SUBCATEGORY_1", "SUBCATEGORY_2", "SUBCATEGORY_3", "SUBCATEGORY_4", "SUBCATEGORY_5", "MATERIAL_KEY", "MATERIAL", "CREATED_AT"]);
 
+        // 3.1 Get part number determination data from external DB based on material master results and header filters (SalesOrg, DistChannel)
+        // const targetFields = ['SalesOrg', 'DistChannel', 'PricelistType', 'MarketScopeRegion', 'MarketScopeCountry'];
+        const targetFields = ['SalesOrg', 'DistChannel'];
+        let partNumberDeterminationWhere = {};
+        let partNumberDeterminationMap = new Map();
+
+        targetFields.forEach(field => {
+            const val = extractWhereValue(req.query.SELECT.where, field);
+            if (val) {
+                partNumberDeterminationWhere[field] = val;
+            }
+        });
+
+        const materialIds = materialsMaster.map(m => m.MATERIAL);
+        if (materialIds.length > 0) {
+            partNumberDeterminationWhere.ProductID = { 'in': materialIds };
+        }
+
+        const localQueryPartNumberDet = SELECT.from('PricelistPartNumberDetermination').where(partNumberDeterminationWhere);
+        const partNumberResults = await db.run(localQueryPartNumberDet);
+        partNumberResults.forEach(row => {
+            if (!partNumberDeterminationMap.has(row.ProductID)) {
+                partNumberDeterminationMap.set(row.ProductID, []);
+            }
+
+            partNumberDeterminationMap.get(row.ProductID).push({
+                ProductStatus: row.ProductStatus,
+                StatusValidity: row.StatusValidity,
+                // Supplier: row.Supplier,         
+                // SupplierSKU: row.SupplierSKU   
+            });
+        });
+        // console.table(partNumberResults, ["ProductID", "SalesOrg", "DistChannel", "PricelistType", "MarketScopeRegion", "MarketScopeCountry", "ProductStatus", "StatusValidity"]);
+        console.log('>>> Part Number Determination Map:', partNumberDeterminationMap);
 
         // 4. Get pricing parameters
         let localQueryPricingParam = SELECT.from('PricingParameterDetermination');
@@ -1351,7 +1385,7 @@ module.exports = cds.service.impl(async function () {
                 }
             }
         }
-        console.log('>>> Active Access Sequences & Condition Types:', activeSequences);
+        // console.log('>>> Active Access Sequences & Condition Types:', activeSequences);
 
         // 7. Get available columns in T_PRICELIST_MASTER_DATA to ensure we only query existing ones in dynamic SQL
         //    Create dynamic UNION ALL query to fetch prices based on active access sequences
@@ -1381,13 +1415,6 @@ module.exports = cds.service.impl(async function () {
             if (has('DISTRIBUTION_CHANNEL') && combo.distChannel) {
                 whereConditions.push(`${col('DISTRIBUTION_CHANNEL')} = '${safe(combo.distChannel)}'`);
             }
-
-            // if (has('VALID_FROM_DATE')) {
-            //     whereConditions.push(`${col('VALID_FROM_DATE')} <= CURRENT_DATE`);
-            // }
-            // if (has('VALID_TO_DATE')) {
-            //     whereConditions.push(`${col('VALID_TO_DATE')} >= CURRENT_DATE`);
-            // }
 
             if (has('VALID_FROM_DATE')) {
                 whereConditions.push(`${col('VALID_FROM_DATE')} IS NOT NULL`);
@@ -1475,6 +1502,18 @@ module.exports = cds.service.impl(async function () {
                 row.DiscountEffectiveDate = highPriorityDiscount.VALID_FROM || null;
                 row.DiscountConditionType = highPriorityDiscount.CONDITION_TYPE || null;
                 row.DiscountAccessSequence = highPriorityDiscount.ACCESS_SEQUENCE || null;
+            }
+
+            const partNumberDet = partNumberDeterminationMap.get(row.Material) || [];
+            if (partNumberDet.length > 0) {
+                console.log(`>>> Found Part Number Determination entries for Material ${row.Material}:`, partNumberDet);
+                const partNumberEntry = partNumberDet[0]; // Assuming the first entry is the most relevant one based on some priority
+                row.Status = partNumberEntry.ProductStatus || null;
+                row.StatusValidFromDate = partNumberEntry.StatusValidity || null;
+                row.StatusValidToDate = partNumberEntry.StatusValidity || null;
+                row.Supplier = partNumberEntry.Supplier || null;
+                row.SupplierSKU = partNumberEntry.SupplierSKU || null;
+                console.log(`>>> Matched Part Number Determination for Material ${row.Material}:`, partNumberEntry);
             }
         });
         // console.log('>>> Final Flat Results before Sorting:', finalFlatResults);

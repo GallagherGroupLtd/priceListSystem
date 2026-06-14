@@ -143,7 +143,8 @@ sap.ui.define([
 				// ensure toggles reflect presence/absence of data after reset
 				this._updateModeToggleEnabled();
 				MessageToast.show("Pricelist reset to original state.");
-				return;
+				// For testing will be deleted
+				// return;
 			}
 
 			// fallback: if no original snapshot, fetch from backend

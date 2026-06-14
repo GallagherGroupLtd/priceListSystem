@@ -97,65 +97,65 @@
 					visible="true"
                     press="handler.onNavigate"/>
 
-<Button
-    id="ProductListExpandBtn"
-    text="Expand"
-    icon="sap-icon://expand"
-    tooltip="Expand"
-    visible="true"
-    enabled="{jsonModel>/hasVisibleProductTreeData}"
-    press="handler.onExpand"/>
+                <Button
+                    id="ProductListExpandBtn"
+                    text="Expand"
+                    icon="sap-icon://expand"
+                    tooltip="Expand"
+                    visible="true"
+                    enabled="{jsonModel>/hasVisibleProductTreeData}"
+                    press="handler.onExpand"/>
 
-<Button
-    id="ProductListCollapseBtn"
-    text="Collapse"
-    icon="sap-icon://collapse"
-    tooltip="Collapse"
-    visible="true"
-    enabled="{jsonModel>/hasVisibleProductTreeData}"
-    press="handler.onCollapse"/>
+                <Button
+                    id="ProductListCollapseBtn"
+                    text="Collapse"
+                    icon="sap-icon://collapse"
+                    tooltip="Collapse"
+                    visible="true"
+                    enabled="{jsonModel>/hasVisibleProductTreeData}"
+                    press="handler.onCollapse"/>
 
-<Button
-    id="ProductListExpandAllBtn"
-    text="Expand All"
-    icon="sap-icon://expand-all"
-    tooltip="Expand all"
-    visible="true"
-    enabled="{jsonModel>/hasVisibleProductTreeData}"
-    press="handler.onExpandAll"/>
+                <Button
+                    id="ProductListExpandAllBtn"
+                    text="Expand All"
+                    icon="sap-icon://expand-all"
+                    tooltip="Expand all"
+                    visible="true"
+                    enabled="{jsonModel>/hasVisibleProductTreeData}"
+                    press="handler.onExpandAll"/>
 
-<Button
-    id="ProductListCollapseAllBtn"
-    text="Collapse"
-    icon="sap-icon://collapse-all"
-    tooltip="Collapse all"
-    visible="false"
-    enabled="{jsonModel>/hasVisibleProductTreeData}"
-    press="handler.onCollapseAll"/>
+                <Button
+                    id="ProductListCollapseAllBtn"
+                    text="Collapse"
+                    icon="sap-icon://collapse-all"
+                    tooltip="Collapse all"
+                    visible="false"
+                    enabled="{jsonModel>/hasVisibleProductTreeData}"
+                    press="handler.onCollapseAll"/>
 
-<Button
-    id="ProductListSortBtn"
-    icon="sap-icon://sort"
-    tooltip="Sort by Description"
-    enabled="{jsonModel>/hasVisibleProductTreeData}"
-    press="handler.onSortProducts" />
+                <Button
+                    id="ProductListSortBtn"
+                    icon="sap-icon://sort"
+                    tooltip="Sort by Description"
+                    enabled="{jsonModel>/hasVisibleProductTreeData}"
+                    press="handler.onSortProducts" />
 
-<Button
-    id="ProductListHierarchyFilterBtn"
-    icon="sap-icon://filter"
-    text="{= ${jsonModel>/productFilterCount} > 0 ? 'Filter (' + ${jsonModel>/productFilterCount} + ')' : 'Filter' }"
-    type="{= ${jsonModel>/productFilterCount} > 0 ? 'Emphasized' : 'Default' }"
-    tooltip="Filter"
-    enabled="{jsonModel>/hasTreeData}"
-    press="handler.onOpenHierarchyFilter"/>
+                <Button
+                    id="ProductListHierarchyFilterBtn"
+                    icon="sap-icon://filter"
+                    text="{= ${jsonModel>/productFilterCount} > 0 ? 'Filter (' + ${jsonModel>/productFilterCount} + ')' : 'Filter' }"
+                    type="{= ${jsonModel>/productFilterCount} > 0 ? 'Emphasized' : 'Default' }"
+                    tooltip="Filter"
+                    enabled="{jsonModel>/hasTreeData}"
+                    press="handler.onOpenHierarchyFilter"/>
 
-<Button
-    id="ProductListClearFilterBtn"
-    icon="sap-icon://clear-filter"
-    text="Clear Filter"
-    visible="{= ${jsonModel>/productFilterCount} > 0 }"
-    enabled="{jsonModel>/hasTreeData}"
-    press="handler.onClearHierarchyFilter"/>
+                <Button
+                    id="ProductListClearFilterBtn"
+                    icon="sap-icon://clear-filter"
+                    text="Clear Filter"
+                    visible="{= ${jsonModel>/productFilterCount} > 0 }"
+                    enabled="{jsonModel>/hasTreeData}"
+                    press="handler.onClearHierarchyFilter"/>
 
                 <!-- <Button
                     id="ProductListHierarchyFilterBtn"
@@ -191,6 +191,13 @@
                     icon="sap-icon://refresh"
                     type="Emphasized"
                     press="handler.onRefresh" /> -->
+
+                <Button 
+                    id="ProductTreeColumnSettingsBtn"
+                    icon="sap-icon://action-settings"
+                    tooltip="Show/Hide Columns"
+                    press="handler.onOpenColumnSettings" />
+
         </OverflowToolbar>
 
         <t:TreeTable
@@ -255,10 +262,17 @@
                     </t:template>
                 </t:Column>
 
+                <t:Column id="ColDiscountValidity" width="7%" hAlign="Center">
+                    <Label id="LblDiscountValidity" text="Discount Validity" textAlign="Center" width="100%"/>
+                    <t:template>
+                        <Text id="TxtDiscountValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountValidFrom} || '') : '' }" />
+                    </t:template>
+                </t:Column>
+
                 <t:Column id="ColDiscountExpiry" width="7%" hAlign="Center">
                     <Label id="LblDiscountExpiry" text="Discount Expiry" textAlign="Center" width="100%"/>
                     <t:template>
-                        <Text id="TxtDiscountExpiry" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountEffectiveToDate} || '') : '' }" />
+                        <Text id="TxtDiscountExpiry" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountValidTo} || '') : '' }" />
                     </t:template>
                 </t:Column>
 
@@ -277,7 +291,7 @@
                 </t:Column>
 
                 <t:Column id="ColFuturePriceValidity" width="8%" hAlign="Center">
-                    <Label id="LblFuturePriceValidity" text="Future Validity" textAlign="Center" width="100%"/>
+                    <Label id="LblFuturePriceValidity" text="Future Price Validity" textAlign="Center" width="100%"/>
                     <t:template>
                         <Text id="TxtFuturePriceValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>FuturePriceValidFrom} || '') + ' - ' + (${jsonModel>FuturePriceValidTo} || '') : '' }" />
                     </t:template>
@@ -290,12 +304,20 @@
                     </t:template>
                 </t:Column>
 
-                <t:Column id="ColStatusValidity" width="8%" hAlign="Center">
-                    <Label id="LblStatusValidity" text="Status Validity" textAlign="Center" width="100%"/>
+                <t:Column id="ColStatusValidFrom" width="8%" hAlign="Center">
+                    <Label id="LblStatusValidFrom" text="Status Valid From" textAlign="Center" width="100%"/>
                     <t:template>
-                        <Text id="TxtStatusValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>StatusValidFromDate} || '') + ' - ' + (${jsonModel>StatusValidToDate} || '') : '' }" />
+                        <Text id="TxtStatusValidFrom" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>StatusValidFromDate} || '') : '' }" />
                     </t:template>
                 </t:Column>
+
+                <t:Column id="ColStatusValidTo" width="8%" hAlign="Center">
+                    <Label id="LblStatusValidTo" text="Status Valid To" textAlign="Center" width="100%"/>
+                    <t:template>
+                        <Text id="TxtStatusValidTo" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>StatusValidToDate} || '') : '' }" />
+                    </t:template>
+                </t:Column>
+
 
                 <t:Column id="ColSupplier" width="8%" hAlign="Center">
                     <Label id="LblSupplier" text="Supplier" textAlign="Center" width="100%"/>
