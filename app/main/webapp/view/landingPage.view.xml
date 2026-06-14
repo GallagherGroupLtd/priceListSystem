@@ -121,7 +121,9 @@
                                 </HBox>
 
                                 <Title id="TitleContactUs" text="Contact Us" level="H2" class="sapUiSmallMarginTop sapUiMediumMarginToprginTopBottom" />
-                                <HBox id="HBox2" wrap="Wrap">
+                                <VBox id="contactBox" width="100%" class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiTinyMarginBeginEnd sapUiSmallPadding contactBox">
+                                </VBox>
+                                <!-- <HBox id="HBox2" wrap="Wrap">
                                     <items>
                                         <core:Icon id="IconPhone" src="sap-icon://headset" size="1rem" class="sapUiTinyMarginEnd" color="#333333"/>
                                         <Link id="LinkPhone" text="{contactModel>/contactNumber}" href="tel:+64993587556" class="sapUiMediumMarginEnd" />
@@ -129,7 +131,7 @@
                                         <core:Icon id="IconMail" src="sap-icon://email" size="1rem" class="sapUiTinyMarginEnd" color="#333333"/>
                                         <Link id="LinkMail" text="{contactModel>/contactEmail}" href="mailto:pricing@gallagher.com" />
                                     </items>
-                                </HBox>
+                                </HBox> -->
                             </items>
                         </VBox>
                     </IconTabFilter>
