@@ -203,6 +203,8 @@ sap.ui.define([
 				return;
 			}
 
+			debugger;
+
 			// Make required Main/Sub/Product sections visible first
 			this._updateDetailSectionsBySelectedContext(oCtx);
 
@@ -602,6 +604,7 @@ sap.ui.define([
 							CustGroup1: row.CustGroup1,
 							ErpCustomer: row.ErpCustomer,
 							DeliveringPlant: row.DeliveringPlant,
+							MaterialKey: row.MaterialKey,
 
 							Sequence: row.Sequence,
 							OrderIndex: Object.keys(nodeMap).length + 1,
@@ -609,6 +612,14 @@ sap.ui.define([
 							CategoryLevel: level,
 							Title: title,
 							Description: row[descField] || null,
+
+							PublishedName: row.PublishedName,
+							TermsAndConditions: row.TermsAndConditions,
+							IsTACDisableExt: row.IsTACDisableExt,
+							IsTACDisableInt: row.IsTACDisableInt,
+							Notes: row.Notes,
+							IsNotesDisableExt: row.IsNotesDisableExt,
+							IsNotesDisableInt: row.IsNotesDisableInt,
 
 							// Categories do not hold specific price/discount data
 							Price: null,
@@ -668,6 +679,7 @@ sap.ui.define([
 						CustGroup1: row.CustGroup1,
 						ErpCustomer: row.ErpCustomer,
 						DeliveringPlant: row.DeliveringPlant,
+						MaterialKey: row.MaterialKey,
 
 						Sequence: row.Sequence,
 						OrderIndex: index + 1,
@@ -675,6 +687,14 @@ sap.ui.define([
 						CategoryLevel: 6, // Product level
 						Title: row.Material,
 						Description: row.MaterialDescription,
+
+						PublishedName: row.PublishedName,
+						TermsAndConditions: row.TermsAndConditions,
+						IsTACDisableExt: row.IsTACDisableExt,
+						IsTACDisableInt: row.IsTACDisableInt,
+						Notes: row.Notes,
+						IsNotesDisableExt: row.IsNotesDisableExt,
+						IsNotesDisableInt: row.IsNotesDisableInt,
 
 						// Map the actual Pricing and Condition data to the product
 						AccessSequence: row.AccessSequence,
@@ -1386,6 +1406,7 @@ sap.ui.define([
 					return;
 				}
 
+				debugger;
 				if (oNode.Kind === "Product" || oNode.CategoryLevel === 6) {
 					oJsonModel.setProperty("/selectedProduct", oNode);
 					oJsonModel.setProperty("/showProductDetails", true);
