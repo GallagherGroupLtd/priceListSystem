@@ -65,6 +65,9 @@
         "sap.fe.templates": {}
       }
     },
+    "cache": {
+      "mode": "off"
+    },
     "contentDensities": {
       "compact": true,
       "cozy": true

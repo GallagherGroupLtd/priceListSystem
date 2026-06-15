@@ -101,7 +101,7 @@ annotate service.PricelistData with {
     // Value Help: Customer
     ErpCustomer         @(
         Common.ValueList               : {
-            $Type         : 'Common.ValueList',
+            $Type         : 'Common.ValueListType',
             CollectionPath: 'CustomerVH',
             Parameters    : [
                 {
@@ -125,7 +125,7 @@ annotate service.PricelistData with {
     // Value Help: Sales Org.
     SalesOrg            @(
         Common.ValueList               : {
-            $Type         : 'Common.ValueList',
+            $Type         : 'Common.ValueListType',
             CollectionPath: 'SalesOrgVH',
             Parameters    : [
                 {
@@ -295,7 +295,7 @@ annotate display.PricelistData with {
     // Value Help: Customer
     ErpCustomer         @(
         Common.ValueList               : {
-            $Type         : 'Common.ValueList',
+            $Type         : 'Common.ValueListType',
             CollectionPath: 'CustomerVH',
             Parameters    : [
                 {
@@ -319,7 +319,7 @@ annotate display.PricelistData with {
     // Value Help: Sales Org.
     SalesOrg            @(
         Common.ValueList               : {
-            $Type         : 'Common.ValueList',
+            $Type         : 'Common.ValueListType',
             CollectionPath: 'SalesOrgVH',
             Parameters    : [
                 {
@@ -489,7 +489,7 @@ annotate maintain.PricelistData with {
     // Value Help: Customer
     ErpCustomer         @(
         Common.ValueList               : {
-            $Type         : 'Common.ValueList',
+            $Type         : 'Common.ValueListType',
             CollectionPath: 'CustomerVH',
             Parameters    : [
                 {
@@ -513,7 +513,7 @@ annotate maintain.PricelistData with {
     // Value Help: Sales Org.
     SalesOrg            @(
         Common.ValueList               : {
-            $Type         : 'Common.ValueList',
+            $Type         : 'Common.ValueListType',
             CollectionPath: 'SalesOrgVH',
             Parameters    : [
                 {
