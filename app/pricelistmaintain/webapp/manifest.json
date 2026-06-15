@@ -17,7 +17,7 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "/odata/v4/price-list/",
+        "uri": "/odata/v4/price-list-maintain/",
         "type": "OData",
         "settings": {
           "annotations": [],
