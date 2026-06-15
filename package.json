@@ -4,7 +4,7 @@
   "description": "Pricelist Application",
   "dependencies": {
     "@cap-js/hana": "^2",
-    "@sap/cds": "^9.6.4",
+    "@sap/cds": "^9.9.1",
     "@sap/xssec": "^4.12.2",
     "express": "^4",
     "pdfkit": "^0.18.0",
