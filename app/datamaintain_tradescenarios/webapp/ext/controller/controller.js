@@ -62,12 +62,14 @@ sap.ui.define([
 
 
             const oDownloadButton = new Button({
-                text: "Download Template",
+                text: "Download Trade Scenarios Template",
                 press: () => {
                     const aColumns = [
-                        { label: "PricelistType", property: "PricelistType" },
-                        { label: "MarketScopeRegion", property: "MarketScopeRegion" },
-                        { label: "MarketScopeCountry", property: "MarketScopeCountry" }
+                        { label: "Pricelist Type", property: "PricelistType" },
+                        { label: "Market Scope Region", property: "MarketScopeRegion" },
+                        { label: "Market Scope Country", property: "MarketScopeCountry" },
+                        { label: "Email Subject", property: "EmailSubject" },
+                        { label: "Email Body", property: "EmailBody" }
                     ];
 
                     const aData = [{}];
