@@ -10,16 +10,8 @@ annotate service.PricelistData with @(
         PricelistType,
         MarketScopeCountry,
         Currency,
-        {
-            $Type   : 'UI.DataField',
-            Value   : EffectiveDate,
-            Label   : 'Valid From'
-        },
-        {
-            $Type   : 'UI.DataField',
-            Value   : PublishedDate,
-            Label   : 'Issue Date'
-        },
+        EffectiveDate,
+        PublishedDate,
         Version
     ],
 
