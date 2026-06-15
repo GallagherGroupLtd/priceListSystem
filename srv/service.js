@@ -1475,48 +1475,58 @@ module.exports = cds.service.impl(async function () {
             const col = suffix => `"${px}_${suffix}"`;
             const has = suffix => availableCols.has(`${px}_${suffix}`);
 
-            if (!has('MATERIAL') || !has('CONDITION_TYPE')) return null;
+            // Skip this access sequence if required columns do not exist
+            if (!has('MATERIAL') || !has('CONDITION_TYPE')) {
+                return null;
+            }
+
+            // Skip if no materials to query
+            if (!materialKeys || materialKeys.length === 0) {
+                return null;
+            }
 
             const whereConditions = [];
-            const matList = materialKeys.map(m => `'${safe(m)}'`).join(', ');
+
+            const matList = materialKeys
+                .map(m => `'${safe(m)}'`)
+                .join(', ');
+
             whereConditions.push(`${col('MATERIAL')} IN (${matList})`);
             whereConditions.push(`${col('CONDITION_TYPE')} = '${safe(combo.conditionType)}'`);
 
-            if (has('SALES_ORGANIZATION') && combo.salesOrg)
+            if (has('SALES_ORGANIZATION') && combo.salesOrg) {
                 whereConditions.push(`${col('SALES_ORGANIZATION')} = '${safe(combo.salesOrg)}'`);
-            if (has('DISTRIBUTION_CHANNEL') && combo.distChannel)
-                whereConditions.push(`${col('DISTRIBUTION_CHANNEL')} = '${safe(combo.distChannel)}'`);
-            if (has('VALID_FROM_DATE')) {
-                whereConditions.push(`${col('VALID_FROM_DATE')} IS NOT NULL`);
-                whereConditions.push(`${col('VALID_FROM_DATE')} <> ''`);
-                whereConditions.push(`TO_DATE(${col('VALID_FROM_DATE')}, 'MM/DD/YY') <= CURRENT_DATE`);
-            }
-            if (has('VALID_TO_DATE')) {
-                whereConditions.push(`${col('VALID_TO_DATE')} IS NOT NULL`);
-                whereConditions.push(`${col('VALID_TO_DATE')} <> ''`);
-                whereConditions.push(`TO_DATE(${col('VALID_TO_DATE')}, 'MM/DD/YY') >= CURRENT_DATE`);
             }
 
-            // Use superset — NULL for columns this sequence doesn't have
+            if (has('DISTRIBUTION_CHANNEL') && combo.distChannel) {
+                whereConditions.push(`${col('DISTRIBUTION_CHANNEL')} = '${safe(combo.distChannel)}'`);
+            }
+
+            const validFromCol = has('VALID_FROM_DATE')
+                ? col('VALID_FROM_DATE')
+                : 'CAST(NULL AS NVARCHAR(50))';
+
+            const validToCol = has('VALID_TO_DATE')
+                ? col('VALID_TO_DATE')
+                : 'CAST(NULL AS NVARCHAR(50))';
+
             const extraCols = extraSuffixList
                 .map(suffix => has(suffix) ? `${col(suffix)} AS "${suffix}"` : `NULL AS "${suffix}"`)
                 .join(',\n    ');
 
-            // console.log(`>>> Generated extra columns for sequence ${px}:`, extraCols);
-            // console.log('>>> Generated UNION ALL Query for Pricing:', unionParts.join('\nUNION ALL\n'));
-
-            return `SELECT 
-                '${px}' AS "ACCESS_SEQUENCE",
-                ${combo.priority} AS "PRIORITY",
+            return  `SELECT
+                '${safe(px)}' AS "ACCESS_SEQUENCE",
+                ${Number(combo.priority || 999)} AS "PRIORITY",
                 ${col('MATERIAL')} AS "MATERIAL",
                 ${col('CONDITION_TYPE')} AS "CONDITION_TYPE",
                 "KONP_RATE" AS "PRICE",
                 "KONP_RATE_UNIT" AS "PRICE_UNIT",
-                ${has('VALID_FROM_DATE') ? col('VALID_FROM_DATE') : 'NULL'} AS "VALID_FROM",
-                ${has('VALID_TO_DATE') ? col('VALID_TO_DATE') : 'NULL'} AS "VALID_TO"
+                ${validFromCol} AS "VALID_FROM",
+                ${validToCol} AS "VALID_TO"
                 ${extraCols ? ',\n    ' + extraCols : ''}
             FROM "SAPECC"."T_PRICELIST_MASTER_DATA"
             WHERE ${whereConditions.join(' AND ')}`;
+
         }).filter(Boolean);
 
         let priceRecords = [];

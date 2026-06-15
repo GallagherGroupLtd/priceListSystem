@@ -145,36 +145,116 @@ sap.ui.define([
         onSortProducts: function (oEvent) {
             const oExt = ExtController.getInstance();
             const oView = oExt.base.getView();
-            const oJson = oView.getModel('jsonModel');
-            const aTree = oJson.getProperty('/productPriceList') || [];
+            const oJson = oView.getModel("jsonModel");
+            const aTree = oJson.getProperty("/productPriceList") || [];
 
-            const getProductDesc = (p) => (p && (p.MaterialDescription || p.text || '')) || '';
-            const getCategoryText = (c) => (c && (c.text || '')) || '';
+            // Toggle asc / desc
+            const sLastDirection = oJson.getProperty("/productSortDirection");
+            const sDirection = sLastDirection === "asc" ? "desc" : "asc";
+            const iDirection = sDirection === "asc" ? 1 : -1;
 
-            const sortRec = (nodes) => {
-                if (!Array.isArray(nodes) || !nodes.length) return nodes;
-                // recurse first
-                for (const n of nodes) {
-                    if (n.children && n.children.length) n.children = sortRec(n.children);
+            const getTitle = function (oNode) {
+                return String((oNode && oNode.Title) || "").trim();
+            };
+
+            const getTitleGroup = function (sTitle) {
+                if (/^[0-9]/.test(sTitle)) {
+                    return 0; // 0-9 first
                 }
-                // sort children: categories before products, categories by text, products by description
-                nodes.sort((a, b) => {
-                    if (a.Kind === 'Category' && b.Kind !== 'Category') return -1;
-                    if (a.Kind !== 'Category' && b.Kind === 'Category') return 1;
-                    if (a.Kind === 'Category' && b.Kind === 'Category') {
-                        return getCategoryText(a).localeCompare(getCategoryText(b));
+
+                if (/^[A-Za-z]/.test(sTitle)) {
+                    return 1; // A-Z after numbers
+                }
+
+                return 2; // others last
+            };
+
+            const compareByTitle = function (a, b) {
+                const sTitleA = getTitle(a);
+                const sTitleB = getTitle(b);
+
+                const iGroupA = getTitleGroup(sTitleA);
+                const iGroupB = getTitleGroup(sTitleB);
+
+                if (iGroupA !== iGroupB) {
+                    return (iGroupA - iGroupB) * iDirection;
+                }
+
+                return sTitleA.localeCompare(sTitleB, undefined, {
+                    numeric: true,
+                    sensitivity: "base"
+                }) * iDirection;
+            };
+
+            const sortRec = function (aNodes) {
+                if (!Array.isArray(aNodes) || !aNodes.length) {
+                    return aNodes;
+                }
+
+                aNodes.forEach(function (oNode) {
+                    if (Array.isArray(oNode.children) && oNode.children.length) {
+                        oNode.children = sortRec(oNode.children);
                     }
-                    // both products
-                    return getProductDesc(a).localeCompare(getProductDesc(b));
                 });
-                return nodes;
+
+                aNodes.sort(compareByTitle);
+
+                return aNodes;
+            };
+
+            const updateOrderIndexRec = function (aNodes) {
+                if (!Array.isArray(aNodes)) {
+                    return;
+                }
+
+                aNodes.forEach(function (oNode, iIndex) {
+                    oNode.OrderIndex = iIndex + 1;
+
+                    if (Array.isArray(oNode.children) && oNode.children.length) {
+                        updateOrderIndexRec(oNode.children);
+                    }
+                });
             };
 
             const aSorted = sortRec(JSON.parse(JSON.stringify(aTree)));
-            oJson.setProperty('/productPriceList', aSorted);
+
+            updateOrderIndexRec(aSorted);
+
+            oJson.setProperty("/productPriceList", aSorted);
+            oJson.setProperty("/productSortDirection", sDirection);
+            oJson.updateBindings(true);
+
             const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-            if (oTable && typeof oTable.clearSelection === 'function') oTable.clearSelection();
-            MessageToast.show('Product list sorted by description.');
+
+            if (oTable) {
+                const oBinding = oTable.getBinding("rows");
+
+                if (oBinding && typeof oBinding.sort === "function") {
+                    oBinding.sort([]);
+                }
+
+                if (oBinding && typeof oBinding.refresh === "function") {
+                    oBinding.refresh(true);
+                }
+
+                if (typeof oTable.clearSelection === "function") {
+                    oTable.clearSelection();
+                }
+
+                if (typeof oTable.getColumns === "function") {
+                    oTable.getColumns().forEach(function (oColumn) {
+                        if (typeof oColumn.setSorted === "function") {
+                            oColumn.setSorted(false);
+                        }
+                    });
+                }
+            }
+
+            MessageToast.show(
+                sDirection === "asc"
+                    ? "Product list sorted ascending by categories and products."
+                    : "Product list sorted descending by categories and products."
+            );
         },
 
         onOpenHierarchyFilter: function () {
@@ -507,7 +587,7 @@ sap.ui.define([
         onClearHierarchyFilter: function () {
             ExtController.getInstance().onClearHierarchyFilter();
         },
-        
+
         // onSelectionChange: function (oEvent) {
         //     if (this.bDeleteMode) {
         //         ExtController._onSelectionChangeDeleteMode(oEvent);

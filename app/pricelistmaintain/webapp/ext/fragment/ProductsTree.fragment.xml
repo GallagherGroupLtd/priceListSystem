@@ -136,7 +136,7 @@
                 <Button
                     id="ProductListSortBtn"
                     icon="sap-icon://sort"
-                    tooltip="Sort by Description"
+                    tooltip="Sort Categories and Products"
                     enabled="{jsonModel>/hasVisibleProductTreeData}"
                     press="handler.onSortProducts" />
 
