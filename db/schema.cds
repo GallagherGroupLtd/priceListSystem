@@ -441,3 +441,19 @@ entity MyRequest : managed, cuid {
     ReqMasterPLUpdated    : Boolean      @title: 'PPR Team Updates Master PL';
     ReqSecCommerceChecked : Boolean      @title: 'Check or Request Tech Admin to add Sec Commerce Flag (Scale Price as Required)';
 }
+
+entity ApplicationLog : managed, cuid {
+    FirstName              : String(255) @title: 'First Name';
+    LastName               : String(255) @title: 'Last Name';
+    EmailAddress           : String(255) @title: 'Email Address';
+    AccountType            : String(255) @title: 'Account Type';
+    AccountScope           : String(255) @title: 'Account Scope';
+    LoggedInDate           : Date        @title: 'Logged In Date';
+    LoggedInTime           : Time        @title: 'Logged In Time';
+    LoggedOffDate          : Date        @title: 'Logged Off Date';
+    LoggedOffTime          : Time        @title: 'Logged Off Time';
+    AccessedTile           : String(255) @title: 'Accessed Tile';
+    AccessedPricelist      : String(255) @title: 'Accessed Pricelist';
+    PricelistDownloadDate  : Date        @title: 'Pricelist Download Date';
+    PricelistDownloadTime  : Time        @title: 'Pricelist Download Time';
+}

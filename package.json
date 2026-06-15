@@ -41,7 +41,8 @@
     "watch-pricelistmaintain": "cds watch --open pricelistapp.pricelistmaintain/index.html?sap-ui-xx-viewCache=false --livereload false",
     "watch-pricelistdisplay": "cds watch --open pricelistapp.pricelistdisplay/index.html?sap-ui-xx-viewCache=false --livereload false",
     "watch-datamaintain_acctassign": "cds watch --open pricelistapp.datamaintainacctassign/index.html?sap-ui-xx-viewCache=false --livereload false",
-    "watch-myrequest": "cds watch --open pricelistapp.myrequest/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "watch-myrequest": "cds watch --open pricelistapp.myrequest/index.html?sap-ui-xx-viewCache=false --livereload false",
+    "watch-applicationlog": "cds watch --open pricelistapp.applicationlog/index.html?sap-ui-xx-viewCache=false --livereload false"
   },
   "private": true,
   "cds": {
@@ -84,6 +85,7 @@
     "app/pricelistmaintain",
     "app/pricelistdisplay",
     "app/datamaintain_acctassign",
-    "app/myrequest"
+    "app/myrequest",
+    "app/applicationlog"
   ]
 }
