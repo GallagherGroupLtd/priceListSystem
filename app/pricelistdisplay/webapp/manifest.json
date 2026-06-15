@@ -149,6 +149,68 @@
             "settings": {
               "editableHeaderContent": false,
               "contextPath": "/PricelistData",
+              "content":{
+                "body":{
+                  "sections":{
+                    "ProductsTree":{
+                      "template": "pricelistapp.pricelistdisplay.ext.fragment.ProductsTree",
+                      "position": {
+                        "placement": "Before",
+                        "anchor": "ProductPricelistFacet"
+                      },
+                      "title": "Gallagher Products"
+                    },
+                    "ProductPricelistFacet": {
+                      "subSections": {
+                        "PricelistMainCategory": {
+                          "template": "pricelistapp.pricelistdisplay.ext.fragment.PricelistMainCategory",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "ProductsTree"
+                          },
+                          "title": "Main Category Details"
+                        },
+                        "PricelistSubCategory": {
+                          "template": "pricelistapp.pricelistdisplay.ext.fragment.PricelistSubCategory",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "PricelistMainCategory"
+                          },
+                          "title": "Sub Category Details"
+                        },
+                        "ProductDetails": {
+                          "template": "pricelistapp.pricelistdisplay.ext.fragment.ProductDetails",
+                          "title": "Product Details",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "PricelistSubCategory"
+                          }
+                        }
+                      }
+                    },
+                    "PricelistInfoFacet": {
+                      "subSections": {
+                        "TermsAndConditions": {
+                          "template": "pricelistapp.pricelistdisplay.ext.fragment.TermsAndConditions",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "GeneralInfo"
+                          },
+                          "title": "General Terms and Conditions"
+                        },
+                        "GeneralNotes": {
+                          "title": "General Notes",
+                          "template": "pricelistapp.pricelistdisplay.ext.fragment.GeneralNotes",
+                          "position": {
+                            "placement": "After",
+                            "anchor": "TermsAndConditions"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
               "navigation": {
                 "items": {
                   "detail": {
@@ -168,6 +230,15 @@
               "editableHeaderContent": false,
               "contextPath": "/PricelistData/items"
             }
+          }
+        }
+      }
+    },
+    "extends": {
+      "extensions": {
+        "sap.ui.controllerExtensions": {
+          "sap.fe.templates.ObjectPage.ObjectPageController": {
+            "controllerName": "pricelistapp.pricelistdisplay.ext.controller.PricelistDisplayObjectPageExt"
           }
         }
       }
