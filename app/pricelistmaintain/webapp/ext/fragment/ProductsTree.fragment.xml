@@ -4,9 +4,10 @@
     xmlns:t="sap.ui.table"
     xmlns:mvc="sap.ui.core.mvc" 
     xmlns:macros="sap.fe.macros"
-    xmlns:dnd="sap.ui.core.dnd">
+    xmlns:dnd="sap.ui.core.dnd"
+    xmlns:rowmodes="sap.ui.table.rowmodes">
 
-    <VBox id="ProductListVBox" core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/ProductList'}">
+    <VBox id="ProductListVBox" core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/ProductList'}" fitContainer="true" height="100%">
 
         <MessageStrip
             id="ProductListDeleteModeMessageStrip"
@@ -90,11 +91,19 @@
                 <ToolbarSeparator id="ProductListToolbarSep_3" />
 
                 <Button
+                    id="ProductListNavBtn"
+                    icon="sap-icon://locate-me-2"
+                    tooltip="Navigate"
+					visible="true"
+                    press="handler.onNavigate"/>
+
+                <Button
                     id="ProductListExpandBtn"
                     text="Expand"
                     icon="sap-icon://expand"
                     tooltip="Expand"
-					visible="true"
+                    visible="true"
+                    enabled="{jsonModel>/hasVisibleProductTreeData}"
                     press="handler.onExpand"/>
 
                 <Button
@@ -102,7 +111,8 @@
                     text="Collapse"
                     icon="sap-icon://collapse"
                     tooltip="Collapse"
-					visible="true"
+                    visible="true"
+                    enabled="{jsonModel>/hasVisibleProductTreeData}"
                     press="handler.onCollapse"/>
 
                 <Button
@@ -110,28 +120,48 @@
                     text="Expand All"
                     icon="sap-icon://expand-all"
                     tooltip="Expand all"
-					visible="true"
+                    visible="true"
+                    enabled="{jsonModel>/hasVisibleProductTreeData}"
                     press="handler.onExpandAll"/>
 
-				<Button
+                <Button
                     id="ProductListCollapseAllBtn"
                     text="Collapse"
                     icon="sap-icon://collapse-all"
                     tooltip="Collapse all"
-					visible="false"
+                    visible="false"
+                    enabled="{jsonModel>/hasVisibleProductTreeData}"
                     press="handler.onCollapseAll"/>
 
                 <Button
                     id="ProductListSortBtn"
                     icon="sap-icon://sort"
-                    tooltip="Sort by Description"
+                    tooltip="Sort Categories and Products"
+                    enabled="{jsonModel>/hasVisibleProductTreeData}"
                     press="handler.onSortProducts" />
 
                 <Button
                     id="ProductListHierarchyFilterBtn"
                     icon="sap-icon://filter"
+                    text="{= ${jsonModel>/productFilterCount} > 0 ? 'Filter (' + ${jsonModel>/productFilterCount} + ')' : 'Filter' }"
+                    type="{= ${jsonModel>/productFilterCount} > 0 ? 'Emphasized' : 'Default' }"
                     tooltip="Filter"
+                    enabled="{jsonModel>/hasTreeData}"
                     press="handler.onOpenHierarchyFilter"/>
+
+                <Button
+                    id="ProductListClearFilterBtn"
+                    icon="sap-icon://clear-filter"
+                    text="Clear Filter"
+                    visible="{= ${jsonModel>/productFilterCount} > 0 }"
+                    enabled="{jsonModel>/hasTreeData}"
+                    press="handler.onClearHierarchyFilter"/>
+
+                <!-- <Button
+                    id="ProductListHierarchyFilterBtn"
+                    icon="sap-icon://filter"
+                    tooltip="Filter"
+                    press="handler.onOpenHierarchyFilter"/> -->
 
                 <!-- <Button 
                     id="ProductListChangeColumnBtn" 
@@ -161,19 +191,32 @@
                     icon="sap-icon://refresh"
                     type="Emphasized"
                     press="handler.onRefresh" /> -->
+
+                <Button 
+                    id="ProductTreeColumnSettingsBtn"
+                    icon="sap-icon://action-settings"
+                    tooltip="Show/Hide Columns"
+                    press="handler.onOpenColumnSettings" />
+
         </OverflowToolbar>
 
         <t:TreeTable
             id="ProductPriceListTreeTable"
             selectionMode="Single"
             enableColumnReordering="true"
-            enableColumnFreeze="true"
+            enableColumnFreeze="false"
             rowSelectionChange="handler.onSelectionChange"
             width="100%"
             rows="{
                 path: 'jsonModel>/productPriceList',
                 parameters: { arrayNames: ['children'] } 
             }">
+
+            <t:rowMode>
+                <rowmodes:Auto id="ProductPriceListTreeRowAuto"
+                    minRowCount="20"/>
+            </t:rowMode>
+
             <t:dragDropConfig>
                 <dnd:DragDropInfo
                     id="ProductTreeDragDropInfo"
@@ -208,14 +251,28 @@
                 <t:Column id="ColValidity" width="8%" hAlign="Center">
                     <Label id="LblValidity" text="Price Validity" textAlign="Center" width="100%"/>
                     <t:template>
-                        <Text id="TxtValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>PriceValidFrom} || '') + ' - ' + (${jsonModel>PriceValidTo} || '') : '' }"/>
+                        <Text id="TxtValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>PriceValidFrom} || '') : '' }"/>
+                    </t:template>
+                </t:Column>
+
+                <t:Column id="ColDiscountRate" width="7%" hAlign="Center">
+                    <Label id="LblDiscountRate" text="Discount Rate" textAlign="Center" width="100%"/>
+                    <t:template>
+                        <Text id="TxtDiscountRate" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountRate} || '') : '' }" />
+                    </t:template>
+                </t:Column>
+
+                <t:Column id="ColDiscountValidity" width="7%" hAlign="Center">
+                    <Label id="LblDiscountValidity" text="Discount Validity" textAlign="Center" width="100%"/>
+                    <t:template>
+                        <Text id="TxtDiscountValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountValidFrom} || '') : '' }" />
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColDiscountExpiry" width="7%" hAlign="Center">
                     <Label id="LblDiscountExpiry" text="Discount Expiry" textAlign="Center" width="100%"/>
                     <t:template>
-                        <Text id="TxtDiscountExpiry" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountEffectiveToDate} || '') : '' }" />
+                        <Text id="TxtDiscountExpiry" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountValidTo} || '') : '' }" />
                     </t:template>
                 </t:Column>
 
@@ -234,7 +291,7 @@
                 </t:Column>
 
                 <t:Column id="ColFuturePriceValidity" width="8%" hAlign="Center">
-                    <Label id="LblFuturePriceValidity" text="Future Validity" textAlign="Center" width="100%"/>
+                    <Label id="LblFuturePriceValidity" text="Future Price Validity" textAlign="Center" width="100%"/>
                     <t:template>
                         <Text id="TxtFuturePriceValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>FuturePriceValidFrom} || '') + ' - ' + (${jsonModel>FuturePriceValidTo} || '') : '' }" />
                     </t:template>
@@ -247,12 +304,20 @@
                     </t:template>
                 </t:Column>
 
-                <t:Column id="ColStatusValidity" width="8%" hAlign="Center">
-                    <Label id="LblStatusValidity" text="Status Validity" textAlign="Center" width="100%"/>
+                <t:Column id="ColStatusValidFrom" width="8%" hAlign="Center">
+                    <Label id="LblStatusValidFrom" text="Status Valid From" textAlign="Center" width="100%"/>
                     <t:template>
-                        <Text id="TxtStatusValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>StatusValidFromDate} || '') + ' - ' + (${jsonModel>StatusValidToDate} || '') : '' }" />
+                        <Text id="TxtStatusValidFrom" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>StatusValidFromDate} || '') : '' }" />
                     </t:template>
                 </t:Column>
+
+                <t:Column id="ColStatusValidTo" width="8%" hAlign="Center">
+                    <Label id="LblStatusValidTo" text="Status Valid To" textAlign="Center" width="100%"/>
+                    <t:template>
+                        <Text id="TxtStatusValidTo" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>StatusValidToDate} || '') : '' }" />
+                    </t:template>
+                </t:Column>
+
 
                 <t:Column id="ColSupplier" width="8%" hAlign="Center">
                     <Label id="LblSupplier" text="Supplier" textAlign="Center" width="100%"/>

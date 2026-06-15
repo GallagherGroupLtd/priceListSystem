@@ -330,19 +330,30 @@ entity ProductPriceList : managed, cuid {
     DeliveringPlant           : String(255) @title: 'Plant';
     MaterialKey               : String(100) @title: 'Material Key';
 
-    // detail
+    // tree key fiels
     OrderIndex                : Integer;
     Kind                      : String(50); // 'Category' | 'Product'
     CategoryLevel             : Integer;    // 0 for main category, 1-5 for subcategories, 6 for product
     Title                     : String(255);
     Description               : String(100);
+
+    // main & sub category
+    PublishedName             : String(100);
+    TermsAndConditions        : String(1000);
+    IsTACDisableExt           : Boolean;
+    IsTACDisableInt           : Boolean;
+    Notes                     : String(5000);
+    IsNotesDisableExt         : Boolean;
+    IsNotesDisableInt         : Boolean;
+
+    // product detail
     Price                     : String(100);
     PriceUnit                 : String(3);
     PriceValidFrom            : Date;
     PriceValidTo              : Date;
     DiscountRate              : String(100);
-    DiscountEffectiveFromDate : Date;
-    DiscountEffectiveToDate   : Date;
+    DiscountValidFrom         : Date;
+    DiscountValidTo           : Date;
     PriceChangeIndicator      : Boolean;
     FuturePrice               : String(100);
     FuturePriceValidFrom      : Date;
@@ -357,6 +368,12 @@ entity ProductPriceList : managed, cuid {
     parent                    : Association to one ProductPriceList;
     children                  : Composition of many ProductPriceList
                                     on children.parent = $self;
+}
+
+entity ProductPriceListTreeLayout : managed {
+    key userId  : String(255);
+    key tableId : String(50);
+        config  : LargeString; 
 }
 
 /* -------------------------------------- Value Help -------------------------------------- */

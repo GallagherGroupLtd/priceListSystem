@@ -1,51 +1,38 @@
 <core:FragmentDefinition 
     xmlns:core="sap.ui.core" 
-    xmlns="sap.m" 
-    xmlns:macros="sap.fe.macros" 
-    xmlns:smartForm="sap.ui.comp.smartform">
-	<VBox id="VBox4" core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/TermsAndConditionsV2'}">
-		
-		<smartForm:SmartForm id="TermsAndCondForm" editable="true">
-            
-            <smartForm:layout>
-                <smartForm:Layout 
-                    id="TermsAndCondGridLayout" 
-                    labelSpanXL="2" 
-                    labelSpanL="2" 
-                    labelSpanM="2" 
-                    emptySpanXL="0" 
-                    emptySpanL="0" 
-                    emptySpanM="0" 
-                    columnsXL="1" 
-                    columnsL="1" 
-                    columnsM="1" />
-            </smartForm:layout>
+    xmlns="sap.m"
+    xmlns:f="sap.ui.layout.form">
+    
+    <VBox id="VBox4" width="100%" core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/TermsAndConditionsV2'}">
 
-            <smartForm:Group id="TermsAndConditionsGroup">
-                
-                <smartForm:GroupElement id="TermsAndCondGroupElement" label="Terms and Conditions">
-                    <TextArea 
-                        id="TermsAndCondContextText" 
-                        value="{TermsAndConditions}" 
-                        maxLength="1000" 
-                        rows="6"
-                        width="75%" />
-                </smartForm:GroupElement>
-                
-                <smartForm:GroupElement id="TermsAndCondDisableGroupElement" label="Disable">
-                    <HBox id="TermsAndCondExtUserHBox" alignItems="Center">
-                        
-                        <Text id="TermsAndCondDisableExtUserText" text="External User" class="sapUiTinyMarginEnd" />
-                        <Switch id="TermsAndCondDisableExtUserSwitch" state="false" change=".onTACDisableSwitchChange" />
-                        
-                        <Text id="TermsAndCondDisableIntUserText" text="Internal User" class="sapUiLargeMarginBegin sapUiTinyMarginEnd" />
-                        <Switch id="TermsAndCondDisableIntUserSwitch" state="false" change=".onTACDisableSwitchChange" />
-                        
-                    </HBox>
-                </smartForm:GroupElement>
+        <HBox id="TACHBox" alignItems="Start" width="100%" class="sapUiSmallMarginBottom">
+            <HBox id="TACLabelHBox" justifyContent="End">
+                <layoutData><FlexItemData id="TACLabelLayoutData" growFactor="1" maxWidth="9%" /></layoutData>
+                <Label id="TACLabel" text="Terms and Conditions:" class="sapUiSmallMarginEnd sapUiSmallMarginTop" />
+            </HBox>
+            <TextArea 
+                id="TermsAndCondContextText" 
+                value="{TermsAndConditions}" 
+                maxLength="1000" 
+                rows="6"
+                width="75%">
+                <layoutData><FlexItemData id="TACContextTextLayoutData" growFactor="1" maxWidth="100%" /></layoutData>
+            </TextArea>
+        </HBox>
 
-            </smartForm:Group>
-        </smartForm:SmartForm>
+        <HBox id="TACDisableHBox" alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
+            <HBox id="TACDisableLabelHBox" justifyContent="End">
+                <layoutData><FlexItemData id="TACDisableLabelLayoutData" growFactor="1" maxWidth="9%" /></layoutData>
+                <Label id="TACDisableLabel" text="Disable:" class="sapUiSmallMarginEnd" />
+            </HBox>
+            <HBox id="TACDisableHBoxContent" alignItems="Center">
+                <layoutData><FlexItemData id="TACDisableHBoxContentLayoutData" growFactor="1" maxWidth="100%" /></layoutData>
+                <Text id="TermsAndCondDisableExtUserText" text="External User" class="sapUiTinyMarginEnd" />
+                <Switch id="TermsAndCondDisableExtUserSwitch" state="false" change=".onTACDisableSwitchChange" />
+                <Text id="TermsAndCondDisableIntUserText" text="Internal User" class="sapUiLargeMarginBegin sapUiTinyMarginEnd" />
+                <Switch id="TermsAndCondDisableIntUserSwitch" state="false" change=".onTACDisableSwitchChange" />
+            </HBox>
+        </HBox>
 
-	</VBox>
+    </VBox>
 </core:FragmentDefinition>

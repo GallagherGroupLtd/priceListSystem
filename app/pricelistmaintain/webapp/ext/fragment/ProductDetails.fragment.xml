@@ -1,163 +1,222 @@
-<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m" xmlns:f="sap.ui.layout.form" xmlns:l="sap.ui.layout" xmlns:layout="sap.ui.layout" xmlns:smartField="sap.ui.comp.smartfield" xmlns:smartForm="sap.ui.comp.smartform" xmlns:uxap="sap.uxap" core:require="{handler: 'pricelistapp/pricelistmaintain/ext/controller/ProductDetails'}">
-   <Panel headerText="Product Details" expandable="true" expanded="true" width="100%">
-   <VBox id="VBoxProductDetails" width="100%">
-      
-	<f:SimpleForm id="sfProductDetails5" editable="false" width="100%" layout="ResponsiveGridLayout" adjustLabelSpan="false" columnsL="1" columnsXL="1" labelSpanXL="1" labelSpanL="1" labelSpanM="1" labelSpanS="1" emptySpanS="0" emptySpanM="0" emptySpanL="0" emptySpanXL="0" class="sapUiNoContentPadding">
-         <f:content>
-            <VBox alignItems="Start" width="100%">
-               
-               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
-                  <HBox justifyContent="End">
-                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
-                     <Label text="Product:" class="sapUiSmallMarginEnd" />
-                  </HBox>
-                  <!-- <Text text="{product>productNo}" class="sapUiLargeMarginEnd" /> -->
-                  <!-- <Text text="{product>description}" /> -->
-                  <Text text="Material Number"><layoutData><FlexItemData growFactor="1" maxWidth="10%" /></layoutData></Text>
-                  <Text text="Description" ><layoutData><FlexItemData growFactor="1" maxWidth="15%" /></layoutData></Text>
-               </HBox>
-               
-               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
-                  <HBox justifyContent="End">
-                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
-                     <Label text="Published Description:" class="sapUiSmallMarginEnd" />
-                  </HBox>
-                  <Input value="{product>publishedDescription}" ><layoutData><FlexItemData growFactor="1" maxWidth="30%" /></layoutData></Input>
-               </HBox>
-               
-               <HBox alignItems="Center" width="100%">
-                  <HBox justifyContent="End">
-                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
-                     <Label text="Material Status:" class="sapUiSmallMarginEnd" />
-                  </HBox>
-                  <Input value="{product>status}" class="sapUiLargeMarginEnd"><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
-                  
-                  <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="21%" /></layoutData></Text>
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:macros="sap.fe.macros"
+    xmlns:smartForm="sap.ui.comp.smartform">
 
-                  <Label text="Effective From:" class="sapUiSmallMarginEnd" ><layoutData><FlexItemData growFactor="1" maxWidth="5%"/></layoutData></Label>
-                  <DatePicker value="{product>effectiveFrom}" class="sapUiMediumMarginEnd"><layoutData><FlexItemData growFactor="1" maxWidth="10%" /></layoutData></DatePicker>
-                  
-                  <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="1.5%" /></layoutData></Text>                  
-                  <Label text="Effective To:" class="sapUiSmallMarginEnd"><layoutData><FlexItemData growFactor="1" maxWidth="4%"/></layoutData></Label>
-                  <DatePicker value="{product>effectiveTo}"><layoutData><FlexItemData growFactor="1" maxWidth="10%" /></layoutData></DatePicker>			
-               </HBox>
+    <VBox
+        id="VBoxProductDetails"
+        visible="{jsonModel>/showProductDetails}"
+        core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/ProductDetails'}">
 
-               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
-                  <HBox justifyContent="End">
-                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
-                     <Label text="Material Classification:" class="sapUiSmallMarginEnd" />
-                  </HBox>               
-                  <Input value="{product>materialClassification}"><layoutData><FlexItemData growFactor="1" maxWidth="25%"/></layoutData></Input>
+        <smartForm:SmartForm id="ProductDetailsForm" editable="true">
+            <smartForm:layout>
+                <smartForm:ColumnLayout
+                    id="ProductDetailsColumnsLayout"
+                    columnsM="2"
+                    columnsL="2"
+                    columnsXL="2" />
+            </smartForm:layout>
 
-                  <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="21%" /></layoutData></Text>
+            <smartForm:Group id="ProductBasicInfoGroup" title="Product Information">
 
-                  <Label text="3rd part no:" class="sapUiSmallMarginEnd"><layoutData><FlexItemData growFactor="1" maxWidth="5%"/></layoutData></Label>
-                  <Input value="{product>3rdPartyPartNo}" ><layoutData><FlexItemData growFactor="1" maxWidth="10%" /></layoutData></Input>
-                  <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="1.5%" /></layoutData></Text>                                    
+                <smartForm:GroupElement id="ProductMaterialGroupElement" label="Material Number">
+                    <Input
+                        id="ProductMaterialInput"
+                        value="{jsonModel>/selectedProduct/Material}" />
+                </smartForm:GroupElement>
 
-                  <Label text="Supplier:" class="sapUiSmallMarginEnd" ><layoutData><FlexItemData growFactor="1" maxWidth="4%"/></layoutData></Label>
-                  <Input value="{product>Supplier}" ><layoutData><FlexItemData growFactor="1" maxWidth="10%" /></layoutData></Input>
+                <smartForm:GroupElement id="ProductMaterialKeyGroupElement" label="Material Key">
+                    <Input
+                        id="ProductMaterialKeyInput"
+                        value="{jsonModel>/selectedProduct/MaterialKey}" />
+                </smartForm:GroupElement>
 
-               </HBox>
+                <smartForm:GroupElement id="ProductTitleGroupElement" label="Product">
+                    <Input
+                        id="ProductTitleInput"
+                        value="{jsonModel>/selectedProduct/Title}" />
+                </smartForm:GroupElement>
 
-               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
-                  <HBox justifyContent="End">
-                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
-                     <Label text="Shared:" class="sapUiSmallMarginEnd" />
-                  </HBox>                  
-                  <Text text="{product>sharedIndicator}" />
-               </HBox>
+                <smartForm:GroupElement id="ProductDescriptionGroupElement" label="Description">
+                    <Input
+                        id="ProductDescriptionInput"
+                        value="{jsonModel>/selectedProduct/Description}" />
+                </smartForm:GroupElement>
 
-               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
-                  <HBox justifyContent="End">
-                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
-                     <Label text="Main Category:" class="sapUiSmallMarginEnd" />
-                  </HBox>
-                  <Input value="{product>mainCategory}" ><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
-               </HBox>
+            </smartForm:Group>
+        </smartForm:SmartForm>
 
-               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
-                  <HBox justifyContent="End">
-                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
-                     <Label text="Sub Category 1:" class="sapUiSmallMarginEnd" />
-                  </HBox>               
-                  <Input value="{product>subCategory1}" ><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
+        <smartForm:SmartForm id="ProductPricingForm" editable="true">
+            <smartForm:layout>
+                <smartForm:ColumnLayout
+                    id="ProductPricingColumnsLayout"
+                    columnsM="2"
+                    columnsL="2"
+                    columnsXL="2" />
+            </smartForm:layout>
 
-                  <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="21%" /></layoutData></Text>
+            <smartForm:Group id="ProductPriceGroup" title="Price">
 
-                  <Label text="Sub Category 4:" class="sapUiSmallMarginEnd"/>
-                  <Input value="{product>subCategory4}" ><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
-               </HBox>
+                <smartForm:GroupElement id="ProductPriceGroupElement" label="Price">
+                    <Input
+                        id="ProductPriceInput"
+                        value="{jsonModel>/selectedProduct/Price}" />
+                </smartForm:GroupElement>
 
-               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
-                  <HBox justifyContent="End">
-                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
-                     <Label text="Sub Category 2:" class="sapUiSmallMarginEnd" />
-                  </HBox>
-                  <Input value="{product>subCategory2}" ><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
+                <smartForm:GroupElement id="ProductPriceUnitGroupElement" label="Price Unit">
+                    <Input
+                        id="ProductPriceUnitInput"
+                        value="{jsonModel>/selectedProduct/PriceUnit}" />
+                </smartForm:GroupElement>
 
-                  <Text text=""><layoutData><FlexItemData growFactor="1" maxWidth="21%" /></layoutData></Text>
+                <smartForm:GroupElement id="ProductPriceValidFromGroupElement" label="Price Valid From">
+                    <Input
+                        id="ProductPriceValidFromInput"
+                        value="{jsonModel>/selectedProduct/PriceValidFrom}" />
+                </smartForm:GroupElement>
 
-                  <Label text="Sub Category 5:" class="sapUiSmallMarginEnd"/>
-                  <Input value="{product>subCategory5}" ><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
-               </HBox>
+                <smartForm:GroupElement id="ProductPriceValidToGroupElement" label="Price Valid To">
+                    <Input
+                        id="ProductPriceValidToInput"
+                        value="{jsonModel>/selectedProduct/PriceValidTo}" />
+                </smartForm:GroupElement>
 
-               <HBox alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
-                  <HBox justifyContent="End">
-                     <layoutData><FlexItemData growFactor="1" maxWidth="16.50%" /></layoutData>
-                     <Label text="Sub Category 3:" class="sapUiSmallMarginEnd" />
-                  </HBox>               
-                  <Input value="{product>subCategory3}" ><layoutData><FlexItemData growFactor="1" maxWidth="25%" /></layoutData></Input>
-               </HBox>
+                <smartForm:GroupElement id="ProductAccessSequenceGroupElement" label="Access Sequence">
+                    <Input
+                        id="ProductAccessSequenceInput"
+                        value="{jsonModel>/selectedProduct/AccessSequence}" />
+                </smartForm:GroupElement>
 
-            </VBox>
-         </f:content>
-      </f:SimpleForm>
+                <smartForm:GroupElement id="ProductConditionTypeGroupElement" label="Condition Type">
+                    <Input
+                        id="ProductConditionTypeInput"
+                        value="{jsonModel>/selectedProduct/ConditionType}" />
+                </smartForm:GroupElement>
 
-      <!-- <smartForm:SmartForm id="sfProductTerms" editable="true">
-         <smartForm:Group id="sfProductTermsGrp" title="Terms and Conditions">
-            <smartForm:GroupElement id="sfProductTermsGrpEle" label="Context">
-               <TextArea id="sfProductTermsText" value="{Context}" maxLength="1000" rows="10" width="100%" />
-            </smartForm:GroupElement>
-            <smartForm:GroupElement id="sfProductTermsDisableGroupElement" label="Disable">
-               <HBox id="productTermsHBox" alignContent="Center">
-                  <Text id="productTermsExtUserText" text="External User" />
-                  <Switch id="productTermsExtUserSwitch" state="false" change=".onTermsDisableSwitchChange" />
-                  <Text id="productTermsIntUserText" text="Internal User" class="sapUiMediumMarginBegin" />
-                  <Switch id="productTermsIntUserSwitch" state="false" change=".onTermsDisableSwitchChange" />
-               </HBox>
-            </smartForm:GroupElement>
-         </smartForm:Group>
-         <smartForm:Group id="sfProductNotes" title="General Notes">
-            <smartForm:GroupElement id="sfProductNotesGrp" label="Notes">
-               <TextArea id="sfProductNotesText" value="{generalNotes&gt;/Notes}" maxLength="5000" rows="10" width="100%" />
-            </smartForm:GroupElement>
-            <smartForm:GroupElement id="sfProductNotesDisableGroupElement" label="Disable">
-               <HBox id="productNotesHBox" alignContent="Center">
-                  <Text id="productNotesExtUserText" text="External User" />
-                  <Switch id="productNotesExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
-                  <Text id="productNotesIntUserText" text="Internal User" class="sapUiMediumMarginBegin" />
-                  <Switch id="productNotesIntUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
-               </HBox>
-            </smartForm:GroupElement>
-         </smartForm:Group>
-      </smartForm:SmartForm> -->
-      
-      <f:SimpleForm id="sfProductNotes" editable="true" width="100%" layout="ResponsiveGridLayout" adjustLabelSpan="false" columnsL="1" columnsXL="1" labelSpanXL="2" labelSpanL="2" labelSpanM="2" labelSpanS="2" emptySpanS="0" emptySpanM="0" emptySpanL="0" emptySpanXL="0" class="sapUiNoContentPadding">
-         <f:content>
-            <Title text="General Notes" />
-            <Label text="Notes" />
-            <TextArea id="sfProductNotesText" value="{generalNotes>/Notes}" maxLength="5000" rows="6" width="75%" />
-            <Label text="Disable" />
-            <HBox id="productNotesHBox" alignItems="Center">
-                  <Text id="productNotesExtUserText" text="External User" />
-                  <Switch id="productNotesExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
-                  <Text id="productNotesIntUserText" text="Internal User" class="sapUiMediumMarginBegin" />
-                  <Switch id="productNotesIntUserSwitch" state="false" change="onNotesDisableSwitchChange" />
-            </HBox>
-         </f:content>
-      </f:SimpleForm>
+            </smartForm:Group>
 
-   </VBox>
-   </Panel>
+            <smartForm:Group id="ProductDiscountGroup" title="Discount">
+
+                <smartForm:GroupElement id="ProductDiscountRateGroupElement" label="Discount Rate">
+                    <Input
+                        id="ProductDiscountRateInput"
+                        value="{jsonModel>/selectedProduct/DiscountRate}" />
+                </smartForm:GroupElement>
+
+                <smartForm:GroupElement id="ProductDiscountEffectiveFromGroupElement" label="Discount Effective From">
+                    <Input
+                        id="ProductDiscountEffectiveFromInput"
+                        value="{= ${jsonModel>/selectedProduct/DiscountEffectiveFromDate} || ${jsonModel>/selectedProduct/DiscountEffectiveDate} || '' }" />
+                </smartForm:GroupElement>
+
+                <smartForm:GroupElement id="ProductDiscountEffectiveToGroupElement" label="Discount Effective To">
+                    <Input
+                        id="ProductDiscountEffectiveToInput"
+                        value="{= ${jsonModel>/selectedProduct/DiscountEffectiveToDate} || ${jsonModel>/selectedProduct/DiscountEffectiveDate} || '' }" />
+                </smartForm:GroupElement>
+
+                <smartForm:GroupElement id="ProductDiscountAccessSequenceGroupElement" label="Discount Access Sequence">
+                    <Input
+                        id="ProductDiscountAccessSequenceInput"
+                        value="{jsonModel>/selectedProduct/DiscountAccessSequence}" />
+                </smartForm:GroupElement>
+
+                <smartForm:GroupElement id="ProductDiscountConditionTypeGroupElement" label="Discount Condition Type">
+                    <Input
+                        id="ProductDiscountConditionTypeInput"
+                        value="{jsonModel>/selectedProduct/DiscountConditionType}" />
+                </smartForm:GroupElement>
+
+            </smartForm:Group>
+        </smartForm:SmartForm>
+
+        <smartForm:SmartForm id="ProductFuturePriceForm" editable="true">
+            <smartForm:layout>
+                <smartForm:ColumnLayout
+                    id="ProductFuturePriceColumnsLayout"
+                    columnsM="2"
+                    columnsL="2"
+                    columnsXL="2" />
+            </smartForm:layout>
+
+            <smartForm:Group id="ProductFuturePriceGroup" title="Future Price">
+
+                <smartForm:GroupElement id="ProductPriceChangeIndicatorGroupElement" label="Price Change Indicator">
+                    <Switch
+                        id="ProductPriceChangeIndicatorSwitch"
+                        type="AcceptReject"
+                        state="{jsonModel>/selectedProduct/PriceChangeIndicator}" />
+                </smartForm:GroupElement>
+
+                <smartForm:GroupElement id="ProductFuturePriceGroupElement" label="Future Price">
+                    <Input
+                        id="ProductFuturePriceInput"
+                        value="{jsonModel>/selectedProduct/FuturePrice}" />
+                </smartForm:GroupElement>
+
+                <smartForm:GroupElement id="ProductFuturePriceValidFromGroupElement" label="Future Price Valid From">
+                    <Input
+                        id="ProductFuturePriceValidFromInput"
+                        value="{jsonModel>/selectedProduct/FuturePriceValidFrom}" />
+                </smartForm:GroupElement>
+
+                <smartForm:GroupElement id="ProductFuturePriceValidToGroupElement" label="Future Price Valid To">
+                    <Input
+                        id="ProductFuturePriceValidToInput"
+                        value="{jsonModel>/selectedProduct/FuturePriceValidTo}" />
+                </smartForm:GroupElement>
+
+            </smartForm:Group>
+
+            <smartForm:Group id="ProductStatusGroup" title="Status">
+
+                <smartForm:GroupElement id="ProductStatusGroupElement" label="Status">
+                    <Input
+                        id="ProductStatusInput"
+                        value="{jsonModel>/selectedProduct/Status}" />
+                </smartForm:GroupElement>
+
+                <smartForm:GroupElement id="ProductStatusValidFromGroupElement" label="Status Valid From">
+                    <Input
+                        id="ProductStatusValidFromInput"
+                        value="{jsonModel>/selectedProduct/StatusValidFromDate}" />
+                </smartForm:GroupElement>
+
+                <smartForm:GroupElement id="ProductStatusValidToGroupElement" label="Status Valid To">
+                    <Input
+                        id="ProductStatusValidToInput"
+                        value="{jsonModel>/selectedProduct/StatusValidToDate}" />
+                </smartForm:GroupElement>
+
+            </smartForm:Group>
+        </smartForm:SmartForm>
+
+        <smartForm:SmartForm id="ProductSupplierForm" editable="true">
+            <smartForm:layout>
+                <smartForm:ColumnLayout
+                    id="ProductSupplierColumnsLayout"
+                    columnsM="2"
+                    columnsL="2"
+                    columnsXL="2" />
+            </smartForm:layout>
+
+            <smartForm:Group id="ProductSupplierGroup" title="Supplier">
+
+                <smartForm:GroupElement id="ProductSupplierGroupElement" label="Supplier">
+                    <Input
+                        id="ProductSupplierInput"
+                        value="{jsonModel>/selectedProduct/Supplier}" />
+                </smartForm:GroupElement>
+
+                <smartForm:GroupElement id="ProductSupplierSKUGroupElement" label="Supplier SKU">
+                    <Input
+                        id="ProductSupplierSKUInput"
+                        value="{jsonModel>/selectedProduct/SupplierSKU}" />
+                </smartForm:GroupElement>
+
+            </smartForm:Group>
+        </smartForm:SmartForm>
+
+    </VBox>
 </core:FragmentDefinition>

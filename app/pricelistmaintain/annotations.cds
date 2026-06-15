@@ -1,26 +1,224 @@
-using PriceListMaintainService as service from '../../srv/maintain-service';
+using PriceListService as service from '../../srv/service';
+
+// ====================================================================
+// 1. PROPERTY LEVEL ANNOTATIONS (Labels, Mandatory, Value Helps)
+// ====================================================================
+annotate service.PricelistData with {
+
+    // Labels & Mandatory
+    PricelistTitle      @Common.Label: 'Pricelist'       @mandatory;
+    Status              @Common.Label    : 'Status';
+    EffectiveDate       @Common.Label    : 'Effective Date';
+    ExpiryDate          @Common.Label    : 'Expiry Date';
+    PricelistType       @Common.Label: 'Pricelist Type'  @mandatory;
+    MarketScopeRegion   @Common.Label: 'Region'          @mandatory;
+    MarketScopeCountry  @Common.Label: 'Country'         @mandatory;
+    Currency            @Common.Label    : 'Currency';
+    SalesOrg            @Common.Label    : 'Sales Organization';
+    DistChannel         @Common.Label    : 'Distribution Channel';
+    CustGroup1          @Common.Label    : 'Customer Group 1';
+    CustPriceList       @Common.Label    : 'Customer Pricelist';
+    ErpCustomer         @Common.Label    : 'Customer Account';
+    DeliveringPlant     @Common.Label    : 'Delivering Plant';
+    createdBy           @Common.Label    : 'Created By' @UI.HiddenFilter: false;
+    createdAt           @Common.Label    : 'Created On' @UI.HiddenFilter: false;    
+    PublishedDate       @Common.Label    : 'Issue Date';
+    PublishedBy         @Common.Label    : 'Issued By';
+    Version             @Common.Label    : 'Version';
+    MarketDisplay       @Common.Label    : 'Market Display';
+    TermsAndConditions  @Common.Label    : 'Terms and Conditions';
+
+    // Value Help: Pricelist
+    // PricelistTitle @(
+    //     Common.ValueList : {
+    //         $Type          : 'Common.ValueListType',
+    //         CollectionPath : 'PricelistData',
+    //         Parameters     : [
+    //             { $Type : 'Common.ValueListParameterInOut', LocalDataProperty : PricelistTitle, ValueListProperty : 'PricelistTitle' }
+    //         ]
+    //     }
+    // );
+
+    // Value Help: Status
+    Status              @(
+        Common.ValueListWithFixedValues: true,
+        Common.ValueList               : {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'StatusVH',
+            Parameters    : [{
+                $Type            : 'Common.ValueListParameterOut',
+                LocalDataProperty: Status,
+                ValueListProperty: 'code'
+            }]
+        }
+    );
+
+    // Value Help: PricelistType
+    PricelistType       @(
+        Common.ValueListWithFixedValues: true,
+        Common.ValueList               : {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'PricelistTypeVH',
+            Parameters    : [{
+                $Type            : 'Common.ValueListParameterInOut',
+                LocalDataProperty: PricelistType,
+                ValueListProperty: 'PricelistType'
+            }]
+        }
+    );
+
+    // Value Help: MarketScopeRegion
+    MarketScopeRegion   @(
+        Common.ValueListWithFixedValues: true,
+        Common.ValueList               : {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'MarketRegionVH',
+            Parameters    : [{
+                $Type            : 'Common.ValueListParameterInOut',
+                LocalDataProperty: MarketScopeRegion,
+                ValueListProperty: 'MarketScopeRegion'
+            }]
+        }
+    );
+
+    // Value Help: MarketScopeCountry
+    MarketScopeCountry  @(
+        Common.ValueListWithFixedValues: true,
+        Common.ValueList               : {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'MarketCountryVH',
+            Parameters    : [{
+                $Type            : 'Common.ValueListParameterInOut',
+                LocalDataProperty: MarketScopeCountry,
+                ValueListProperty: 'MarketScopeCountry'
+            }]
+        }
+    );
+
+    // Value Help: Others
+    // Value Help: Customer
+    ErpCustomer         @(
+        Common.ValueList               : {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'CustomerVH',
+            Parameters    : [
+                {
+                    $Type            : 'Common.ValueListParameterInOut',
+                    LocalDataProperty: ErpCustomer,
+                    ValueListProperty: 'CUSTOMER'
+                },
+                {
+                    $Type            : 'Common.ValueListParameterDisplayOnly',
+                    ValueListProperty: 'SALES_ORGANIZATION'
+                },
+                {
+                    $Type            : 'Common.ValueListParameterDisplayOnly',
+                    ValueListProperty: 'DISTRIBUTION_CHANNEL'
+                }
+            ],
+        },
+        Common.ValueListWithFixedValues: false,
+    );
+
+    // Value Help: Sales Org.
+    SalesOrg            @(
+        Common.ValueList               : {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'SalesOrgVH',
+            Parameters    : [
+                {
+                    $Type            : 'Common.ValueListParameterInOut',
+                    LocalDataProperty: 'SalesOrg',
+                    ValueListProperty: 'Code'
+                },
+                {
+                    $Type            : 'Common.ValueListParameterDisplayOnly',
+                    ValueListProperty: 'Description'
+                }
+            ]
+        },
+        Common.ValueListWithFixedValues: false,
+    );
+
+    DistChannel         @Common.ValueList: {
+        CollectionPath: 'DistributionChannelVH',
+        Parameters    : [
+            {
+                $Type            : 'Common.ValueListParameterInOut',
+                LocalDataProperty: 'DistChannel',
+                ValueListProperty: 'Code'
+            },
+            {
+                $Type            : 'Common.ValueListParameterDisplayOnly',
+                ValueListProperty: 'Description'
+            }
+        ]
+    };
+
+    DeliveringPlant     @Common.ValueList: {
+        CollectionPath: 'PlantVH',
+        Parameters    : [
+            {
+                $Type            : 'Common.ValueListParameterInOut',
+                LocalDataProperty: 'DeliveringPlant',
+                ValueListProperty: 'Code'
+            },
+            {
+                $Type            : 'Common.ValueListParameterDisplayOnly',
+                ValueListProperty: 'Description'
+            }
+        ]
+    };
+
+    CustPriceList       @Common.ValueList: {
+        CollectionPath: 'PricelistVH',
+        Parameters    : [{
+            $Type            : 'Common.ValueListParameterInOut',
+            LocalDataProperty: 'CustPriceList',
+            ValueListProperty: 'Code'
+        }]
+    };
+
+    CustGroup1          @Common.ValueList: {
+        CollectionPath: 'CustomerGroup1VH',
+        Parameters    : [
+            {
+                $Type            : 'Common.ValueListParameterInOut',
+                LocalDataProperty: 'CustGroup1',
+                ValueListProperty: 'Code'
+            },
+            {
+                $Type            : 'Common.ValueListParameterDisplayOnly',
+                ValueListProperty: 'Description'
+            }
+        ]
+    };
+};
+
 
 // ====================================================================
 // 2. UI ANNOTATIONS (Layout, List Page, Object Page)
 // ====================================================================
 annotate service.PricelistData with @(
     // --- LIST PAGE ---
-    UI.SelectionFields            : [
+    UI.SelectionFields                 : [
         PricelistTitle,
+        PricelistType,
         Status,
         EffectiveDate,
-        ExpiryDate,
-        PricelistType,
+        // ExpiryDate,
         MarketScopeRegion,
         MarketScopeCountry,
         Currency,
         Version,
         createdBy,
         createdAt,
-        PublishedDate
+        PublishedDate,
+        PublishedBy,
+        Version
     ],
 
-    UI.LineItem                   : [
+    UI.LineItem                        : [
         {
             $Type             : 'UI.DataField',
             Value             : PricelistTitle,
@@ -59,33 +257,10 @@ annotate service.PricelistData with @(
         {
             $Type             : 'UI.DataField',
             Value             : ExpiryDate,
-            @HTML5.CssDefaults: {width: '8rem'}
+            @HTML5.CssDefaults: {width: '8rem'},
+            @UI.Hidden        : true
         },
-        {
-            $Type     : 'UI.DataField',
-            Value     : PublishedBy,
-            @HTML5.CssDefaults: {width: '8rem'}
-        },
-        {
-            $Type         : 'UI.DataField',
-            Value         : PublishedDate,
-            @HTML5.CssDefaults: {width: '8rem'}
-        },
-        {
-            $Type         : 'UI.DataField',
-            Value         : createdBy,
-            @HTML5.CssDefaults: {width: '8rem'}
-        },
-        {
-            $Type         : 'UI.DataField',
-            Value         : createdAt,
-            @HTML5.CssDefaults: {width: '8rem'}
-        },
-        {
-            $Type         : 'UI.DataField',
-            Value         : Version,
-            @HTML5.CssDefaults: {width: '8rem'}
-        },
+
         {
             $Type         : 'UI.DataField',
             Value         : SalesOrg,
@@ -97,23 +272,54 @@ annotate service.PricelistData with @(
             @UI.Importance: #Low
         },
         {
-            $Type         : 'UI.DataField',
-            Value         : CustGroup1,
-            @UI.Importance: #Low
+            $Type             : 'UI.DataField',
+            Value             : CustGroup1,
+            @HTML5.CssDefaults: {width: '8rem'},
+            @UI.Importance    : #Low
         },
         {
-            $Type         : 'UI.DataField',
-            Value         : CustPriceList,
-            @UI.Importance: #Low
+            $Type             : 'UI.DataField',
+            Value             : CustPriceList,
+            @HTML5.CssDefaults: {width: '8rem'},
+            @UI.Importance    : #Low
         },
         {
-            $Type         : 'UI.DataField',
-            Value         : ErpCustomer,
-            @UI.Importance: #Low
+            $Type             : 'UI.DataField',
+            Value             : ErpCustomer,
+            @HTML5.CssDefaults: {width: '8rem'},
+            @UI.Importance    : #Low
         },
         {
+            $Type             : 'UI.DataField',
+            Value             : DeliveringPlant,
+            @HTML5.CssDefaults: {width: '8rem'},
+            @UI.Importance    : #Low
+        },
+        {
+            $Type             : 'UI.DataField',
+            Value             : PublishedDate,
+            @HTML5.CssDefaults: {width: '8rem'},
+            @UI.Importance    : #Low
+        },
+        {
+            $Type             : 'UI.DataField',
+            Value             : PublishedBy,
+            @HTML5.CssDefaults: {width: '8rem'},
+            @UI.Importance    : #Low
+        },
+        {
+            $Type             : 'UI.DataField',
+            Value             : createdAt,
+            @UI.Importance    : #Low
+        },
+        {
+            $Type             : 'UI.DataField',
+            Value             : createdBy,
+            @UI.Importance    : #Low
+        },        
+        {
             $Type         : 'UI.DataField',
-            Value         : DeliveringPlant,
+            Value         : Version,
             @UI.Importance: #Low
         },
         {
@@ -130,7 +336,7 @@ annotate service.PricelistData with @(
 
 
     // --- OBJECT PAGE HEADER ---
-    UI.HeaderInfo                 : {
+    UI.HeaderInfo                      : {
         TypeName      : 'Pricelist',
         TypeNamePlural: 'Pricelists',
         Title         : {Value: PricelistTitle},
@@ -138,12 +344,12 @@ annotate service.PricelistData with @(
         ImageUrl      : 'sap-icon://sales-order-item'
     },
 
-    UI.HeaderFacets               : [
+    UI.HeaderFacets                    : [
         {
             $Type : 'UI.ReferenceFacet',
             ID    : 'PriceListHeaderFacet',
             Target: '@UI.FieldGroup#PriceListHeaderGroup'
-        },        
+        },
         {
             $Type : 'UI.ReferenceFacet',
             ID    : 'PublishedInfoFacet',
@@ -158,7 +364,7 @@ annotate service.PricelistData with @(
             $Type : 'UI.ReferenceFacet',
             ID    : 'CreatedInfoFacet',
             Target: '@UI.FieldGroup#CreatedInfoGroup'
-        },        
+        },
         {
             $Type : 'UI.ReferenceFacet',
             ID    : 'AdminFacet',
@@ -167,43 +373,45 @@ annotate service.PricelistData with @(
     ],
 
     // --- OBJECT PAGE TABS ---
-    UI.Facets                     : [{
-        $Type : 'UI.CollectionFacet',
-        Label : 'Pricelist Information',
-        ID    : 'PricelistInfoFacet',
-        Facets: [
-            {
-                $Type : 'UI.ReferenceFacet',
-                Label : 'Pricelist General Data',
-                Target: '@UI.FieldGroup#GeneralInfo'
-            },
-            {
-                $Type : 'UI.CollectionFacet',
-                ID    : 'ScopeContainer',
-                Label : 'Pricelist Scope',
-                Facets: [
-                    {
-                        $Type : 'UI.ReferenceFacet',
-                        Label : 'Market Scope',
-                        Target: '@UI.FieldGroup#MarketScope'
-                    },
-                    {
-                        $Type : 'UI.ReferenceFacet',
-                        Label : 'Commercial Scope',
-                        Target: '@UI.FieldGroup#CommercialScope'
-                    }
-                ]
-            }
-        ]
-    },
-    {
-        $Type : 'UI.CollectionFacet',
-        Label : 'Categories and Product Details',
-        ID    : 'ProductPricelistFacet',
-        Facets: [
-            
-        ]
-    },],
+    UI.Facets                          : [
+        {
+            $Type : 'UI.CollectionFacet',
+            Label : 'Pricelist Information',
+            ID    : 'PricelistInfoFacet',
+            Facets: [
+                {
+                    $Type : 'UI.ReferenceFacet',
+                    Label : 'Pricelist General Data',
+                    Target: '@UI.FieldGroup#GeneralInfo'
+                },
+                {
+                    $Type : 'UI.CollectionFacet',
+                    ID    : 'ScopeContainer',
+                    Label : 'Pricelist Scope',
+                    Facets: [
+                        {
+                            $Type : 'UI.ReferenceFacet',
+                            Label : 'Market Scope',
+                            Target: '@UI.FieldGroup#MarketScope'
+                        },
+                        {
+                            $Type : 'UI.ReferenceFacet',
+                            Label : 'Commercial Scope',
+                            Target: '@UI.FieldGroup#CommercialScope'
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            $Type : 'UI.CollectionFacet',
+            Label : 'Categories and Product Details',
+            ID    : 'ProductPricelistFacet',
+            Facets: [
+
+            ]
+        },
+    ],
 
     // --- FIELD GROUPS --- OBJECT PAGE HEADER
     UI.FieldGroup #PriceListHeaderGroup: {Data: [
@@ -219,8 +427,8 @@ annotate service.PricelistData with @(
             Value: MarketScopeCountry,
             Label: 'Country'
         }
-    ]},    
-    UI.FieldGroup #PublishedInfoGroup     : {Data: [
+    ]},
+    UI.FieldGroup #PublishedInfoGroup  : {Data: [
         {
             Value: PublishedDate,
             Label: 'Published On'
@@ -228,19 +436,19 @@ annotate service.PricelistData with @(
         {
             Value: PublishedBy,
             Label: 'Published By'
-        }                
+        }
     ]},
-    UI.FieldGroup #RevisedInfoGroup     : {Data: [
+    UI.FieldGroup #RevisedInfoGroup    : {Data: [
         {
             Value: modifiedAt,
             Label: 'Last Revised On'
-        },        
+        },
         {
             Value: modifiedBy,
             Label: 'Revised By'
         }
     ]},
-    UI.FieldGroup #CreatedInfoGroup     : {Data: [
+    UI.FieldGroup #CreatedInfoGroup    : {Data: [
         {
             Value: createdAt,
             Label: 'Created on'
@@ -250,23 +458,21 @@ annotate service.PricelistData with @(
             Label: 'Created By'
         }
     ]},
-    UI.FieldGroup #AdminGroup     : {Data: [
-        {
-            Value: Version,
-            Label: 'Version'
-        }
-    ]},
+    UI.FieldGroup #AdminGroup          : {Data: [{
+        Value: Version,
+        Label: 'Version'
+    }]},
 
 
-    UI.FieldGroup #GeneralInfo    : {Data: [
+    UI.FieldGroup #GeneralInfo         : {Data: [
         {Value: PricelistTitle},
         {Value: Currency},
         {Value: EffectiveDate},
-        {Value: ExpiryDate},
+        // {Value: ExpiryDate},
         {Value: Status},
     ]},
 
-    UI.FieldGroup #MarketScope    : {Data: [
+    UI.FieldGroup #MarketScope         : {Data: [
         {
             Value: PricelistType,
             Label: 'Pricelist Type'
@@ -281,7 +487,7 @@ annotate service.PricelistData with @(
         }
     ]},
 
-    UI.FieldGroup #CommercialScope: {Data: [
+    UI.FieldGroup #CommercialScope     : {Data: [
         {
             Value: SalesOrg,
             Label: 'Sales Organization'
@@ -307,20 +513,20 @@ annotate service.PricelistData with @(
             Label: 'Delivering Plant'
         }
     ]},
-    UI.FieldGroup #NotesForm : {
-        $Type : 'UI.FieldGroupType',
+    UI.FieldGroup #NotesForm           : {
+        $Type: 'UI.FieldGroupType',
         Data : [
             {
-                $Type : 'UI.DataField',
-                Value : Notes,
+                $Type: 'UI.DataField',
+                Value: Notes,
             },
             {
-                $Type : 'UI.DataField',
-                Value : NotesDisableExtUser,
+                $Type: 'UI.DataField',
+                Value: NotesDisableExtUser,
             },
             {
-                $Type : 'UI.DataField',
-                Value : NotesDisableIntUser,
+                $Type: 'UI.DataField',
+                Value: NotesDisableIntUser,
             },
         ],
     },
@@ -329,7 +535,7 @@ annotate service.PricelistData with @(
 // ====================================================================
 // 3. ITEMS LEVEL ANNOTATIONS (Value Help with Parameters)
 // ====================================================================
-annotate service.PricelistItemData with {    
+annotate service.PricelistItemData with {
     PricelistPartNumber @(Common.ValueList: {
         CollectionPath: 'ResolvedPricelistItem',
         Parameters    : [

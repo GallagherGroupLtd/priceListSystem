@@ -7,178 +7,123 @@ sap.ui.define([
     const ExtController = pricelistapp.pricelistmaintain.ext.controller.PricelistMaintainObjectPageExt.prototype;
     const idPrefix = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--";
 
-    function removeNodeFromTree(aNodes, sMaterialKey) {
-        for (let i = 0; i < aNodes.length; i++) {
-            const oNode = aNodes[i];
-            if (oNode.children && oNode.children.length) {
-                const idx = oNode.children.findIndex(
-                    c => c.kind === "Product" && c.MaterialKey === sMaterialKey
-                );
-                if (idx !== -1) {
-                    oNode.children.splice(idx, 1);
-                    return true;
-                }
-                if (removeNodeFromTree(oNode.children, sMaterialKey)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    function findParentCategory(aNodes, sMaterialKey) {
+    // Find parent node by child ID (works for both Category and Product)
+    function findParentById(aNodes, sChildId, oParent) {
         for (const oNode of aNodes) {
-            if (oNode.kind === "Category" && oNode.children) {
-                const found = oNode.children.find(
-                    c => c.kind === "Product" && c.MaterialKey === sMaterialKey
-                );
-                if (found) return oNode;
-
-                const deeper = findParentCategory(oNode.children, sMaterialKey);
-                if (deeper) return deeper;
+            if (!oNode) continue;
+            if (oNode.ID === sChildId) return oParent || null; // null = root level
+            if (oNode.children && oNode.children.length) {
+                const oFound = findParentById(oNode.children, sChildId, oNode);
+                if (oFound !== undefined) return oFound;
             }
         }
-        return null;
+        return undefined; // not found
     }
 
-    function insertNodeIntoCategory(oTargetCategory, oDragData, oDropData, sDropPosition) {
-        const aChildren = oTargetCategory.children;
+    // Single reorder function — works for both Product and Category
+    function reorderInParent(aChildren, oDraggedNode, oDroppedNode, sDropPosition) {
+        const iDragIdx = aChildren.findIndex(n => n === oDraggedNode);
+        if (iDragIdx === -1) return;
 
-        if (oDropData.kind === "Category" || sDropPosition === "On") {
-            aChildren.push(oDragData);
+        // Remove first
+        aChildren.splice(iDragIdx, 1);
+
+        // Find drop target AFTER removal
+        const iNewDropIdx = aChildren.findIndex(n => n === oDroppedNode);
+        if (iNewDropIdx === -1) {
+            aChildren.splice(iDragIdx, 0, oDraggedNode); // fallback: put back
             return;
         }
 
-        const iTargetIdx = aChildren.findIndex(
-            c => c.kind === "Product" && c.MaterialKey === oDropData.MaterialKey
-        );
-
-        if (iTargetIdx === -1) {
-            aChildren.push(oDragData);
-            return;
-        }
-
-        const iInsertAt = sDropPosition === "Before" ? iTargetIdx : iTargetIdx + 1;
-        aChildren.splice(iInsertAt, 0, oDragData);
+        const iInsertIdx = sDropPosition === "Before" ? iNewDropIdx : iNewDropIdx + 1;
+        aChildren.splice(iInsertIdx, 0, oDraggedNode);
     }
 
     return {
-        /**
-         * Generated event handler.
-         *
-         * @param oEvent the event object provided by the event provider.
-         */
-        onPress: function (oEvent) {
-            MessageToast.show("Custom handler invoked.");
+
+        onNavigate: function (oEvent) {
+            ExtController.getInstance().onNavigate(oEvent);
         },
 
         onExpand: function (oEvent) {
-            const oButton = oEvent.getSource();
             const oTreeTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
 
-            const aSel = oTreeTable.getSelectedIndices && oTreeTable.getSelectedIndices() || [];
-            if (!aSel.length) {
-                MessageToast.show('Please select a node to expand.');
-                return;
-            }
-            const iIndex = aSel[0];
-            const oCtx = oTreeTable.getContextByIndex(iIndex);
-            if (!oCtx) { MessageToast.show('Unable to determine selected row.'); return; }
-            const oData = oCtx.getObject && oCtx.getObject();
-            if (!oData || oData.kind !== 'Category') {
-                MessageToast.show('Select a node to expand.');
+            const iSelectedIndex = oTreeTable.getSelectedIndex();
+
+            if (iSelectedIndex < 0) {
+                MessageToast.show("Please select a node to expand.");
                 return;
             }
 
-            // find node in model and collect all category nodes in its subtree
-            const oExt = ExtController.getInstance();
-            const oView = oExt.base.getView();
-            const aTree = oView.getModel('jsonModel').getProperty('/productPriceList') || [];
-            const rootNode = oExt._findNodeByKey(aTree, oData.key);
-            if (!rootNode) return;
+            const oSelectedContext = oTreeTable.getContextByIndex(iSelectedIndex);
+            const oSelectedNode = oSelectedContext && oSelectedContext.getObject();
 
-            const aCats = [];
-            const collect = (n) => {
-                if (!n) return;
-                if (n.kind === 'Category') aCats.push({ key: n.key, level: n.level || 0 });
-                if (n.children && n.children.length) n.children.forEach(collect);
-            };
-            collect(rootNode);
+            if (!oSelectedNode || oSelectedNode.Kind !== "Category") {
+                MessageToast.show("Please select a category node.");
+                return;
+            }
 
-            // expand from top-level down (lower level first)
-            aCats.sort((a, b) => a.level - b.level);
-            for (const c of aCats) {
-                const iRow = oExt._findRowIndexByKey(oTreeTable, c.key);
-                if (iRow >= 0) {
-                    try { oTreeTable.expand(iRow); } catch (e) { /* ignore */ }
+            const aCategoryPaths = [];
+
+            const collectCategoryPaths = function (oNode, sPath) {
+                if (!oNode || oNode.Kind !== "Category") {
+                    return;
                 }
-            }
 
-            // oButton.setVisible(false);
-            // sap.ui.getCore().byId(idPrefix + "ProductListCollapseBtn").setVisible(true);
+                aCategoryPaths.push(sPath);
+
+                if (Array.isArray(oNode.children)) {
+                    oNode.children.forEach(function (oChild, iChildIndex) {
+                        collectCategoryPaths(oChild, sPath + "/children/" + iChildIndex);
+                    });
+                }
+            };
+
+            const findRowIndexByPath = function (sPath) {
+                const oBinding = oTreeTable.getBinding("rows");
+                const iLength = oBinding ? oBinding.getLength() : 0;
+
+                for (let i = 0; i < iLength; i++) {
+                    const oCtx = oTreeTable.getContextByIndex(i);
+
+                    if (oCtx && oCtx.getPath() === sPath) {
+                        return i;
+                    }
+                }
+
+                return -1;
+            };
+
+            collectCategoryPaths(oSelectedNode, oSelectedContext.getPath());
+
+            aCategoryPaths.forEach(function (sPath) {
+                const iRowIndex = findRowIndexByPath(sPath);
+
+                if (iRowIndex >= 0) {
+                    oTreeTable.expand(iRowIndex);
+                }
+            });
         },
 
         onCollapse: function (oEvent) {
-            const oButton = oEvent.getSource();
             const oTreeTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
 
-            const aSel = oTreeTable.getSelectedIndices && oTreeTable.getSelectedIndices() || [];
-            if (!aSel.length) {
-                MessageToast.show('Please select a node to collapse.');
+            const iIndex = oTreeTable.getSelectedIndex();
+
+            if (iIndex < 0) {
+                MessageToast.show("Please select a node to collapse.");
                 return;
             }
-            const iIndex = aSel[0];
+
             const oCtx = oTreeTable.getContextByIndex(iIndex);
-            if (!oCtx) { MessageToast.show('Unable to determine selected row.'); return; }
-            const oData = oCtx.getObject && oCtx.getObject();
-            if (!oData || oData.kind !== 'Category') {
-                MessageToast.show('Select a node to collapse.');
+            const oData = oCtx && oCtx.getObject();
+
+            if (!oData || oData.Kind !== "Category") {
+                MessageToast.show("Please select a category node.");
                 return;
             }
 
-            const oExt = ExtController.getInstance();
-            const iRow = oExt._findRowIndexByKey(oTreeTable, oData.key);
-            if (iRow >= 0) {
-                try { oTreeTable.collapse(iRow); } catch (e) { /* ignore */ }
-            }
-
-            // oButton.setVisible(false);
-            // sap.ui.getCore().byId(idPrefix + "ProductListExpandBtn").setVisible(true);
-        },
-
-        onSortProducts: function (oEvent) {
-            const oExt = ExtController.getInstance();
-            const oView = oExt.base.getView();
-            const oJson = oView.getModel('jsonModel');
-            const aTree = oJson.getProperty('/productPriceList') || [];
-
-            const getProductDesc = (p) => (p && (p.MaterialDescription || p.text || '')) || '';
-            const getCategoryText = (c) => (c && (c.text || '')) || '';
-
-            const sortRec = (nodes) => {
-                if (!Array.isArray(nodes) || !nodes.length) return nodes;
-                // recurse first
-                for (const n of nodes) {
-                    if (n.children && n.children.length) n.children = sortRec(n.children);
-                }
-                // sort children: categories before products, categories by text, products by description
-                nodes.sort((a, b) => {
-                    if (a.kind === 'Category' && b.kind !== 'Category') return -1;
-                    if (a.kind !== 'Category' && b.kind === 'Category') return 1;
-                    if (a.kind === 'Category' && b.kind === 'Category') {
-                        return getCategoryText(a).localeCompare(getCategoryText(b));
-                    }
-                    // both products
-                    return getProductDesc(a).localeCompare(getProductDesc(b));
-                });
-                return nodes;
-            };
-
-            const aSorted = sortRec(JSON.parse(JSON.stringify(aTree)));
-            oJson.setProperty('/productPriceList', aSorted);
-            const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-            if (oTable && typeof oTable.clearSelection === 'function') oTable.clearSelection();
-            MessageToast.show('Product list sorted by description.');
+            oTreeTable.collapse(iIndex);
         },
 
         onExpandAll: function (oEvent) {
@@ -197,34 +142,172 @@ sap.ui.define([
             sap.ui.getCore().byId(idPrefix + "ProductListExpandAllBtn").setVisible(true);
         },
 
+        onSortProducts: function (oEvent) {
+            const oExt = ExtController.getInstance();
+            const oView = oExt.base.getView();
+            const oJson = oView.getModel("jsonModel");
+            const aTree = oJson.getProperty("/productPriceList") || [];
+
+            // Toggle asc / desc
+            const sLastDirection = oJson.getProperty("/productSortDirection");
+            const sDirection = sLastDirection === "asc" ? "desc" : "asc";
+            const iDirection = sDirection === "asc" ? 1 : -1;
+
+            const getTitle = function (oNode) {
+                return String((oNode && oNode.Title) || "").trim();
+            };
+
+            const getTitleGroup = function (sTitle) {
+                if (/^[0-9]/.test(sTitle)) {
+                    return 0; // 0-9 first
+                }
+
+                if (/^[A-Za-z]/.test(sTitle)) {
+                    return 1; // A-Z after numbers
+                }
+
+                return 2; // others last
+            };
+
+            const compareByTitle = function (a, b) {
+                const sTitleA = getTitle(a);
+                const sTitleB = getTitle(b);
+
+                const iGroupA = getTitleGroup(sTitleA);
+                const iGroupB = getTitleGroup(sTitleB);
+
+                if (iGroupA !== iGroupB) {
+                    return (iGroupA - iGroupB) * iDirection;
+                }
+
+                return sTitleA.localeCompare(sTitleB, undefined, {
+                    numeric: true,
+                    sensitivity: "base"
+                }) * iDirection;
+            };
+
+            const sortRec = function (aNodes) {
+                if (!Array.isArray(aNodes) || !aNodes.length) {
+                    return aNodes;
+                }
+
+                aNodes.forEach(function (oNode) {
+                    if (Array.isArray(oNode.children) && oNode.children.length) {
+                        oNode.children = sortRec(oNode.children);
+                    }
+                });
+
+                aNodes.sort(compareByTitle);
+
+                return aNodes;
+            };
+
+            const updateOrderIndexRec = function (aNodes) {
+                if (!Array.isArray(aNodes)) {
+                    return;
+                }
+
+                aNodes.forEach(function (oNode, iIndex) {
+                    oNode.OrderIndex = iIndex + 1;
+
+                    if (Array.isArray(oNode.children) && oNode.children.length) {
+                        updateOrderIndexRec(oNode.children);
+                    }
+                });
+            };
+
+            const aSorted = sortRec(JSON.parse(JSON.stringify(aTree)));
+
+            updateOrderIndexRec(aSorted);
+
+            oJson.setProperty("/productPriceList", aSorted);
+            oJson.setProperty("/productSortDirection", sDirection);
+            oJson.updateBindings(true);
+
+            const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
+
+            if (oTable) {
+                const oBinding = oTable.getBinding("rows");
+
+                if (oBinding && typeof oBinding.sort === "function") {
+                    oBinding.sort([]);
+                }
+
+                if (oBinding && typeof oBinding.refresh === "function") {
+                    oBinding.refresh(true);
+                }
+
+                if (typeof oTable.clearSelection === "function") {
+                    oTable.clearSelection();
+                }
+
+                if (typeof oTable.getColumns === "function") {
+                    oTable.getColumns().forEach(function (oColumn) {
+                        if (typeof oColumn.setSorted === "function") {
+                            oColumn.setSorted(false);
+                        }
+                    });
+                }
+            }
+
+            MessageToast.show(
+                sDirection === "asc"
+                    ? "Product list sorted ascending by categories and products."
+                    : "Product list sorted descending by categories and products."
+            );
+        },
+
+        onOpenHierarchyFilter: function () {
+            ExtController.getInstance().onOpenHierarchyFilter();
+        },
+
+        onClearHierarchyFilter: function () {
+            ExtController.getInstance().onClearHierarchyFilter();
+        },
+
         onRefresh: function (oEvent) {
             MessageToast.show("Refresh triggered.");
             ExtController._getProductPriceList.apply(this);
         },
 
-        onRefreshPrice: function (oEvent) {
-            MessageToast.show("Refresh Pricelist by appending new node from item structure table.");
-            ExtController.getInstance()._getProductPriceList()
-                .then((newProductList) => {
-                    ExtController.getInstance()._updateModeToggleEnabled();
-                    // const result = ExtController.getInstance()._addUpdateProductList(newProductList);
-                    // if (result && result.hasChanges) {
-                    //     debugger;
-                    //     ExtController.getInstance()._setTreeTableData(result.productList);
-                    //     // clear any selection after refresh
-                    //     try {
-                    //         const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-                    //         if (oTable && typeof oTable.clearSelection === 'function') oTable.clearSelection();
-                    //         ExtController.getInstance()._setDeleteBtnState(false);
-                    //         ExtController.getInstance()._updateModeToggleEnabled();
-                    //     } catch (e) { /* ignore */ }
-                    // }
+        // onRefreshPrice: function (oEvent) {
+        //     MessageToast.show("Refresh Pricelist by appending new node from item structure table.");
+        //     ExtController.getInstance()._getProductPriceList()
+        //         .then((newProductList) => {
+        //             ExtController.getInstance()._updateModeToggleEnabled();
+        //             // const result = ExtController.getInstance()._addUpdateProductList(newProductList);
+        //             // if (result && result.hasChanges) {
+        //             //     debugger;
+        //             //     ExtController.getInstance()._setTreeTableData(result.productList);
+        //             //     // clear any selection after refresh
+        //             //     try {
+        //             //         const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
+        //             //         if (oTable && typeof oTable.clearSelection === 'function') oTable.clearSelection();
+        //             //         ExtController.getInstance()._setDeleteBtnState(false);
+        //             //         ExtController.getInstance()._updateModeToggleEnabled();
+        //             //     } catch (e) { /* ignore */ }
+        //             // }
+        //         });
+        // },
+
+        onRefreshPrice: function () {
+            const oController = ExtController.getInstance();
+
+            MessageToast.show("Refreshing pricelist...");
+
+            oController._getProductPriceList()
+                .then((aFlatData) => {
+                    oController._setTreeTableData(aFlatData || []);
+                })
+                .catch((oErr) => {
+                    console.error("Error refreshing pricelist:", oErr);
+                    sap.m.MessageBox.error("Cannot refresh pricelist.");
                 });
         },
 
         onResetPrice: function (oEvent) {
 
-            MessageBox.confirm("Table will be reset to the original state (before deletes). Continue?", {
+            MessageBox.confirm("Table will be completely reset. Proceed?", {
                 title: "Confirm Reset Pricelist",
                 actions: [MessageBox.Action.YES, MessageBox.Action.NO],
                 emphasizedAction: MessageBox.Action.YES,
@@ -242,74 +325,139 @@ sap.ui.define([
             ExtController.getInstance().onDelete(oEvent);
         },
 
-        onUndoDelete: function (oEvent) {  
+        onUndoDelete: function (oEvent) {
             // delegate undo delete operation to extension controller
             ExtController.getInstance().onUndoDelete(oEvent);
         },
 
+        // onDrop: function (oEvent) {
+        //     const oDraggedControl = oEvent.getParameter("draggedControl");
+        //     const oDroppedControl = oEvent.getParameter("droppedControl");
+        //     const sDropPosition = oEvent.getParameter("dropPosition");
+
+        //     const oDragCtx = oDraggedControl.getBindingContext("jsonModel");
+        //     const oDropCtx = oDroppedControl.getBindingContext("jsonModel");
+
+        //     const oDroppedData = oDropCtx.getModel().getProperty(oDropCtx.getPath());
+        //     const oDraggedData = oDragCtx.getModel().getProperty(oDragCtx.getPath());
+
+        //     if (!oDraggedData || oDraggedData.Kind !== "Product" || !oDraggedData.MaterialKey) {
+        //         // MessageBox.error("Only product rows can be moved. Category rows are not allowed.");
+        //         return;
+        //     }
+
+        //     if (!oDroppedData) return;
+
+        //     let oTargetCategory;
+        //     if (oDroppedData.Kind === "Category") {
+        //         // oTargetCategory = oDroppedData;
+        //     } else if (oDroppedData.Kind === "Product") {
+        //         // Find the parent category of the dropped-on product
+        //         oTargetCategory = findParentCategory(
+        //             ExtController.getInstance().base.getView().getModel("jsonModel").getProperty("/productPriceList"),
+        //             oDroppedData.MaterialKey
+        //         );
+        //     }
+
+        //     if (!oTargetCategory) {
+        //         // sap.m.MessageToast.show("Cannot determine target category.");
+        //         return;
+        //     }
+
+        //     const aCatParts = oTargetCategory.key.split(" / ");
+        //     const oNewCategoryFields = {
+        //         MainCategory: aCatParts[0] || null,
+        //         SubCategory1: aCatParts[1] || null,
+        //         SubCategory2: aCatParts[2] || null,
+        //         SubCategory3: aCatParts[3] || null,
+        //         SubCategory4: aCatParts[4] || null,
+        //         SubCategory5: aCatParts[5] || null
+        //     };
+
+        //     const oJsonModel = ExtController.getInstance().base.getView().getModel("jsonModel");
+        //     const aTree = oJsonModel.getProperty("/productPriceList");
+
+        //     removeNodeFromTree(aTree, oDraggedData.MaterialKey);
+
+        //     // Apply new category fields to the dragged node
+        //     Object.assign(oDraggedData, oNewCategoryFields);
+
+        //     // oTargetCategory.children.push(oDraggedData);
+        //     insertNodeIntoCategory(oTargetCategory, oDraggedData, oDroppedData, sDropPosition);
+
+        //     // No save. just update the model and let user decide when to save by pressing Save button. If want to save immediately, can call submitChanges here.
+        //     // const oODataModel = ExtController.getInstance().base.getView().getModel();
+        //     // const oContext = oODataModel.bindContext("/PricelistItemData(" + oDraggedData.ID + ")");
+        //     // oODataModel.setProperty("MainCategory", oNewCategoryFields.MainCategory, oContext);
+        //     // // ... repeat for SubCategory1-5
+        //     // oODataModel.submitBatch("myGroup");
+
+        //     oJsonModel.setProperty("/productPriceList", [...aTree]);
+        // },
+
         onDrop: function (oEvent) {
-            const oDraggedControl = oEvent.getParameter("draggedControl");
-            const oDroppedControl = oEvent.getParameter("droppedControl");
+            const oDragCtx = oEvent.getParameter("draggedControl").getBindingContext("jsonModel");
+            const oDropCtx = oEvent.getParameter("droppedControl").getBindingContext("jsonModel");
             const sDropPosition = oEvent.getParameter("dropPosition");
 
-            const oDragCtx = oDraggedControl.getBindingContext("jsonModel");
-            const oDropCtx = oDroppedControl.getBindingContext("jsonModel");
+            if (!oDragCtx || !oDropCtx) return;
 
-            const oDroppedData = oDropCtx.getModel().getProperty(oDropCtx.getPath());
             const oDraggedData = oDragCtx.getModel().getProperty(oDragCtx.getPath());
+            const oDroppedData = oDropCtx.getModel().getProperty(oDropCtx.getPath());
 
-            if (!oDraggedData || oDraggedData.kind !== "Product" || !oDraggedData.MaterialKey) {
-                // MessageBox.error("Only product rows can be moved. Category rows are not allowed.");
-                return;
-            }
-
-            if (!oDroppedData) return;
-
-            let oTargetCategory;
-            if (oDroppedData.kind === "Category") {
-                oTargetCategory = oDroppedData;
-            } else if (oDroppedData.kind === "Product") {
-                // Find the parent category of the dropped-on product
-                oTargetCategory = findParentCategory(
-                    ExtController.getInstance().base.getView().getModel("jsonModel").getProperty("/productPriceList"),
-                    oDroppedData.MaterialKey
-                );
-            }
-
-            if (!oTargetCategory) {
-                sap.m.MessageToast.show("Cannot determine target category.");
-                return;
-            }
-
-            const aCatParts = oTargetCategory.key.split(" / ");
-            const oNewCategoryFields = {
-                MainCategory: aCatParts[0] || null,
-                SubCategory1: aCatParts[1] || null,
-                SubCategory2: aCatParts[2] || null,
-                SubCategory3: aCatParts[3] || null,
-                SubCategory4: aCatParts[4] || null,
-                SubCategory5: aCatParts[5] || null
-            };
+            if (!oDraggedData || !oDroppedData) return;
+            if ((oDraggedData.ID === oDroppedData.ID) && (oDraggedData.OrderIndex === oDroppedData.OrderIndex)) return; // drop on itself
 
             const oJsonModel = ExtController.getInstance().base.getView().getModel("jsonModel");
             const aTree = oJsonModel.getProperty("/productPriceList");
 
-            removeNodeFromTree(aTree, oDraggedData.MaterialKey);
+            // ── PRODUCT ──────────────────────────────────────────────────────
+            if (oDraggedData.Kind === "Product") {
+                if (oDroppedData.Kind !== "Product") {
+                    sap.m.MessageToast.show("Products can only be reordered within the same category.");
+                    return;
+                }
 
-            // Apply new category fields to the dragged node
-            Object.assign(oDraggedData, oNewCategoryFields);
+                const oDragParent = findParentById(aTree, oDraggedData.ID);
+                const oDropParent = findParentById(aTree, oDroppedData.ID);
 
-            // oTargetCategory.children.push(oDraggedData);
-            insertNodeIntoCategory(oTargetCategory, oDraggedData, oDroppedData, sDropPosition);
+                // Compare parent ID (null = root level)
+                const sDragParentId = oDragParent ? oDragParent.ID : null;
+                const sDropParentId = oDropParent ? oDropParent.ID : null;
 
-            // No save. just update the model and let user decide when to save by pressing Save button. If want to save immediately, can call submitChanges here.
-            // const oODataModel = ExtController.getInstance().base.getView().getModel();
-            // const oContext = oODataModel.bindContext("/PricelistItemData(" + oDraggedData.ID + ")");
-            // oODataModel.setProperty("MainCategory", oNewCategoryFields.MainCategory, oContext);
-            // // ... repeat for SubCategory1-5
-            // oODataModel.submitBatch("myGroup");
+                if (sDragParentId !== sDropParentId) {
+                    sap.m.MessageToast.show("Products can only be reordered within the same category.");
+                    return;
+                }
+
+                const aChildren = oDragParent ? oDragParent.children : aTree;
+                reorderInParent(aChildren, oDraggedData, oDroppedData, sDropPosition);
+            }
+
+            // ── CATEGORY ─────────────────────────────────────────────────────
+            else if (oDraggedData.Kind === "Category") {
+                if (oDroppedData.Kind !== "Category") {
+                    sap.m.MessageToast.show("Cannot drop a category onto a product.");
+                    return;
+                }
+
+                const oDragParent = findParentById(aTree, oDraggedData.ID);
+                const oDropParent = findParentById(aTree, oDroppedData.ID);
+
+                const sDragParentId = oDragParent ? oDragParent.ID : null;
+                const sDropParentId = oDropParent ? oDropParent.ID : null;
+
+                if (sDragParentId !== sDropParentId) {
+                    sap.m.MessageToast.show("Categories can only be reordered within the same level.");
+                    return;
+                }
+
+                const aChildren = oDragParent ? oDragParent.children : aTree;
+                reorderInParent(aChildren, oDraggedData, oDroppedData, sDropPosition);
+            }
 
             oJsonModel.setProperty("/productPriceList", [...aTree]);
+            // oJsonModel.refresh(true);
         },
 
         onRowClick: function (oEvent) {
@@ -418,73 +566,95 @@ sap.ui.define([
             }
         },
 
-        onSelectionChange: function (oEvent) { 
-            if (this.bDeleteMode) {
-                ExtController._onSelectionChangeDeleteMode(oEvent);
+        onSelectionChange: function (oEvent) {
+            const oExt = ExtController.getInstance();
+
+            oExt._handleProductTreeSelectionChange(oEvent);
+
+            const mMode = oExt._getProductTreeModeState();
+
+            if (mMode.deleteMode) {
+                oExt._onSelectionChangeDeleteMode(oEvent);
             } else {
-                ExtController._onSelectionChangeDisplayMode(oEvent);
+                oExt._onSelectionChangeDisplayMode(oEvent);
             }
         },
 
-        onSelectionChangeDisplayMode: function (oEvent) {
-            //Demo code
-            MessageToast.show("Row Selection Change:");
-            const oTable = oEvent.getSource();
-            const aSelectedIndices = oTable.getSelectedIndices();
-            const oDeleteButton = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
-            const oResetButton = sap.ui.getCore().byId(idPrefix + "ProductListResetBtn");
-            const oRefreshButton = sap.ui.getCore().byId(idPrefix + "ProductListRefreshBtn");
+        onOpenHierarchyFilter: function () {
+            ExtController.getInstance().onOpenHierarchyFilter();
+        },
 
-            const iSelectedIndex = aSelectedIndices[0];
-            const oRowContext = oTable.getContextByIndex(iSelectedIndex);
+        onClearHierarchyFilter: function () {
+            ExtController.getInstance().onClearHierarchyFilter();
+        },
 
-            if (!oRowContext) {
-                MessageToast.show("No row selected.");
-                return;
-            }
+        // onSelectionChange: function (oEvent) {
+        //     if (this.bDeleteMode) {
+        //         ExtController._onSelectionChangeDeleteMode(oEvent);
+        //     } else {
+        //         ExtController._onSelectionChangeDisplayMode(oEvent);
+        //     }
+        // },
 
-            const oSelectedData = oRowContext.getObject();
+        // onSelectionChangeDisplayMode: function (oEvent) {
+        //     //Demo code
+        //     MessageToast.show("Row Selection Change:");
+        //     const oTable = oEvent.getSource();
+        //     const aSelectedIndices = oTable.getSelectedIndices();
+        //     const oDeleteButton = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
+        //     const oResetButton = sap.ui.getCore().byId(idPrefix + "ProductListResetBtn");
+        //     const oRefreshButton = sap.ui.getCore().byId(idPrefix + "ProductListRefreshBtn");
 
-            if (oSelectedData) {
+        //     const iSelectedIndex = aSelectedIndices[0];
+        //     const oRowContext = oTable.getContextByIndex(iSelectedIndex);
 
-                let sSubSectionId = null;
-                let oObjectPageLayout = null;
-                let oControl = oTable;
+        //     if (!oRowContext) {
+        //         MessageToast.show("No row selected.");
+        //         return;
+        //     }
 
-                while (oControl) {
-                    if (oControl.isA && oControl.isA("sap.uxap.ObjectPageLayout")) {
-                        oObjectPageLayout = oControl;
-                        break;
-                    }
-                    oControl = oControl.getParent && oControl.getParent();
-                }
+        //     const oSelectedData = oRowContext.getObject();
 
-                switch (oSelectedData.kind) {
-                    case "Product":
-                        sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductDetails";
-                }
+        //     if (oSelectedData) {
 
-                if (oObjectPageLayout) {
-                    oObjectPageLayout.scrollToSection(sSubSectionId);
-                } else {
-                    const oSubSection = sap.ui.getCore().byId(sSubSectionId);
-                    if (oSubSection && oSubSection.getDomRef()) {
-                        oSubSection.getDomRef().scrollIntoView({ behavior: "smooth" });
-                    }
-                }
-            }
+        //         let sSubSectionId = null;
+        //         let oObjectPageLayout = null;
+        //         let oControl = oTable;
 
-            if (aSelectedIndices.length > 0) {
-                ExtController.getInstance()._setDeleteBtnState(true);
-                // oRefreshButton.setEnabled(true);
-                // oResetButton.setEnabled(true);
-            } else {
-                ExtController.getInstance()._setDeleteBtnState(false);
-                // oRefreshButton.setEnabled(false);
-                // oResetButton.setEnabled(false);
-            }
-            // oTable.clearSelection();
-        }
+        //         while (oControl) {
+        //             if (oControl.isA && oControl.isA("sap.uxap.ObjectPageLayout")) {
+        //                 oObjectPageLayout = oControl;
+        //                 break;
+        //             }
+        //             oControl = oControl.getParent && oControl.getParent();
+        //         }
+
+        //         switch (oSelectedData.Kind) {
+        //             case "Product":
+        //                 sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductDetails";
+        //         }
+
+        //         if (oObjectPageLayout) {
+        //             oObjectPageLayout.scrollToSection(sSubSectionId);
+        //         } else {
+        //             const oSubSection = sap.ui.getCore().byId(sSubSectionId);
+        //             if (oSubSection && oSubSection.getDomRef()) {
+        //                 oSubSection.getDomRef().scrollIntoView({ behavior: "smooth" });
+        //             }
+        //         }
+        //     }
+
+        //     if (aSelectedIndices.length > 0) {
+        //         ExtController.getInstance()._setDeleteBtnState(true);
+        //         // oRefreshButton.setEnabled(true);
+        //         // oResetButton.setEnabled(true);
+        //     } else {
+        //         ExtController.getInstance()._setDeleteBtnState(false);
+        //         // oRefreshButton.setEnabled(false);
+        //         // oResetButton.setEnabled(false);
+        //     }
+        //     // oTable.clearSelection();
+        // }
 
     }
 });
