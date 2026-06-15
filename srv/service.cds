@@ -148,6 +148,11 @@ service PriceListService {
 
     annotate ErpPriceStatus with @odata.draft.enabled;
 
+    entity ApplicationLog          as projection on my.ApplicationLog
+        actions {
+            action copyRow() returns ErpPricelist;
+        };
+
     //File Upload Functions
     action MassUploadTradeScenarios(file: String)                    returns String;
     action MassUploadItemStructure(file: String)                     returns String;

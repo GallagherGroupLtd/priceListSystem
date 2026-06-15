@@ -4,8 +4,12 @@ sap.ui.define([
     "sap/ui/model/json/JSONModel",
     "sap/ui/core/format/DateFormat",
     'sap/m/MessageBox',
-    'sap/m/library'
-], function (Controller, MessageToast, JSONModel, DateFormat, MessageBox, mobileLibrary) {
+    'sap/m/library',
+    'sap/ui/model/Filter',
+    'sap/ui/model/FilterOperator',
+    'sap/ui/core/Icon',
+    'sap/m/Link'
+], function (Controller, MessageToast, JSONModel, DateFormat, MessageBox, mobileLibrary, Filter, FilterOperator, Icon, Link) {
     "use strict";
     var URLHelper = mobileLibrary.URLHelper;
 
@@ -14,7 +18,8 @@ sap.ui.define([
             //Create a JSON Model to hold display data.
             var oViewModel = new JSONModel({
                 currentDate: new Date(),
-                userName: "" // Default placeholder
+                userName: "", // Default placeholder
+                userEmail: ""   //Default placeholder for email.
             });
 
             //Set the model to the view with the name "home".
@@ -26,8 +31,14 @@ sap.ui.define([
             //Fetch real user name if running in Fiori Launchpad.
             this._setUserName(oViewModel);
 
+            //Fetch logged in user email if running in Fiori Launchpad.
+            this._setUserEmail(oViewModel);
+
             //Set Picture using UI module path to ensure it works in both local and Fiori environments.
             this._setImagePath();
+
+            //Function to set models for view, to allow information on the Landing page to be user-specific and dynamic.
+            this._setDataModelsForView();
         },
 
         _setFormattedDate: function (oModel) {
@@ -53,6 +64,158 @@ sap.ui.define([
             const sRootPath = sap.ui.require.toUrl("pricelistapp/main");
             const oImageModel = new sap.ui.model.json.JSONModel({ banner: sRootPath + "/images/TrendsBanenrBG.jpg" });
             this.getView().setModel(oImageModel, "imgModel");
+        },
+
+        // New method to set user email
+        _setUserEmail: function (oModel) {
+            if (sap.ushell && sap.ushell.Container) {
+                var oUser = sap.ushell.Container.getUser();
+                var sEmail = oUser.getEmail();
+                oModel.setProperty("/userEmail", sEmail);
+            }
+        },
+
+        //Function to set up any additional models needed for the view, such as user-specific data or dynamic content.
+        _setDataModelsForView: async function () {
+            try{
+                //Fetching email from json model home
+                const userEmail = this.getView().getModel("home").getProperty("/userEmail");
+                //Fetching the reference of the oData model defined in manifest.json file with the name mainService
+                // const mainModel = this.getView().getModel();
+                const oModel = this.getOwnerComponent().getModel(); //v4 model
+                
+                //Added select query to fetch specific details required for further use.
+                // const srcPath = "/AccountAssignment?$filter=Email eq '" + userEmail + "'&$select=CustomerNumber,Email,FirstName,HasActiveEntity,HasDraftEntity,ID,IsActiveEntity,LastName,MarketScopeCountry,MarketScopeRegion,PricelistType,SalesOrg";
+                const oAccountBinding = oModel.bindList("/AccountAssignment", undefined, undefined, undefined, {
+                    $filter: `Email eq '${userEmail}'`,
+                    $select: "CustomerNumber,Email,FirstName,HasActiveEntity,HasDraftEntity,ID,IsActiveEntity,LastName,MarketScopeCountry,MarketScopeRegion,PricelistType,SalesOrg"
+                });
+
+                //Reading data from models
+                const aAccountCtx = await oAccountBinding.requestContexts();
+
+                if (!aAccountCtx.length) {
+                    MessageToast.show("No account assignment found for the user."); //Will change to console log if required after testing, to avoid showing technical messages to end users.
+                    return;
+                }
+
+                //Reading the retreived record (1st record as email is unique)
+                const oAccount = aAccountCtx[0].getObject();
+
+                const {
+                    ID: userGUID,
+                    MarketScopeCountry,
+                    MarketScopeRegion,
+                    PricelistType,
+                    SalesOrg
+                } = oAccount;
+
+                // storing in JSON model
+                const oUserModel = new JSONModel({
+                    userGUID,
+                    MarketScopeCountry,
+                    MarketScopeRegion,
+                    PricelistType,
+                    SalesOrg
+                });
+
+                this.getView().setModel(oUserModel, "userModel");
+
+                //Fetching data from Tile Content to populate the tile on the landing page based on user's market scope and trade scenario.
+                const oTileBinding = oModel.bindList("/TileContent", undefined, undefined, undefined, {
+                    $filter:
+                        `MarketScopeCountry eq '${MarketScopeCountry}' and ` +
+                        `MarketScopeRegion eq '${MarketScopeRegion}' and ` +
+                        `PricelistType eq '${PricelistType}'`,
+                    $select: "HasActiveEntity,HasDraftEntity,ID,ImageLink,InformationDetails,InformationHeading,IsActiveEntity,MarketScopeCountry,MarketScopeRegion,PricelistType"
+                });
+
+                const aTileCtx = await oTileBinding.requestContexts();
+
+                if (aTileCtx.length) {
+                    const oTile = aTileCtx[0].getObject();
+
+                    const oTileModel = new JSONModel({
+                        heading: oTile.InformationHeading,
+                        subHeading: oTile.InformationDetails,
+                        image: oTile.ImageLink
+                    });
+
+                    this.getView().setModel(oTileModel, "tileModel");
+
+                    this.getView().getModel("imgModel").setProperty("/banner", oTile.ImageLink);
+                } else {
+                    MessageToast.show("No tile content found for the user's market scope."); //Will change to console log if required after testing, to avoid showing technical messages to end users.
+                }
+
+                //Fetching data from Contact Info to populate the contact details on the landing page based on user's market scope and trade scenario.
+                const oContactBinding = oModel.bindList("/ContactInfo", undefined, undefined, undefined, {
+                    $filter:
+                        `MarketScopeCountry eq '${MarketScopeCountry}' and ` +
+                        `MarketScopeRegion eq '${MarketScopeRegion}' and ` +
+                        `PricelistType eq '${PricelistType}'`,
+                    $select: "ContactEmail,ContactNumber,ExternalAccount,HasActiveEntity,HasDraftEntity,ID,InternalAccount,IsActiveEntity"
+                });
+
+                const aContactCtx = await oContactBinding.requestContexts();
+
+                if (aContactCtx.length) {
+                    //Checking maximum lenth of contact details. so that padding remains consistent.
+                    let maxLength = 0;
+                    for(let i=0; i<aContactCtx.length; i++){
+                        const oContact_1 = aContactCtx[i].getObject();
+                        const phnDetailsLength = oContact_1.ContactNumber ? oContact_1.ContactNumber.length : 0;
+                        if(maxLength < phnDetailsLength){
+                            maxLength = phnDetailsLength;
+                        }
+                    }
+
+
+                    //If multiple contact records are found, all of them have to be displayed vertically.
+                    const oVBox = this.getView().byId("contactBox");
+                    for(let i=0; i<aContactCtx.length; i++){
+                        const oContact = aContactCtx[i].getObject();
+                        const contactNumber = oContact.ContactNumber.padEnd(maxLength, " "); //Padding the contact number to ensure consistent alignment of email links, even if contact numbers have different lengths.
+                        const oPhoneIcon = new Icon({src: "sap-icon://headset", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
+                        const oEmailIcon = new Icon({src: "sap-icon://email", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
+                        const oPhoneLink = new Link({text: contactNumber, href: "tel:" + oContact.ContactNumber, width: "100%"});
+                        const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, width: "100%"});
+                        
+                        const oInnerHBoxPhone = new sap.m.HBox({
+                           wrap: "Wrap",
+                           class: "innerHBox",
+                           columnGap: "0.5rem",
+                           items: [oPhoneIcon, oPhoneLink]});
+
+                        const oInnerHBoxEmail = new sap.m.HBox({
+                           wrap: "Wrap",
+                           class: "innerHBox",
+                           columnGap: "0.5rem",
+                           items: [oEmailIcon, oEmailLink]});
+
+                       const oOuterHBox = new sap.m.HBox({
+                           wrap: "Wrap",
+                           width: "100%",
+                           class: "outerHBox",
+                           columnGap: "10rem",
+                           items: [oInnerHBoxPhone, oInnerHBoxEmail]});
+
+                        oVBox.addItem(oOuterHBox);
+                    }
+                    // const oContact = aContactCtx[0].getObject();
+
+                    // const oContactModel = new JSONModel({
+                    //     contactEmail: oContact.ContactEmail,
+                    //     contactNumber: oContact.ContactNumber
+                    // });
+
+                    // this.getView().setModel(oContactModel, "contactModel");
+                } else {
+                    MessageToast.show("No contact information found for the user's market scope.");  //Will change to console log if required after testing, to avoid showing technical messages to end users.
+                }
+            }catch(ex){
+                console.log("Error in _setDataModelsForView: " + ex.message);
+            }
         },
 
         onNavigationAppPress: function (oEvent) {

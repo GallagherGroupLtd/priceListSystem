@@ -1,0 +1,52 @@
+<core:FragmentDefinition 
+    xmlns:core="sap.ui.core" 
+    xmlns="sap.m" 
+    xmlns:macros="sap.fe.macros" 
+    xmlns:smartForm="sap.ui.comp.smartform">
+    
+    <VBox id="VBox" core:require="{handler: 'pricelistapp/pricelistdisplay/ext/controller/GeneralNotes'}">
+
+        <smartForm:SmartForm id="NotesForm" editable="true">
+            
+            <smartForm:layout>
+                <smartForm:Layout 
+                    id="NotesGridLayout" 
+                    labelSpanXL="2" 
+                    labelSpanL="2" 
+                    labelSpanM="2" 
+                    emptySpanXL="0" 
+                    emptySpanL="0" 
+                    emptySpanM="0" 
+                    columnsXL="1" 
+                    columnsL="1" 
+                    columnsM="1" />
+            </smartForm:layout>
+
+            <smartForm:Group id="NotesGroup">
+                
+                <smartForm:GroupElement id="NotesGroupElement" label="Notes">
+                    <TextArea 
+                        id="NotesContextText" 
+                        value="{Notes}" 
+                        maxLength="5000" 
+                        rows="6"
+                        width="75%" />
+                </smartForm:GroupElement>
+                
+                <smartForm:GroupElement id="NotesDisableGroupElement" label="Disable">
+                    <HBox id="NotesExtUserHBox" alignItems="Center">
+                        
+                        <Text id="NotesDisableExtUserText" text="External User" class="sapUiTinyMarginEnd" />
+                        <Switch id="NotesDisableExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
+                        
+                        <Text id="NotesDisableIntUserText" text="Internal User" class="sapUiLargeMarginBegin sapUiTinyMarginEnd" />
+                        <Switch id="NotesDisableIntUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
+                        
+                    </HBox>
+                </smartForm:GroupElement>
+
+            </smartForm:Group>
+        </smartForm:SmartForm>
+        
+    </VBox>
+</core:FragmentDefinition>

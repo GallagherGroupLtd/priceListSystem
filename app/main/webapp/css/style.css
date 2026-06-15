@@ -94,3 +94,20 @@ width: 100% !important;
     padding: 0 !important;
     height: 10rem;
 }
+
+/* Contact Link Style */
+.contactLinkStyleClass {
+    padding-right: 15rem !important;
+    padding-left: 0.5rem !important;
+}
+
+.innerHBox{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.outerHBox{
+    display: flex;
+    gap: 10rem;
+}

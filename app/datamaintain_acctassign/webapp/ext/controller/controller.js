@@ -61,19 +61,34 @@ sap.ui.define([
             });
 
             const oDownloadButton = new Button({
-                text: "Download Template",
+                text: "Download Account Assignment Template",
                 press: () => {
                     const aColumns = [
-                        { label: "FirstName", property: "FirstName" },
-                        { label: "LastName", property: "LastName" },
-                        { label: "Type", property: "Type" },
-                        { label: "Email", property: "Email" },
-                        { label: "PricelistType", property: "PricelistType" },
-                        { label: "MarketScopeRegion", property: "MarketScopeRegion" },
-                        { label: "MarketScopeCountry", property: "MarketScopeCountry" },
-                        { label: "CustomerNumber", property: "CustomerNumber" },
-                        { label: "SalesOrg", property: "SalesOrg" },
-                        { label: "DistChannel", property: "DistChannel" }
+                        { label: "First Name", property: "FirstName" },
+                        { label: "Last Name", property: "LastName" },
+                        { label: "EMail", property: "Email" },
+                        { label: "Account Type", property: "AccountType" },
+                        { label: "Account Scope", property: "AccountScope" },
+                        { label: "Commercial Scope", property: "CommercialScope" },
+                        { label: "Customer Code", property: "CustomerNumber" },
+                        { label: "Pricelist Type", property: "PricelistType" },
+                        { label: "Region", property: "MarketScopeRegion" },
+                        { label: "Country", property: "MarketScopeCountry" },
+                        { label: "Sales Organization", property: "SalesOrg" },
+                        { label: "Distribution Channel", property: "DistChannel" },
+                        { label: "Customer Pricelist", property: "CustPriceList" },
+                        { label: "Customer Group 1", property: "CustGroup1" },
+                        { label: "Plant", property: "DeliveringPlant" },
+                        { label: "Pricelist View", property: "ControlPriceListView" },
+                        { label: "Price View", property: "ControlPriceView" },
+                        { label: "Discount Indicator", property: "ControlDiscountIndicator" },
+                        { label: "Discount Rate", property: "ControlDiscountRate" },
+                        { label: "Workflow Tile", property: "ControlWorkflowTile" },
+                        { label: "Pricelist Review Schedule Tile", property: "ControlPriceListReviewScheduleTile" },
+                        { label: "Pricelist Maintenance", property: "ControlPricelistMaintenance" },
+                        { label: "Data Maintenance", property: "ControlDataMaintenance" },
+                        { label: "My Requests Tile", property: "ControlMyRequestTile" },
+                        { label: "Application Log Tile", property: "ControlApplicationLogTile" }
                     ];
 
                     const aData = [{}];

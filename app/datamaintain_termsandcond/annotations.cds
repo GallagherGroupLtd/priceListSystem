@@ -102,22 +102,15 @@ annotate service.TermsAndConditions with @(
         ]
     },
 
-    UI.FieldGroup #TermsContent : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            { $Type : 'UI.DataField', Value : TermsAndConditionContent }
-        ]
-    },
-
     UI.FieldGroup #MainCategory : {
         Data: [
             { $Type : 'UI.DataField', Value : MainCategory }
         ]
     },
 
-    UI.FieldGroup #MainCategoryLocal : {
+    UI.FieldGroup #MainCategoryTermsandConditions : {
         Data: [
-            { $Type : 'UI.DataField', Value : MainCategoryLocal }
+            { $Type : 'UI.DataField', Value : MainCategoryTermsandConditions }
         ]
     },
 
@@ -127,9 +120,9 @@ annotate service.TermsAndConditions with @(
         ]
     },
 
-    UI.FieldGroup #SubCategory1Local : {
+    UI.FieldGroup #SubCategory1TermsandConditions : {
         Data: [
-            { $Type : 'UI.DataField', Value : SubCategory1Local }
+            { $Type : 'UI.DataField', Value : SubCategory1TermsandConditions }
         ]
     },
 
@@ -139,9 +132,9 @@ annotate service.TermsAndConditions with @(
         ]
     },
 
-    UI.FieldGroup #SubCategory2Local : {
+    UI.FieldGroup #SubCategory2TermsandConditions : {
         Data: [
-            { $Type : 'UI.DataField', Value : SubCategory2Local }
+            { $Type : 'UI.DataField', Value : SubCategory2TermsandConditions }
         ]
     },
 
@@ -151,9 +144,9 @@ annotate service.TermsAndConditions with @(
         ]
     },
 
-    UI.FieldGroup #SubCategory3Local : {
+    UI.FieldGroup #SubCategory3TermsandConditions : {
         Data: [
-            { $Type : 'UI.DataField', Value : SubCategory3Local }
+            { $Type : 'UI.DataField', Value : SubCategory3TermsandConditions }
         ]
     },
 
@@ -163,9 +156,9 @@ annotate service.TermsAndConditions with @(
         ]
     },
 
-    UI.FieldGroup #SubCategory4Local : {
+    UI.FieldGroup #SubCategory4TermsandConditions : {
         Data: [
-            { $Type : 'UI.DataField', Value : SubCategory4Local }
+            { $Type : 'UI.DataField', Value : SubCategory4TermsandConditions }
         ]
     },
 
@@ -175,9 +168,9 @@ annotate service.TermsAndConditions with @(
         ]
     },
 
-    UI.FieldGroup #SubCategory5Local : {
+    UI.FieldGroup #SubCategory5TermsandConditions : {
         Data: [
-            { $Type : 'UI.DataField', Value : SubCategory5Local }
+            { $Type : 'UI.DataField', Value : SubCategory5TermsandConditions }
         ]
     },
 
@@ -204,7 +197,7 @@ annotate service.TermsAndConditions with @(
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet4',
             Label  : 'Main Category Terms and Conditions',
-            Target : '@UI.FieldGroup#MainCategoryLocal'
+            Target : '@UI.FieldGroup#MainCategoryTermsandConditions'
         },
         {
             $Type  : 'UI.ReferenceFacet',
@@ -216,7 +209,7 @@ annotate service.TermsAndConditions with @(
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet6',
             Label  : 'SubCategory1 Terms and Conditions',
-            Target : '@UI.FieldGroup#SubCategory1Local'
+            Target : '@UI.FieldGroup#SubCategory1TermsandConditions'
         },
         {
             $Type  : 'UI.ReferenceFacet',
@@ -228,7 +221,7 @@ annotate service.TermsAndConditions with @(
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet8',
             Label  : 'SubCategory2 Terms and Conditions',
-            Target : '@UI.FieldGroup#SubCategory2Local'
+            Target : '@UI.FieldGroup#SubCategory2TermsandConditions'
         },
         {
             $Type  : 'UI.ReferenceFacet',
@@ -240,7 +233,7 @@ annotate service.TermsAndConditions with @(
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet10',
             Label  : 'SubCategory3 Terms and Conditions',
-            Target : '@UI.FieldGroup#SubCategory3Local'
+            Target : '@UI.FieldGroup#SubCategory3TermsandConditions'
         },
         {
             $Type  : 'UI.ReferenceFacet',
@@ -252,7 +245,7 @@ annotate service.TermsAndConditions with @(
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet12',
             Label  : 'SubCategory4 Terms and Conditions',
-            Target : '@UI.FieldGroup#SubCategory4Local'
+            Target : '@UI.FieldGroup#SubCategory4TermsandConditions'
         },
         {
             $Type  : 'UI.ReferenceFacet',
@@ -264,7 +257,7 @@ annotate service.TermsAndConditions with @(
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet14',
             Label  : 'SubCategory5 Terms and Conditions',
-            Target : '@UI.FieldGroup#SubCategory5Local'
+            Target : '@UI.FieldGroup#SubCategory5TermsandConditions'
         }
     ],
 
@@ -494,10 +487,10 @@ annotate service.TermsAndConditions with {
         }        
     ); 
     
-    MainCategoryLocal  @UI.MultiLineText;
-    SubCategory1Local  @UI.MultiLineText;
-    SubCategory2Local  @UI.MultiLineText;
-    SubCategory3Local  @UI.MultiLineText;
-    SubCategory4Local  @UI.MultiLineText;
-    SubCategory5Local  @UI.MultiLineText;  
+    MainCategoryTermsandConditions  @UI.MultiLineText;
+    SubCategory1TermsandConditions  @UI.MultiLineText;
+    SubCategory2TermsandConditions  @UI.MultiLineText;
+    SubCategory3TermsandConditions  @UI.MultiLineText;
+    SubCategory4TermsandConditions  @UI.MultiLineText;
+    SubCategory5TermsandConditions  @UI.MultiLineText;  
 }

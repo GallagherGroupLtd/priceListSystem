@@ -25,9 +25,9 @@ entity PricelistItemStructureComponents : managed, cuid {
     PricelistType      : String(255) @title: 'Pricelist Type';
     MarketScopeRegion  : String(255) @title: 'Region';
     MarketScopeCountry : String(255) @title: 'Country';
-    SalesOrg           : String(4)   @title: 'Sales Organization';
-    DistChannel        : String(2)   @title: 'Distribution Channel';
     Sequence           : String(255) @title: 'Sequence';
+    SalesOrg           : String(4)   @title: 'Sales Organization';
+    DistChannel        : String(2)   @title: 'Distribution Channel';    
     CustPriceList      : String(20)  @title: 'Customer Pricelist';
     CustGroup1         : String(255) @title: 'Customer Group 1';
     ErpCustomer        : String(255) @title: 'ERP Customer';
@@ -65,32 +65,27 @@ entity PricelistPartNumberDetermination : managed, cuid {
 
 /** Terms and Condition Determination **/
 entity TermsAndConditionDetermination : managed, cuid {
-    PricelistType                 : String(255) @title: 'Pricelist Type';
-    MarketScopeRegion             : String(255) @title: 'Region';
-    MarketScopeCountry            : String(255) @title: 'Country';
-    SalesOrg                      : String(4)   @title: 'Sales Organization';
-    DistChannel                   : String(2)   @title: 'Distribution Channel';
-    CustPriceList                 : String(20)  @title: 'Customer Pricelist';
-    CustGroup1                    : String(255) @title: 'Customer Group 1';
-    ErpCustomer                   : String(255) @title: 'ERP Customer';
-    DeliveringPlant               : String(255) @title: 'Plant';
-    TermsAndCondition             : String(255) @title: 'GeneralTerms and Conditions';
-    MainCategory                  : String(255) @title: 'Main Category';
-    SubCategory1                  : String(255) @title: 'Subcategory 1';
-    SubCategory2                  : String(255) @title: 'Subcategory 2';
-    SubCategory3                  : String(255) @title: 'Subcategory 3';
-    SubCategory4                  : String(255) @title: 'Subcategory 4';
-    SubCategory5                  : String(255) @title: 'Subcategory 5';
-    MainCategoryLocal : String(255) @title: 'Main Category Terms and Condition';
-    SubCategory1Local : String(255) @title: 'Subcategory 1 Terms and Condition';
-    SubCategory2Local : String(255) @title: 'Subcategory 2 Terms and Condition';
-    SubCategory3Local : String(255) @title: 'Subcategory 3 Terms and Condition';
-    SubCategory4Local : String(255) @title: 'Subcategory 4 Terms and Condition';
-    SubCategory5Local : String(255) @title: 'Subcategory 5 Terms and Condition';
-    TermsAndConditionCategory : String(255) @title: 'Terms and Conditions Category';
-    PricelistFieldName        : String(255) @title: 'Pricelist Fieldname';
-    PricelistDataLevel        : String(255) @title: 'Pricelist Data Level';
-    TermsAndConditionContent  : String      @title: 'Terms and Conditions Content';
+    PricelistType                  : String(255) @title: 'Pricelist Type';
+    MarketScopeRegion              : String(255) @title: 'Region';
+    MarketScopeCountry             : String(255) @title: 'Country';
+    SalesOrg                       : String(4)   @title: 'Sales Organization';
+    DistChannel                    : String(2)   @title: 'Distribution Channel';
+    CustPriceList                  : String(20)  @title: 'Customer Pricelist';
+    CustGroup1                     : String(255) @title: 'Customer Group 1';
+    ErpCustomer                    : String(255) @title: 'ERP Customer';
+    DeliveringPlant                : String(255) @title: 'Plant';
+    MainCategory                   : String(255) @title: 'Main Category';
+    SubCategory1                   : String(999) @title: 'Subcategory 1';
+    SubCategory2                   : String(999) @title: 'Subcategory 2';
+    SubCategory3                   : String(999) @title: 'Subcategory 3';
+    SubCategory4                   : String(999) @title: 'Subcategory 4';
+    SubCategory5                   : String(999) @title: 'Subcategory 5';
+    MainCategoryTermsandConditions : String(999) @title: 'Main Category Terms and Condition';
+    SubCategory1TermsandConditions : String(999) @title: 'Subcategory 1 Terms and Condition';
+    SubCategory2TermsandConditions : String(999) @title: 'Subcategory 2 Terms and Condition';
+    SubCategory3TermsandConditions : String(999) @title: 'Subcategory 3 Terms and Condition';
+    SubCategory4TermsandConditions : String(999) @title: 'Subcategory 4 Terms and Condition';
+    SubCategory5TermsandConditions : String(999) @title: 'Subcategory 5 Terms and Condition';
 }
 
 /** Pricing Parameter Determination **/
@@ -212,7 +207,7 @@ entity AccountAssignment : managed, cuid {
     ControlDiscountIndicator           : Boolean     @title: 'Discount Indicator';
     ControlDiscountRate                : Boolean     @title: 'Discount Rate';
     ControlWorkflowTile                : Boolean     @title: 'Workflow Tile';
-    ContorlPriceListReviewScheduleTile : Boolean     @title: 'Pricelist Review Schedule Tile';
+    ControlPriceListReviewScheduleTile : Boolean     @title: 'Pricelist Review Schedule Tile';
     ControlPricelistMaintenance        : Boolean     @title: 'Pricelist Maintenance';
     ControlDataMaintenance             : Boolean     @title: 'Data Maintenance';
     ControlMyRequestTile               : Boolean     @title: 'My Requests Tile';
@@ -446,4 +441,20 @@ entity MyRequest : managed, cuid {
     ReqCatalogUpdated     : Boolean      @title: 'PPR Team Adds Part/s to Relevant Catalogs';
     ReqMasterPLUpdated    : Boolean      @title: 'PPR Team Updates Master PL';
     ReqSecCommerceChecked : Boolean      @title: 'Check or Request Tech Admin to add Sec Commerce Flag (Scale Price as Required)';
+}
+
+entity ApplicationLog : managed, cuid {
+    FirstName              : String(255) @title: 'First Name';
+    LastName               : String(255) @title: 'Last Name';
+    EmailAddress           : String(255) @title: 'Email Address';
+    AccountType            : String(255) @title: 'Account Type';
+    AccountScope           : String(255) @title: 'Account Scope';
+    LoggedInDate           : Date        @title: 'Logged In Date';
+    LoggedInTime           : Time        @title: 'Logged In Time';
+    LoggedOffDate          : Date        @title: 'Logged Off Date';
+    LoggedOffTime          : Time        @title: 'Logged Off Time';
+    AccessedTile           : String(255) @title: 'Accessed Tile';
+    AccessedPricelist      : String(255) @title: 'Accessed Pricelist';
+    PricelistDownloadDate  : Date        @title: 'Pricelist Download Date';
+    PricelistDownloadTime  : Time        @title: 'Pricelist Download Time';
 }

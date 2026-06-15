@@ -59,7 +59,10 @@ annotate service.ContactInfo with @(
             Label: 'Phone Number'
         },
         { Value: InternalAccount },
-        { Value: ExternalAccount },        
+        { Value: ExternalAccount },
+        { Value: PricelistType },
+        { Value: MarketScopeRegion },
+        { Value: MarketScopeCountry }
     ],
     UI.PresentationVariant : {
         SortOrder      : [

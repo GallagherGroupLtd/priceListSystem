@@ -209,6 +209,8 @@ annotate service.PricelistData with @(
         // ExpiryDate,
         MarketScopeRegion,
         MarketScopeCountry,
+        Currency,
+        Version,
         createdBy,
         createdAt,
         PublishedDate,
@@ -221,6 +223,11 @@ annotate service.PricelistData with @(
             $Type             : 'UI.DataField',
             Value             : PricelistTitle,
             @HTML5.CssDefaults: {width: '12rem'}
+        },
+        {
+            $Type             : 'UI.DataField',
+            Value             : Status,
+            @HTML5.CssDefaults: {width: '8rem'}
         },
         {
             $Type             : 'UI.DataField',
@@ -240,11 +247,6 @@ annotate service.PricelistData with @(
         {
             $Type             : 'UI.DataField',
             Value             : Currency,
-            @HTML5.CssDefaults: {width: '8rem'}
-        },
-        {
-            $Type             : 'UI.DataField',
-            Value             : Status,
             @HTML5.CssDefaults: {width: '8rem'}
         },
         {
