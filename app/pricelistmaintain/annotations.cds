@@ -1,4 +1,4 @@
-using PriceListService as service from '../../srv/maintain-service';
+using PriceListMaintainService as service from '../../srv/maintain-service';
 
 // ====================================================================
 // 2. UI ANNOTATIONS (Layout, List Page, Object Page)

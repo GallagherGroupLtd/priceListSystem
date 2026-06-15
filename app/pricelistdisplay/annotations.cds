@@ -1,4 +1,4 @@
-using PriceListService as service from '../../srv/display-service';
+using PriceListDisplayService as service from '../../srv/display-service';
 
 // ====================================================================
 // 2. UI ANNOTATIONS (Layout, List Page, Object Page)
