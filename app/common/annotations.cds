@@ -204,7 +204,7 @@ annotate display.PricelistData with {
     // Labels & Mandatory
     PricelistTitle      @Common.Label   : 'Pricelist'       @mandatory;    
     Status              @Common.Label   : 'Status';
-    EffectiveDate       @Common.Label   : 'Valid From';
+    EffectiveDate       @Common.Label   : 'Effective Date';
     ExpiryDate          @Common.Label   : 'Valid To';
     PricelistType       @Common.Label   : 'Pricelist Type'  @mandatory;
     MarketScopeRegion   @Common.Label   : 'Region'          @mandatory;
@@ -218,7 +218,7 @@ annotate display.PricelistData with {
     DeliveringPlant     @Common.Label   : 'Delivering Plant';
     createdBy           @Common.Label   : 'Created By';
     createdAt           @Common.Label   : 'Created On';
-    PublishedDate       @Common.Label   : 'Published On';
+    PublishedDate       @Common.Label   : 'Issue Date';
     PublishedBy         @Common.Label   : 'Published By';
     Version             @Common.Label   : 'Version';
     MarketDisplay       @Common.Label   : 'Market Display';
