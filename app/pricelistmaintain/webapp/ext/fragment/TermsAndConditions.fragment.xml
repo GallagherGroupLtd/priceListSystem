@@ -7,7 +7,7 @@
 
         <HBox id="TACHBox" alignItems="Start" width="100%" class="sapUiSmallMarginBottom">
             <HBox id="TACLabelHBox" justifyContent="End">
-                <layoutData><FlexItemData id="TACLabelLayoutData" growFactor="1" maxWidth="7%" /></layoutData>
+                <layoutData><FlexItemData id="TACLabelLayoutData" growFactor="1" maxWidth="9%" /></layoutData>
                 <Label id="TACLabel" text="Terms and Conditions:" class="sapUiSmallMarginEnd sapUiSmallMarginTop" />
             </HBox>
             <TextArea 
@@ -22,7 +22,7 @@
 
         <HBox id="TACDisableHBox" alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
             <HBox id="TACDisableLabelHBox" justifyContent="End">
-                <layoutData><FlexItemData id="TACDisableLabelLayoutData" growFactor="1" maxWidth="7%" /></layoutData>
+                <layoutData><FlexItemData id="TACDisableLabelLayoutData" growFactor="1" maxWidth="9%" /></layoutData>
                 <Label id="TACDisableLabel" text="Disable:" class="sapUiSmallMarginEnd" />
             </HBox>
             <HBox id="TACDisableHBoxContent" alignItems="Center">

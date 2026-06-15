@@ -352,8 +352,8 @@ entity ProductPriceList : managed, cuid {
     PriceValidFrom            : Date;
     PriceValidTo              : Date;
     DiscountRate              : String(100);
-    DiscountEffectiveFromDate : Date;
-    DiscountEffectiveToDate   : Date;
+    DiscountValidFrom         : Date;
+    DiscountValidTo           : Date;
     PriceChangeIndicator      : Boolean;
     FuturePrice               : String(100);
     FuturePriceValidFrom      : Date;

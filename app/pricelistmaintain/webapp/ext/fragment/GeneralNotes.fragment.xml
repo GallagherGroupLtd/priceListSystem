@@ -7,7 +7,7 @@
 
         <HBox id="NotesHBox" alignItems="Start" width="100%" class="sapUiSmallMarginBottom">
             <HBox id="NotesLabelHBox" justifyContent="End">
-                <layoutData><FlexItemData id="NotesLabelLayoutData" growFactor="1" maxWidth="7%" /></layoutData>
+                <layoutData><FlexItemData id="NotesLabelLayoutData" growFactor="1" maxWidth="9%" /></layoutData>
                 <Label id="NotesLabel" text="Notes:" class="sapUiSmallMarginEnd sapUiSmallMarginTop" />
             </HBox>
             <TextArea 
@@ -22,7 +22,7 @@
 
         <HBox id="NotesDisableHBox" alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
             <HBox id="NotesDisableLabelHBox" justifyContent="End">
-                <layoutData><FlexItemData id="NotesDisableLabelLayoutData" growFactor="1" maxWidth="7%" /></layoutData>
+                <layoutData><FlexItemData id="NotesDisableLabelLayoutData" growFactor="1" maxWidth="9%" /></layoutData>
                 <Label id="NotesDisableLabel" text="Disable:" class="sapUiSmallMarginEnd" />
             </HBox>
             <HBox id="NotesDisableHBoxContent" alignItems="Center">

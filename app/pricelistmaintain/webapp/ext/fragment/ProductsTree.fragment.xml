@@ -251,7 +251,7 @@
                 <t:Column id="ColValidity" width="8%" hAlign="Center">
                     <Label id="LblValidity" text="Price Validity" textAlign="Center" width="100%"/>
                     <t:template>
-                        <Text id="TxtValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>PriceValidFrom} || '') + ' - ' + (${jsonModel>PriceValidTo} || '') : '' }"/>
+                        <Text id="TxtValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>PriceValidFrom} || '') : '' }"/>
                     </t:template>
                 </t:Column>
 

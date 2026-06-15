@@ -541,10 +541,10 @@ module.exports = cds.service.impl(async function () {
     this.on('MassUploadTradeScenarios', req =>
         handleMassUpload(req, cds.entities.TradeAndMarketScenarioDetermination,
             [
-                "PricelistType", 
-                "MarketScopeRegion", 
-                "MarketScopeCountry", 
-                "EmailSubject", 
+                "PricelistType",
+                "MarketScopeRegion",
+                "MarketScopeCountry",
+                "EmailSubject",
                 "EmailBody"
             ],
             r => ({
@@ -560,7 +560,7 @@ module.exports = cds.service.impl(async function () {
     // 2. Item Structure
     this.on('MassUploadItemStructure', req =>
         handleMassUpload(req, cds.entities.PricelistItemStructureComponents,
-            [ 
+            [
                 "Pricelist Type",
                 "Region",
                 "Country",
@@ -1305,45 +1305,465 @@ module.exports = cds.service.impl(async function () {
     // Custom logic to get product tree data
     this.on('READ', 'ProductPricelistTree', async (req) => {
 
-        function extractWhereValue(whereArr, fieldName) {
-            if (!whereArr) return null;
-            for (let i = 0; i < whereArr.length; i++) {
-                const token = whereArr[i];
-                // CDS where tokens: { ref: ['FieldName'] } followed by '=' then { val: 'value' }
-                if (token?.ref?.[0] === fieldName && whereArr[i + 1] === '=' && whereArr[i + 2]?.val !== undefined) {
-                    return whereArr[i + 2].val;
-                }
-            }
-            return null;
+        // function extractWhereValue(whereArr, fieldName) {
+        //     if (!whereArr) return null;
+        //     for (let i = 0; i < whereArr.length; i++) {
+        //         const token = whereArr[i];
+        //         // CDS where tokens: { ref: ['FieldName'] } followed by '=' then { val: 'value' }
+        //         if (token?.ref?.[0] === fieldName && whereArr[i + 1] === '=' && whereArr[i + 2]?.val !== undefined) {
+        //             return whereArr[i + 2].val;
+        //         }
+        //     }
+        //     return null;
+        // }
+
+        // const db = cds.transaction(req);
+        // const extdb = await cds.connect.to('extdb');
+
+        // // 1. Get main data from item structure
+        // let localQueryItemStrComp = SELECT.from('PricelistItemStructureComponents');
+        // if (req.query.SELECT.where) {
+        //     localQueryItemStrComp.where(req.query.SELECT.where);
+        //     localQueryItemStrComp.orderBy({ Sequence: 'asc' });
+        // }
+
+        // const results = await db.run(localQueryItemStrComp);
+        // // console.table(results, ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5", "SalesOrg", "DistChannel", "DeliveringPlant", "Sequence"]);
+
+        // if (!results || results.length === 0) {
+        //     return [];
+        // }
+
+        // // 2. Build Dynamic WHERE clause
+        // const whereClause = req.query.SELECT.where || [];
+        // const headerSalesOrg = extractWhereValue(whereClause, 'SalesOrg') ?? results.find(r => r.SalesOrg)?.SalesOrg ?? null;
+        // const headerDistChannel = extractWhereValue(whereClause, 'DistChannel') ?? results.find(r => r.DistChannel)?.DistChannel ?? null;
+        // const headerDeliveringPlant = extractWhereValue(whereClause, 'DeliveringPlant') ?? results.find(r => r.DeliveringPlant)?.DeliveringPlant ?? null;
+
+        // const headerCustPriceList = extractWhereValue(whereClause, 'CustPriceList') ?? results.find(r => r.CustPriceList)?.CustPriceList ?? null;
+        // const headerErpCustomer = extractWhereValue(whereClause, 'ErpCustomer') ?? results.find(r => r.ErpCustomer)?.ErpCustomer ?? null;
+        // let orConditions = [];
+
+        // results.forEach(row => {
+        //     let andConditions = [];
+        //     const addCondition = (dbField, val) => {
+        //         if (val) {
+        //             const safeVal = String(val).replace(/'/g, "''");
+        //             andConditions.push(`"${dbField}" = '${safeVal}'`);
+        //         } else {
+        //             andConditions.push(`COALESCE("${dbField}", '') = ''`);
+        //         }
+        //     };
+
+        //     addCondition('MAIN_CATEGORY', row.MainCategory);
+        //     addCondition('SUBCATEGORY_1', row.SubCategory1);
+        //     addCondition('SUBCATEGORY_2', row.SubCategory2);
+        //     addCondition('SUBCATEGORY_3', row.SubCategory3);
+        //     addCondition('SUBCATEGORY_4', row.SubCategory4);
+        //     addCondition('SUBCATEGORY_5', row.SubCategory5);
+
+        //     if (headerSalesOrg) {
+        //         andConditions.push(`"SALES_ORGANIZATION" = '${String(headerSalesOrg).replace(/'/g, "''")}'`);
+        //     }
+        //     if (headerDistChannel) {
+        //         andConditions.push(`"DISTRIBUTION_CHANNEL" = '${String(headerDistChannel).replace(/'/g, "''")}'`);
+        //     }
+        //     if (headerDeliveringPlant) {
+        //         const pricePlant = String(headerDeliveringPlant).replace(/'/g, "''");
+        //         andConditions.push(`("PLANT" = '${pricePlant}' OR "PLANT" = '*')`);
+        //     }
+        //     orConditions.push(`(${andConditions.join(' AND ')})`);
+        // });
+        // // console.log(">>> Dynamic WHERE for External DB:", orConditions.join(' OR '));
+
+
+        // // 3. Get material master from external DB
+        // const extQuery = `WITH ranked AS (SELECT *, ROW_NUMBER() OVER ( PARTITION BY "MATERIAL_KEY", "SALES_ORGANIZATION", "DISTRIBUTION_CHANNEL"
+        //         ORDER BY SUBSTRING("CREATED_AT", 1, 19) DESC) AS rn FROM "SAPECC"."T_MATERIAL_MASTER_DATA" WHERE ${orConditions.join(' OR ')})
+        //         SELECT * FROM ranked WHERE rn = 1`;
+        // const materialsMaster = await extdb.run(extQuery);
+        // // console.table(materialsMaster, ["MAIN_CATEGORY", "SUBCATEGORY_1", "SUBCATEGORY_2", "SUBCATEGORY_3", "SUBCATEGORY_4", "SUBCATEGORY_5", "MATERIAL_KEY", "MATERIAL", "CREATED_AT"]);
+
+        // // 3.1 Get part number determination data from external DB based on material master results and header filters (SalesOrg, DistChannel)
+        // // const targetFields = ['SalesOrg', 'DistChannel', 'PricelistType', 'MarketScopeRegion', 'MarketScopeCountry'];
+        // const targetFields = ['SalesOrg', 'DistChannel'];
+        // let partNumberDeterminationWhere = {};
+        // let partNumberDeterminationMap = new Map();
+
+        // targetFields.forEach(field => {
+        //     const val = extractWhereValue(req.query.SELECT.where, field);
+        //     if (val) {
+        //         partNumberDeterminationWhere[field] = val;
+        //     }
+        // });
+
+        // const materialIds = materialsMaster.map(m => m.MATERIAL);
+        // if (materialIds.length > 0) {
+        //     partNumberDeterminationWhere.ProductID = { 'in': materialIds };
+        // }
+
+        // const localQueryPartNumberDet = SELECT.from('PricelistPartNumberDetermination').where(partNumberDeterminationWhere);
+        // const partNumberResults = await db.run(localQueryPartNumberDet);
+        // partNumberResults.forEach(row => {
+        //     if (!partNumberDeterminationMap.has(row.ProductID)) {
+        //         partNumberDeterminationMap.set(row.ProductID, []);
+        //     }
+
+        //     partNumberDeterminationMap.get(row.ProductID).push({
+        //         ProductStatus: row.ProductStatus,
+        //         StatusValidity: row.StatusValidity,
+        //         // Supplier: row.Supplier,         
+        //         // SupplierSKU: row.SupplierSKU   
+        //     });
+        // });
+        // // console.table(partNumberResults, ["ProductID", "SalesOrg", "DistChannel", "PricelistType", "MarketScopeRegion", "MarketScopeCountry", "ProductStatus", "StatusValidity"]);
+        // // console.log('>>> Part Number Determination Map:', partNumberDeterminationMap);
+
+        // // 4. Get pricing parameters
+        // let localQueryPricingParam = SELECT.from('PricingParameterDetermination');
+        // if (req.query.SELECT.where) {
+        //     localQueryPricingParam.where(req.query.SELECT.where);
+        //     localQueryPricingParam.orderBy({ createdAt: 'desc' });
+
+        // }
+        // const resultsPricing = await db.run(localQueryPricingParam);
+
+
+        // // 5. Prepare result (Flatten Data & Inner Join Logic)
+        // const finalFlatResults = [];
+        // results.forEach(row => {
+        //     const matchingProducts = materialsMaster.filter(mat =>
+        //         (mat.MAIN_CATEGORY || null) === (row.MainCategory || null) &&
+        //         (mat.SUBCATEGORY_1 || null) === (row.SubCategory1 || null) &&
+        //         (mat.SUBCATEGORY_2 || null) === (row.SubCategory2 || null) &&
+        //         (mat.SUBCATEGORY_3 || null) === (row.SubCategory3 || null) &&
+        //         (mat.SUBCATEGORY_4 || null) === (row.SubCategory4 || null) &&
+        //         (mat.SUBCATEGORY_5 || null) === (row.SubCategory5 || null)
+        //     );
+        //     matchingProducts.forEach(mat => {
+        //         finalFlatResults.push({
+        //             ...row,
+        //             MaterialKey: mat.MATERIAL_KEY,
+        //             Material: mat.MATERIAL,
+        //             MaterialDescription: mat.MATERIAL_DESCRIPTION
+        //         });
+        //     });
+        // });
+
+
+        // // 6. Collect all unique (AccessSequence + ConditionType + DiscountConditionType)  from resultsPricing
+        // const activeSequences = [];
+        // const seenCombos = new Set();
+        // const materialKeys = [...new Set(materialsMaster.map(mat => mat.MATERIAL).filter(Boolean))];
+
+        // if (resultsPricing && resultsPricing.length > 0) {
+        //     for (const p of resultsPricing) {
+        //         // Scan both ConditionType slots and DiscountConditionType slots
+        //         const slotPrefixes = [
+        //             { seqKey: 'AccessSequence', condKey: 'ConditionType', prioKey: 'Priority', isDiscount: false },
+        //             { seqKey: 'DiscountAccessSequence', condKey: 'DiscountConditionType', prioKey: 'DiscountPriority', isDiscount: true }
+        //         ];
+        //         for (const { seqKey, condKey, prioKey, isDiscount } of slotPrefixes) {
+        //             for (let i = 1; i <= 10; i++) {
+        //                 const seq = p[`${seqKey}${i}`];
+        //                 const cond = p[`${condKey}${i}`];
+        //                 if (!seq || !cond) continue;
+
+        //                 const comboKey = `${seq}::${cond}`;
+        //                 if (seenCombos.has(comboKey)) continue;
+        //                 seenCombos.add(comboKey);
+
+        //                 activeSequences.push({
+        //                     accessSequence: seq,
+        //                     conditionType: cond,
+        //                     priority: parseInt(p[`${prioKey}${i}`] || i),
+        //                     salesOrg: p.SalesOrg || null,
+        //                     distChannel: p.DistChannel || null,
+        //                     isDiscount: isDiscount
+        //                 });
+        //             }
+        //         }
+        //     }
+        // }
+        // // console.log('>>> Active Access Sequences & Condition Types:', activeSequences);
+
+        // // 7. Get available columns in T_PRICELIST_MASTER_DATA to ensure we only query existing ones in dynamic SQL
+        // //    Create dynamic UNION ALL query to fetch prices based on active access sequences
+        // const colQuery = `SELECT COLUMN_NAME FROM SYS.TABLE_COLUMNS WHERE SCHEMA_NAME = 'SAPECC' AND TABLE_NAME = 'T_PRICELIST_MASTER_DATA' ORDER BY POSITION`;
+        // const colRows = await extdb.run(colQuery);
+        // const availableCols = new Set(colRows.map(r => r.COLUMN_NAME));
+
+        // const safe = v => String(v).replace(/'/g, "''");
+
+        // // const unionParts = activeSequences.map(combo => {
+        // //     const px = combo.accessSequence;
+        // //     const col = suffix => `"${px}_${suffix}"`;
+        // //     const has = suffix => availableCols.has(`${px}_${suffix}`);
+
+        // //     if (!has('MATERIAL') || !has('CONDITION_TYPE')) return null;
+
+        // //     const whereConditions = [];
+        // //     const matList = materialKeys.map(m => `'${safe(m)}'`).join(', ');
+
+        // //     whereConditions.push(`${col('MATERIAL')} IN (${matList})`);
+        // //     whereConditions.push(`${col('CONDITION_TYPE')} = '${safe(combo.conditionType)}'`);
+
+        // //     if (has('SALES_ORGANIZATION') && combo.salesOrg) {
+        // //         whereConditions.push(`${col('SALES_ORGANIZATION')} = '${safe(combo.salesOrg)}'`);
+        // //     }
+
+        // //     if (has('DISTRIBUTION_CHANNEL') && combo.distChannel) {
+        // //         whereConditions.push(`${col('DISTRIBUTION_CHANNEL')} = '${safe(combo.distChannel)}'`);
+        // //     }
+
+        // //     if (has('VALID_FROM_DATE')) {
+        // //         whereConditions.push(`${col('VALID_FROM_DATE')} IS NOT NULL`);
+        // //         whereConditions.push(`${col('VALID_FROM_DATE')} <> ''`);
+        // //         whereConditions.push(
+        // //             `TO_DATE(${col('VALID_FROM_DATE')}, 'MM/DD/YY') <= CURRENT_DATE`
+        // //         );
+        // //     }
+
+        // //     if (has('VALID_TO_DATE')) {
+        // //         whereConditions.push(`${col('VALID_TO_DATE')} IS NOT NULL`);
+        // //         whereConditions.push(`${col('VALID_TO_DATE')} <> ''`);
+        // //         whereConditions.push(
+        // //             `TO_DATE(${col('VALID_TO_DATE')}, 'MM/DD/YY') >= CURRENT_DATE`
+        // //         );
+        // //     }
+
+        // //     const alreadyMapped = new Set(['MATERIAL', 'CONDITION_TYPE', 'VALID_FROM_DATE', 'VALID_TO_DATE']);
+        // //     const extraCols = [...availableCols]
+        // //         .filter(c => c.startsWith(`${px}_`) && !alreadyMapped.has(c.replace(`${px}_`, '')))
+        // //         .map(c => `${col(c.replace(`${px}_`, ''))} AS "${c.replace(`${px}_`, '')}"`)
+        // //         .join(',\n    ');            
+
+        // //     return `SELECT 
+        // //             '${px}' AS "ACCESS_SEQUENCE",
+        // //             ${combo.priority} AS "PRIORITY",
+        // //             ${col('MATERIAL')} AS "MATERIAL",
+        // //             ${col('CONDITION_TYPE')} AS "CONDITION_TYPE",
+        // //             "KONP_RATE" AS "PRICE",
+        // //             "KONP_RATE_UNIT" AS "PRICE_UNIT",
+        // //             ${has('VALID_FROM_DATE') ? col('VALID_FROM_DATE') : 'NULL'} AS "VALID_FROM",
+        // //             ${has('VALID_TO_DATE') ? col('VALID_TO_DATE') : 'NULL'} AS "VALID_TO"
+        // //             ${extraCols ? ',\n    ' + extraCols : ''}
+        // //         FROM "SAPECC"."T_PRICELIST_MASTER_DATA"
+        // //         WHERE ${whereConditions.join(' AND ')}`;
+        // // }).filter(Boolean);
+
+        // const alreadyMapped = new Set(['MATERIAL', 'CONDITION_TYPE', 'VALID_FROM_DATE', 'VALID_TO_DATE']);
+
+        // // First pass: collect ALL unique extra suffixes across ALL sequences
+        // const allExtraSuffixes = new Set();
+        // activeSequences.forEach(combo => {
+        //     [...availableCols]
+        //         .filter(c => c.startsWith(`${combo.accessSequence}_`))
+        //         .forEach(c => {
+        //             const suffix = c.replace(`${combo.accessSequence}_`, '');
+        //             if (!alreadyMapped.has(suffix)) allExtraSuffixes.add(suffix);
+        //         });
+        // });
+        // const extraSuffixList = [...allExtraSuffixes];
+
+        // // Second pass: build union parts
+        // const unionParts = activeSequences.map(combo => {
+        //     const px = combo.accessSequence;
+        //     const col = suffix => `"${px}_${suffix}"`;
+        //     const has = suffix => availableCols.has(`${px}_${suffix}`);
+
+        //     // Skip this access sequence if required columns do not exist
+        //     if (!has('MATERIAL') || !has('CONDITION_TYPE')) {
+        //         return null;
+        //     }
+
+        //     // Skip if no materials to query
+        //     if (!materialKeys || materialKeys.length === 0) {
+        //         return null;
+        //     }
+
+        //     const whereConditions = [];
+
+        //     const matList = materialKeys
+        //         .map(m => `'${safe(m)}'`)
+        //         .join(', ');
+
+        //     whereConditions.push(`${col('MATERIAL')} IN (${matList})`);
+        //     whereConditions.push(`${col('CONDITION_TYPE')} = '${safe(combo.conditionType)}'`);
+
+        //     if (has('SALES_ORGANIZATION') && combo.salesOrg) {
+        //         whereConditions.push(`${col('SALES_ORGANIZATION')} = '${safe(combo.salesOrg)}'`);
+        //     }
+
+        //     if (has('DISTRIBUTION_CHANNEL') && combo.distChannel) {
+        //         whereConditions.push(`${col('DISTRIBUTION_CHANNEL')} = '${safe(combo.distChannel)}'`);
+        //     }
+
+        //     const validFromCol = has('VALID_FROM_DATE')
+        //         ? col('VALID_FROM_DATE')
+        //         : 'CAST(NULL AS NVARCHAR(50))';
+
+        //     const validToCol = has('VALID_TO_DATE')
+        //         ? col('VALID_TO_DATE')
+        //         : 'CAST(NULL AS NVARCHAR(50))';
+
+        //     const extraCols = extraSuffixList
+        //         .map(suffix => has(suffix) ? `${col(suffix)} AS "${suffix}"` : `NULL AS "${suffix}"`)
+        //         .join(',\n    ');
+
+        //     return `SELECT
+        //         '${safe(px)}' AS "ACCESS_SEQUENCE",
+        //         ${Number(combo.priority || 999)} AS "PRIORITY",
+        //         ${col('MATERIAL')} AS "MATERIAL",
+        //         ${col('CONDITION_TYPE')} AS "CONDITION_TYPE",
+        //         "KONP_RATE" AS "PRICE",
+        //         "KONP_RATE_UNIT" AS "PRICE_UNIT",
+        //         ${validFromCol} AS "VALID_FROM",
+        //         ${validToCol} AS "VALID_TO"
+        //         ${extraCols ? ',\n    ' + extraCols : ''}
+        //     FROM "SAPECC"."T_PRICELIST_MASTER_DATA"
+        //     WHERE ${whereConditions.join(' AND ')}`;
+
+        // }).filter(Boolean);
+
+        // let priceRecords = [];
+        // if (unionParts.length > 0) {
+        //     const priceQuery = unionParts.join(' UNION ALL ');
+        //     priceRecords = await extdb.run(priceQuery);
+        // }
+
+        // // console.table(priceRecords, ["ACCESS_SEQUENCE", "PRIORITY", "MATERIAL", "CONDITION_TYPE", "PRICE", "PRICE_UNIT", "VALID_FROM", "VALID_TO", ...extraSuffixList]);
+
+        // // 8. Separate price records into price vs discount maps based on condition type
+        // const priceByMaterial = new Map();
+        // const discountByMaterial = new Map();
+
+        // const discountCondTypes = new Set(
+        //     activeSequences
+        //         .filter(s => { return s.isDiscount === true; })
+        //         .map(s => s.conditionType)
+        // );
+
+        // // Build combo lookup map for easy access inside forEach
+        // const comboMap = new Map(activeSequences.map(c => [c.accessSequence, c]));
+
+        // // Define extra filter conditions per access sequence
+        // // Return true = pass (allow push), false = skip
+        // const accessSequenceFilters = {
+        //     'A916': (rec) => rec.PRICELIST_TYPE === headerCustPriceList,
+        //     'A305': (rec) => rec.SOLDTO === headerErpCustomer,
+        // };
+
+        // priceRecords.forEach(rec => {
+        //     const mat = rec.MATERIAL;
+        //     const combo = comboMap.get(rec.ACCESS_SEQUENCE);
+        //     const filterFn = accessSequenceFilters[rec.ACCESS_SEQUENCE];
+
+        //     if (filterFn && combo && !filterFn(rec, combo)) return;
+
+        //     if (discountCondTypes.has(rec.CONDITION_TYPE)) {
+        //         if (!discountByMaterial.has(mat)) discountByMaterial.set(mat, []);
+        //         discountByMaterial.get(mat).push(rec);
+        //     } else {
+        //         if (!priceByMaterial.has(mat)) priceByMaterial.set(mat, []);
+        //         // console.log('>>> Adding price record for material', mat, 'with access sequence', rec.ACCESS_SEQUENCE);
+        //         priceByMaterial.get(mat).push(rec);
+        //     }
+        // });
+        // // console.table(priceRecords, ["ACCESS_SEQUENCE", "PRIORITY", "MATERIAL", "CONDITION_TYPE", "PRICE", "PRICE_UNIT", "VALID_FROM", "VALID_TO", ...extraSuffixList]);
+
+        // // 9. Get discount condition types for value help (if needed in frontend)
+        // const discountConditionQuery = 'SELECT DISTINCT CODE FROM "SAPECC"."ERP_DISCOUNTCONDTYPE"';
+        // const discountConditionEntries = await extdb.run(discountConditionQuery);
+        // // console.log('>>> Discount Condition Types Entries:', discountConditionEntries);
+
+        // // 10. Populate Final output with price details based on material matches and access sequence priority
+        // finalFlatResults.forEach(row => {
+        //     const matPrices = priceByMaterial.get(row.Material) || [];
+        //     if (matPrices.length > 0) {
+        //         matPrices.sort((a, b) => a.PRIORITY - b.PRIORITY);
+
+        //         const highPriorityMatch = matPrices[0];
+        //         row.Price = highPriorityMatch.PRICE || null;
+        //         row.PriceUnit = highPriorityMatch.PRICE_UNIT || null;
+        //         row.PriceValidFrom = highPriorityMatch.VALID_FROM || null;
+        //         row.PriceValidTo = highPriorityMatch.VALID_TO || null;
+        //         row.AccessSequence = highPriorityMatch.ACCESS_SEQUENCE || null;
+        //         row.ConditionType = highPriorityMatch.CONDITION_TYPE || null;
+        //     }
+
+        //     const matDiscounts = discountByMaterial.get(row.Material) || [];
+        //     if (matDiscounts.length > 0) {
+        //         matDiscounts.sort((a, b) => a.PRIORITY - b.PRIORITY);
+        //         const highPriorityDiscount = matDiscounts[0];
+        //         row.DiscountRate = highPriorityDiscount.PRICE || null;
+        //         row.DiscountEffectiveDate = highPriorityDiscount.VALID_FROM || null;
+        //         row.DiscountConditionType = highPriorityDiscount.CONDITION_TYPE || null;
+        //         row.DiscountAccessSequence = highPriorityDiscount.ACCESS_SEQUENCE || null;
+        //     }
+
+        //     const partNumberDet = partNumberDeterminationMap.get(row.Material) || [];
+        //     if (partNumberDet.length > 0) {
+        //         const partNumberEntry = partNumberDet[0];
+        //         row.Status = partNumberEntry.ProductStatus || null;
+        //         row.StatusValidFromDate = partNumberEntry.StatusValidity || null;
+        //         row.StatusValidToDate = partNumberEntry.StatusValidity || null;
+        //         row.Supplier = partNumberEntry.Supplier || null;
+        //         row.SupplierSKU = partNumberEntry.SupplierSKU || null;
+        //     }
+        // });
+        // // console.log('>>> Final Flat Results before Sorting:', finalFlatResults);
+
+
+        // // 12. Sort result by hierarchy levels (nulls first and then alphabetically)
+        // const sortByFields = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
+        // const sortedResults = finalFlatResults
+        //     .filter(row => row.Price != null)
+        //     .sort((a, b) => {
+        //         for (const field of sortByFields) {
+        //             const valA = a[field];
+        //             const valB = b[field];
+        //             if (valA === null && valB !== null) return -1;
+        //             if (valA !== null && valB === null) return 1;
+        //             if (valA !== valB) return (valA || '').localeCompare(valB || '');
+        //         }
+        //         return 0;
+        //     });
+        // return sortedResults;
+    });
+
+    this.on('getProductTreeData', async (req) => {
+        let headerData;
+        try {
+            headerData = JSON.parse(req.data.headerData);
+        } catch (e) {
+            req.error(400, "Invalid headerData format");
         }
+
+        function parseRecordDate(sDate) {
+            if (!sDate) return null;
+            const d = new Date(sDate);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        const { PricelistType, EffectiveDate, SalesOrg, DistChannel, DeliveringPlant, CustPriceList, ErpCustomer, PublishedDate } = headerData;
 
         const db = cds.transaction(req);
         const extdb = await cds.connect.to('extdb');
 
-        // 1. Get main data from item structure
-        let localQueryItemStrComp = SELECT.from('PricelistItemStructureComponents');
-        if (req.query.SELECT.where) {
-            localQueryItemStrComp.where(req.query.SELECT.where);
-            localQueryItemStrComp.orderBy({ Sequence: 'asc' });
-        }
+        const results = await db.run(SELECT.from('PricelistItemStructureComponents')
+            .where({
+                SalesOrg: SalesOrg,
+                DistChannel: DistChannel,
+                DeliveringPlant: DeliveringPlant
+            })
+            .orderBy({ Sequence: 'asc' }));
 
-        const results = await db.run(localQueryItemStrComp);
         // console.table(results, ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5", "SalesOrg", "DistChannel", "DeliveringPlant", "Sequence"]);
 
-        if (!results || results.length === 0) {
-            return [];
-        }
+        if (!results || results.length === 0) return [];
 
-        // 2. Build Dynamic WHERE clause
-        const whereClause = req.query.SELECT.where || [];
-        const headerSalesOrg = extractWhereValue(whereClause, 'SalesOrg') ?? results.find(r => r.SalesOrg)?.SalesOrg ?? null;
-        const headerDistChannel = extractWhereValue(whereClause, 'DistChannel') ?? results.find(r => r.DistChannel)?.DistChannel ?? null;
-        const headerDeliveringPlant = extractWhereValue(whereClause, 'DeliveringPlant') ?? results.find(r => r.DeliveringPlant)?.DeliveringPlant ?? null;
-
-        const headerCustPriceList = extractWhereValue(whereClause, 'CustPriceList') ?? results.find(r => r.CustPriceList)?.CustPriceList ?? null;
-        const headerErpCustomer = extractWhereValue(whereClause, 'ErpCustomer') ?? results.find(r => r.ErpCustomer)?.ErpCustomer ?? null;
         let orConditions = [];
-
         results.forEach(row => {
             let andConditions = [];
             const addCondition = (dbField, val) => {
@@ -1354,7 +1774,6 @@ module.exports = cds.service.impl(async function () {
                     andConditions.push(`COALESCE("${dbField}", '') = ''`);
                 }
             };
-
             addCondition('MAIN_CATEGORY', row.MainCategory);
             addCondition('SUBCATEGORY_1', row.SubCategory1);
             addCondition('SUBCATEGORY_2', row.SubCategory2);
@@ -1362,16 +1781,10 @@ module.exports = cds.service.impl(async function () {
             addCondition('SUBCATEGORY_4', row.SubCategory4);
             addCondition('SUBCATEGORY_5', row.SubCategory5);
 
-            if (headerSalesOrg) {
-                andConditions.push(`"SALES_ORGANIZATION" = '${String(headerSalesOrg).replace(/'/g, "''")}'`);
-            }
-            if (headerDistChannel) {
-                andConditions.push(`"DISTRIBUTION_CHANNEL" = '${String(headerDistChannel).replace(/'/g, "''")}'`);
-            }
-            if (headerDeliveringPlant) {
-                const pricePlant = String(headerDeliveringPlant).replace(/'/g, "''");
-                andConditions.push(`("PLANT" = '${pricePlant}' OR "PLANT" = '*')`);
-            }
+            if (SalesOrg) andConditions.push(`"SALES_ORGANIZATION" = '${String(SalesOrg).replace(/'/g, "''")}'`);
+            if (DistChannel) andConditions.push(`"DISTRIBUTION_CHANNEL" = '${String(DistChannel).replace(/'/g, "''")}'`);
+            if (DeliveringPlant) andConditions.push(`("PLANT" = '${String(DeliveringPlant).replace(/'/g, "''")}' OR "PLANT" = '*')`);
+
             orConditions.push(`(${andConditions.join(' AND ')})`);
         });
         // console.log(">>> Dynamic WHERE for External DB:", orConditions.join(' OR '));
@@ -1385,48 +1798,48 @@ module.exports = cds.service.impl(async function () {
         // console.table(materialsMaster, ["MAIN_CATEGORY", "SUBCATEGORY_1", "SUBCATEGORY_2", "SUBCATEGORY_3", "SUBCATEGORY_4", "SUBCATEGORY_5", "MATERIAL_KEY", "MATERIAL", "CREATED_AT"]);
 
         // 3.1 Get part number determination data from external DB based on material master results and header filters (SalesOrg, DistChannel)
-        // const targetFields = ['SalesOrg', 'DistChannel', 'PricelistType', 'MarketScopeRegion', 'MarketScopeCountry'];
-        const targetFields = ['SalesOrg', 'DistChannel'];
+        // const targetFields = ['SalesOrg', 'DistChannel', 'PricelistType', 'MarketScopeRegion', 'MarketScopeCountry'];    
         let partNumberDeterminationWhere = {};
-        let partNumberDeterminationMap = new Map();
 
-        targetFields.forEach(field => {
-            const val = extractWhereValue(req.query.SELECT.where, field);
-            if (val) {
-                partNumberDeterminationWhere[field] = val;
-            }
-        });
+        if (SalesOrg) partNumberDeterminationWhere.SalesOrg = SalesOrg;
+        if (DistChannel) partNumberDeterminationWhere.DistChannel = DistChannel;
 
         const materialIds = materialsMaster.map(m => m.MATERIAL);
         if (materialIds.length > 0) {
             partNumberDeterminationWhere.ProductID = { 'in': materialIds };
         }
 
-        const localQueryPartNumberDet = SELECT.from('PricelistPartNumberDetermination').where(partNumberDeterminationWhere);
-        const partNumberResults = await db.run(localQueryPartNumberDet);
+        let partNumberDeterminationMap = new Map();
+        const partNumberResults = await db.run(
+            SELECT.from('PricelistPartNumberDetermination').where(partNumberDeterminationWhere)
+        );
+
         partNumberResults.forEach(row => {
             if (!partNumberDeterminationMap.has(row.ProductID)) {
                 partNumberDeterminationMap.set(row.ProductID, []);
             }
-
             partNumberDeterminationMap.get(row.ProductID).push({
                 ProductStatus: row.ProductStatus,
-                StatusValidity: row.StatusValidity,
-                // Supplier: row.Supplier,         
-                // SupplierSKU: row.SupplierSKU   
+                StatusValidity: row.StatusValidity
             });
         });
         // console.table(partNumberResults, ["ProductID", "SalesOrg", "DistChannel", "PricelistType", "MarketScopeRegion", "MarketScopeCountry", "ProductStatus", "StatusValidity"]);
         // console.log('>>> Part Number Determination Map:', partNumberDeterminationMap);
 
         // 4. Get pricing parameters
-        let localQueryPricingParam = SELECT.from('PricingParameterDetermination');
-        if (req.query.SELECT.where) {
-            localQueryPricingParam.where(req.query.SELECT.where);
-            localQueryPricingParam.orderBy({ createdAt: 'desc' });
+        const pricingParamsWhere = {};
+        if (headerData.SalesOrg) pricingParamsWhere.SalesOrg = headerData.SalesOrg;
+        if (headerData.DistChannel) pricingParamsWhere.DistChannel = headerData.DistChannel;
+        if (headerData.CustPriceList) pricingParamsWhere.CustPriceList = headerData.CustPriceList;
+        if (headerData.CustGroup1) pricingParamsWhere.CustGroup1 = headerData.CustGroup1;
+        if (headerData.ErpCustomer) pricingParamsWhere.ErpCustomer = headerData.ErpCustomer;
+        if (headerData.DeliveringPlant) pricingParamsWhere.DeliveringPlant = headerData.DeliveringPlant;
 
-        }
-        const resultsPricing = await db.run(localQueryPricingParam);
+        const resultsPricing = await db.run(
+            SELECT.from('PricingParameterDetermination')
+                .where(pricingParamsWhere)
+                .orderBy({ createdAt: 'desc' })
+        );
 
 
         // 5. Prepare result (Flatten Data & Inner Join Logic)
@@ -1495,63 +1908,6 @@ module.exports = cds.service.impl(async function () {
 
         const safe = v => String(v).replace(/'/g, "''");
 
-        // const unionParts = activeSequences.map(combo => {
-        //     const px = combo.accessSequence;
-        //     const col = suffix => `"${px}_${suffix}"`;
-        //     const has = suffix => availableCols.has(`${px}_${suffix}`);
-
-        //     if (!has('MATERIAL') || !has('CONDITION_TYPE')) return null;
-
-        //     const whereConditions = [];
-        //     const matList = materialKeys.map(m => `'${safe(m)}'`).join(', ');
-
-        //     whereConditions.push(`${col('MATERIAL')} IN (${matList})`);
-        //     whereConditions.push(`${col('CONDITION_TYPE')} = '${safe(combo.conditionType)}'`);
-
-        //     if (has('SALES_ORGANIZATION') && combo.salesOrg) {
-        //         whereConditions.push(`${col('SALES_ORGANIZATION')} = '${safe(combo.salesOrg)}'`);
-        //     }
-
-        //     if (has('DISTRIBUTION_CHANNEL') && combo.distChannel) {
-        //         whereConditions.push(`${col('DISTRIBUTION_CHANNEL')} = '${safe(combo.distChannel)}'`);
-        //     }
-
-        //     if (has('VALID_FROM_DATE')) {
-        //         whereConditions.push(`${col('VALID_FROM_DATE')} IS NOT NULL`);
-        //         whereConditions.push(`${col('VALID_FROM_DATE')} <> ''`);
-        //         whereConditions.push(
-        //             `TO_DATE(${col('VALID_FROM_DATE')}, 'MM/DD/YY') <= CURRENT_DATE`
-        //         );
-        //     }
-
-        //     if (has('VALID_TO_DATE')) {
-        //         whereConditions.push(`${col('VALID_TO_DATE')} IS NOT NULL`);
-        //         whereConditions.push(`${col('VALID_TO_DATE')} <> ''`);
-        //         whereConditions.push(
-        //             `TO_DATE(${col('VALID_TO_DATE')}, 'MM/DD/YY') >= CURRENT_DATE`
-        //         );
-        //     }
-
-        //     const alreadyMapped = new Set(['MATERIAL', 'CONDITION_TYPE', 'VALID_FROM_DATE', 'VALID_TO_DATE']);
-        //     const extraCols = [...availableCols]
-        //         .filter(c => c.startsWith(`${px}_`) && !alreadyMapped.has(c.replace(`${px}_`, '')))
-        //         .map(c => `${col(c.replace(`${px}_`, ''))} AS "${c.replace(`${px}_`, '')}"`)
-        //         .join(',\n    ');            
-
-        //     return `SELECT 
-        //             '${px}' AS "ACCESS_SEQUENCE",
-        //             ${combo.priority} AS "PRIORITY",
-        //             ${col('MATERIAL')} AS "MATERIAL",
-        //             ${col('CONDITION_TYPE')} AS "CONDITION_TYPE",
-        //             "KONP_RATE" AS "PRICE",
-        //             "KONP_RATE_UNIT" AS "PRICE_UNIT",
-        //             ${has('VALID_FROM_DATE') ? col('VALID_FROM_DATE') : 'NULL'} AS "VALID_FROM",
-        //             ${has('VALID_TO_DATE') ? col('VALID_TO_DATE') : 'NULL'} AS "VALID_TO"
-        //             ${extraCols ? ',\n    ' + extraCols : ''}
-        //         FROM "SAPECC"."T_PRICELIST_MASTER_DATA"
-        //         WHERE ${whereConditions.join(' AND ')}`;
-        // }).filter(Boolean);
-
         const alreadyMapped = new Set(['MATERIAL', 'CONDITION_TYPE', 'VALID_FROM_DATE', 'VALID_TO_DATE']);
 
         // First pass: collect ALL unique extra suffixes across ALL sequences
@@ -1583,7 +1939,6 @@ module.exports = cds.service.impl(async function () {
             }
 
             const whereConditions = [];
-
             const matList = materialKeys
                 .map(m => `'${safe(m)}'`)
                 .join(', ');
@@ -1611,7 +1966,7 @@ module.exports = cds.service.impl(async function () {
                 .map(suffix => has(suffix) ? `${col(suffix)} AS "${suffix}"` : `NULL AS "${suffix}"`)
                 .join(',\n    ');
 
-            return  `SELECT
+            return `SELECT
                 '${safe(px)}' AS "ACCESS_SEQUENCE",
                 ${Number(combo.priority || 999)} AS "PRIORITY",
                 ${col('MATERIAL')} AS "MATERIAL",
@@ -1634,24 +1989,33 @@ module.exports = cds.service.impl(async function () {
 
         // console.table(priceRecords, ["ACCESS_SEQUENCE", "PRIORITY", "MATERIAL", "CONDITION_TYPE", "PRICE", "PRICE_UNIT", "VALID_FROM", "VALID_TO", ...extraSuffixList]);
 
+
         // 8. Separate price records into price vs discount maps based on condition type
         const priceByMaterial = new Map();
         const discountByMaterial = new Map();
 
+        const condTypeMapping = {
+            'Z032': 'ZA032',
+            'Z004': 'ZA004'
+        };
         const discountCondTypes = new Set(
             activeSequences
-                .filter(s => { return s.isDiscount === true; })
-                .map(s => s.conditionType)
+                .filter(s => s.isDiscount === true)
+                .map(s => condTypeMapping[s.conditionType] || s.conditionType)
         );
-
         // Build combo lookup map for easy access inside forEach
         const comboMap = new Map(activeSequences.map(c => [c.accessSequence, c]));
 
         // Define extra filter conditions per access sequence
         // Return true = pass (allow push), false = skip
         const accessSequenceFilters = {
-            'A916': (rec) => rec.PRICELIST_TYPE === headerCustPriceList,
-            'A305': (rec) => rec.SOLDTO === headerErpCustomer,
+            'A020': (rec) => rec.DIVISION === DIVISION && rec.CUSTOMER_PRICE_GROUP === CustGroup1,
+            'A932': (rec) => rec.DIVISION === DIVISION && rec.MATERIAL_CLASS === MATERIAL_GROUP_2,
+            'A031': (rec) => rec.CUSTOMER_PRICE_GROUP === CustGroup1 && rec.MATERIAL_PRICE_GROUP === MATERIAL_GROUP_1,
+            'A916': (rec) => rec.PRICELIST_TYPE === PricelistType,
+            'A030': (rec) => rec.SOLDTO === ErpCustomer && rec.MATERIAL_PRICE_GROUP === MATERIAL_GROUP_1,
+            'A305': (rec) => rec.SOLDTO === ErpCustomer,
+            'A937': (rec) => rec.MATERIAL_TYPE === null && rec.DIVISION === DIVISION
         };
 
         priceRecords.forEach(rec => {
@@ -1661,45 +2025,93 @@ module.exports = cds.service.impl(async function () {
 
             if (filterFn && combo && !filterFn(rec, combo)) return;
 
+            // if (discountCondTypes.has(rec.CONDITION_TYPE)) {
+            //     if (!discountByMaterial.has(mat)) discountByMaterial.set(mat, []);
+            //     discountByMaterial.get(mat).push(rec);
+            //     if (!priceByMaterial.has(mat)) priceByMaterial.set(mat, []);
+            //     priceByMaterial.get(mat).push(rec);
+            // }
+
             if (discountCondTypes.has(rec.CONDITION_TYPE)) {
                 if (!discountByMaterial.has(mat)) discountByMaterial.set(mat, []);
                 discountByMaterial.get(mat).push(rec);
             } else {
                 if (!priceByMaterial.has(mat)) priceByMaterial.set(mat, []);
-                // console.log('>>> Adding price record for material', mat, 'with access sequence', rec.ACCESS_SEQUENCE);
                 priceByMaterial.get(mat).push(rec);
             }
         });
-        // console.table(priceRecords, ["ACCESS_SEQUENCE", "PRIORITY", "MATERIAL", "CONDITION_TYPE", "PRICE", "PRICE_UNIT", "VALID_FROM", "VALID_TO", ...extraSuffixList]);
+
 
         // 9. Get discount condition types for value help (if needed in frontend)
-        const discountConditionQuery = 'SELECT DISTINCT CODE FROM "SAPECC"."ERP_DISCOUNTCONDTYPE"';
-        const discountConditionEntries = await extdb.run(discountConditionQuery);
+        // const discountConditionQuery = 'SELECT DISTINCT CODE FROM "SAPECC"."ERP_DISCOUNTCONDTYPE"';
+        // const discountConditionEntries = await extdb.run(discountConditionQuery);
         // console.log('>>> Discount Condition Types Entries:', discountConditionEntries);
 
-        // 10. Populate Final output with price details based on material matches and access sequence priority
+        // 9. Populate Final output with price details based on material matches and access sequence priority
+        const effectiveDate = EffectiveDate ? new Date(EffectiveDate) : null;
+        const publishedDate = PublishedDate ? new Date(PublishedDate) : new Date(EffectiveDate);
+        const publishedPlus30 = publishedDate ? new Date(publishedDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null;
         finalFlatResults.forEach(row => {
             const matPrices = priceByMaterial.get(row.Material) || [];
             if (matPrices.length > 0) {
                 matPrices.sort((a, b) => a.PRIORITY - b.PRIORITY);
 
-                const highPriorityMatch = matPrices[0];
-                row.Price = highPriorityMatch.PRICE || null;
-                row.PriceUnit = highPriorityMatch.PRICE_UNIT || null;
-                row.PriceValidFrom = highPriorityMatch.VALID_FROM || null;
-                row.PriceValidTo = highPriorityMatch.VALID_TO || null;
-                row.AccessSequence = highPriorityMatch.ACCESS_SEQUENCE || null;
-                row.ConditionType = highPriorityMatch.CONDITION_TYPE || null;
+                // Current price: effectiveDate within VALID_FROM - VALID_TO
+                const currentMatch = effectiveDate
+                    ? matPrices.find(rec => {
+                        const from = parseRecordDate(rec.VALID_FROM);
+                        const to = parseRecordDate(rec.VALID_TO);
+                        if (!from || !to) return false;
+                        return effectiveDate >= from && effectiveDate <= to;
+                    })
+                    : matPrices[0];
+
+                if (currentMatch) {
+                    row.Price = currentMatch.PRICE || null;
+                    row.PriceUnit = currentMatch.PRICE_UNIT || null;
+                    row.PriceValidFrom = currentMatch.VALID_FROM || null;
+                    row.PriceValidTo = currentMatch.VALID_TO || null;
+                    row.AccessSequence = currentMatch.ACCESS_SEQUENCE || null;
+                    row.ConditionType = currentMatch.CONDITION_TYPE || null;
+                }
+
+                // Future price: publishedDate + 30 days within VALID_FROM - VALID_TO
+                const futureMatch = publishedPlus30
+                    ? matPrices.find(rec => {
+                        const from = parseRecordDate(rec.VALID_FROM);
+                        const to = parseRecordDate(rec.VALID_TO);
+                        if (!from || !to) return false;
+                        return publishedPlus30 >= from && publishedPlus30 <= to;
+                    })
+                    : null;
+
+                // Only assign future price if it's a different record from current
+                if (futureMatch && futureMatch !== currentMatch) {
+                    row.FuturePrice = futureMatch.PRICE || null;
+                    row.FuturePriceValidFrom = futureMatch.VALID_FROM || null;
+                    row.FuturePriceValidTo = futureMatch.VALID_TO || null;
+                }
             }
 
             const matDiscounts = discountByMaterial.get(row.Material) || [];
             if (matDiscounts.length > 0) {
                 matDiscounts.sort((a, b) => a.PRIORITY - b.PRIORITY);
-                const highPriorityDiscount = matDiscounts[0];
-                row.DiscountRate = highPriorityDiscount.PRICE || null;
-                row.DiscountEffectiveDate = highPriorityDiscount.VALID_FROM || null;
-                row.DiscountConditionType = highPriorityDiscount.CONDITION_TYPE || null;
-                row.DiscountAccessSequence = highPriorityDiscount.ACCESS_SEQUENCE || null;
+                const highPriorityDiscount = effectiveDate
+                    ? matDiscounts.find(rec => {
+                        const from = parseRecordDate(rec.VALID_FROM);
+                        const to = parseRecordDate(rec.VALID_TO);
+                        if (!from || !to) return false;
+                        return effectiveDate >= from && effectiveDate <= to;
+                    })
+                    : matDiscounts[0];
+
+                if (highPriorityDiscount) {
+                    row.DiscountRate = highPriorityDiscount.PRICE || null;
+                    row.DiscountValidFrom = highPriorityDiscount.VALID_FROM || null;
+                    row.DiscountValidTo = highPriorityDiscount.VALID_TO || null;
+                    row.DiscountConditionType = highPriorityDiscount.CONDITION_TYPE || null;
+                    row.DiscountAccessSequence = highPriorityDiscount.ACCESS_SEQUENCE || null;
+                }
             }
 
             const partNumberDet = partNumberDeterminationMap.get(row.Material) || [];

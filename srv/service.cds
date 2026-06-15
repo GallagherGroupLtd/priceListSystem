@@ -515,7 +515,8 @@ service PriceListService {
             Price                    : String(100);
             PriceUnit                : String(100);
             DiscountRate             : String(100);
-            DiscountEffectiveDate    : String(100);
+            DiscountValidFrom        : String(100);
+            DiscountValidTo          : String(100);
             PartNumberTermsandCond   : String;
             MainCategoryTermsandCond : String;
             SubCategory1TermsandCond : String;
@@ -526,6 +527,8 @@ service PriceListService {
     };
 
     entity ProductPriceList as projection on my.ProductPriceList;
+
+    action getProductTreeData(headerData: LargeString) returns array of ProductPricelistTree;
 
     // entity ProductPricelistTree    as
     //     select from my.PricelistItemStructureComponents {

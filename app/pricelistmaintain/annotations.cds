@@ -468,7 +468,7 @@ annotate service.PricelistData with @(
         {Value: PricelistTitle},
         {Value: Currency},
         {Value: EffectiveDate},
-        {Value: ExpiryDate},
+        // {Value: ExpiryDate},
         {Value: Status},
     ]},
 

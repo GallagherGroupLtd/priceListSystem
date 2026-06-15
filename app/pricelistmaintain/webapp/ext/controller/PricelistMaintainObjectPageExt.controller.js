@@ -489,53 +489,92 @@ sap.ui.define([
 		// Product Tree Data
 		// ============================================================================
 		_getProductPriceList: function () {
+			// const oView = this.base.getView();
+			// const oModel = oView.getModel();
+			// const oContext = oView.getBindingContext();
+
+			// if (!oContext) {
+			// 	return Promise.resolve([]);
+			// }
+
+			// const sPath = oContext.getPath();
+
+			// return oModel
+			// 	.bindContext(sPath, null, {
+			// 		$select: [
+			// 			"PricelistType",
+			// 			"MarketScopeRegion",
+			// 			"MarketScopeCountry",
+			// 			"SalesOrg",
+			// 			"DistChannel",
+			// 			"CustPriceList",
+			// 			"CustGroup1",
+			// 			"ErpCustomer",
+			// 			"DeliveringPlant"
+			// 		].join(",")
+			// 	})
+			// 	.requestObject()
+			// 	.then((oData) => {
+			// 		const aFilters = [
+			// 			{ path: "PricelistType", value: oData?.PricelistType },
+			// 			{ path: "MarketScopeRegion", value: oData?.MarketScopeRegion },
+			// 			{ path: "MarketScopeCountry", value: oData?.MarketScopeCountry },
+			// 			{ path: "SalesOrg", value: oData?.SalesOrg },
+			// 			{ path: "DistChannel", value: oData?.DistChannel },
+			// 			{ path: "CustPriceList", value: oData?.CustPriceList },
+			// 			{ path: "CustGroup1", value: oData?.CustGroup1 },
+			// 			{ path: "ErpCustomer", value: oData?.ErpCustomer },
+			// 			{ path: "DeliveringPlant", value: oData?.DeliveringPlant }
+			// 		]
+			// 			.filter(item => item.value !== undefined && item.value !== null && item.value !== "")
+			// 			.map(item => new Filter(item.path, FilterOperator.EQ, item.value));
+
+			// 		return oModel
+			// 			.bindList("/ProductPricelistTree", null, null, aFilters)
+			// 			.requestContexts(0, 5000);
+			// 	})
+			// 	.then((aContexts) => {
+			// 		return aContexts.map(oCtx => oCtx.getObject());
+			// 	});
+
 			const oView = this.base.getView();
 			const oModel = oView.getModel();
 			const oContext = oView.getBindingContext();
 
-			if (!oContext) {
-				return Promise.resolve([]);
-			}
-
-			const sPath = oContext.getPath();
+			if (!oContext) { return Promise.resolve([]); }
 
 			return oModel
-				.bindContext(sPath, null, {
+				.bindContext(oContext.getPath(), null, {
 					$select: [
-						"PricelistType",
-						"MarketScopeRegion",
-						"MarketScopeCountry",
-						"SalesOrg",
-						"DistChannel",
-						"CustPriceList",
-						"CustGroup1",
-						"ErpCustomer",
-						"DeliveringPlant"
+						"PricelistType", "MarketScopeRegion", "MarketScopeCountry",
+						"SalesOrg", "DistChannel", "CustPriceList",
+						"CustGroup1", "ErpCustomer", "DeliveringPlant", "EffectiveDate", "PublishedDate"
 					].join(",")
 				})
 				.requestObject()
 				.then((oData) => {
-					const aFilters = [
-						{ path: "PricelistType", value: oData?.PricelistType },
-						{ path: "MarketScopeRegion", value: oData?.MarketScopeRegion },
-						{ path: "MarketScopeCountry", value: oData?.MarketScopeCountry },
-						{ path: "SalesOrg", value: oData?.SalesOrg },
-						{ path: "DistChannel", value: oData?.DistChannel },
-						{ path: "CustPriceList", value: oData?.CustPriceList },
-						{ path: "CustGroup1", value: oData?.CustGroup1 },
-						{ path: "ErpCustomer", value: oData?.ErpCustomer },
-						{ path: "DeliveringPlant", value: oData?.DeliveringPlant }
-					]
-						.filter(item => item.value !== undefined && item.value !== null && item.value !== "")
-						.map(item => new Filter(item.path, FilterOperator.EQ, item.value));
+					const oHeaderData = {
+						EffectiveDate: oData.EffectiveDate,
+						PricelistType: oData.PricelistType,
+						MarketScopeRegion: oData.MarketScopeRegion,
+						MarketScopeCountry: oData.MarketScopeCountry,
+						SalesOrg: oData.SalesOrg,
+						DistChannel: oData.DistChannel,
+						CustPriceList: oData.CustPriceList,
+						CustGroup1: oData.CustGroup1,
+						ErpCustomer: oData.ErpCustomer,
+						DeliveringPlant: oData.DeliveringPlant
+					};
 
-					return oModel
-						.bindList("/ProductPricelistTree", null, null, aFilters)
-						.requestContexts(0, 5000);
-				})
-				.then((aContexts) => {
-					return aContexts.map(oCtx => oCtx.getObject());
+					const oAction = oModel.bindContext("/getProductTreeData(...)");
+					oAction.setParameter("headerData", JSON.stringify(oHeaderData));
+
+					return oAction.execute().then(() => {
+						const oResult = oAction.getBoundContext().getObject();
+						return oResult.value || oResult || [];
+					});
 				});
+
 		},
 
 		_setTreeTableData: function (aFlatData) {
@@ -627,8 +666,8 @@ sap.ui.define([
 							PriceValidFrom: null,
 							PriceValidTo: null,
 							DiscountRate: null,
-							DiscountEffectiveFromDate: null,
-							DiscountEffectiveToDate: null,
+							DiscountValidFrom: null,
+							DiscountValidTo: null,
 							PriceChangeIndicator: false,
 							FuturePrice: null,
 							FuturePriceValidFrom: null,
@@ -704,8 +743,8 @@ sap.ui.define([
 						PriceValidFrom: row.PriceValidFrom,
 						PriceValidTo: row.PriceValidTo,
 						DiscountRate: row.DiscountRate || null,
-						DiscountEffectiveFromDate: row.DiscountEffectiveFromDate || null,
-						DiscountEffectiveToDate: row.DiscountEffectiveToDate || null,
+						DiscountValidFrom: row.DiscountValidFrom || null,
+						DiscountValidTo: row.DiscountValidTo || null,
 						PriceChangeIndicator: row.PriceChangeIndicator || false,
 						FuturePrice: row.FuturePrice || null,
 						FuturePriceValidFrom: row.FuturePriceValidFrom || null,
