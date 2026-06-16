@@ -26,7 +26,8 @@ async function handleMassUpload(req, entity, requiredHeaders, mapRow) {
         const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
         // Validate headers
-        const firstRowKeys = Object.keys(rows[0] || {}).map(k => k.replace(/\s+/g, "").trim());
+        // const firstRowKeys = Object.keys(rows[0] || {}).map(k => k.replace(/\s+/g, "").trim());
+        const firstRowKeys = Object.keys(rows[0] || {}).map(k => k.trim());     //<-- Relaxed header matching to allow spaces
         for (const header of requiredHeaders) {
             if (!firstRowKeys.includes(header)) {
                 return req.error(400, 'Missing required column: ${header}. Expected: ${requiredHeaders.join(", ")}');
@@ -596,17 +597,17 @@ module.exports = cds.service.impl(async function () {
                 ErpCustomer: r["ERP Customer"],
                 DeliveringPlant: r["Plant"],
                 MainCategory: r["Main Category"],
-                SubCategory1: r["Subcategory 1"],
-                SubCategory2: r["Subcategory 2"],
-                SubCategory3: r["Subcategory 3"],
-                SubCategory4: r["Subcategory 4"],
-                SubCategory5: r["Subcategory 5"],
+                SubCategory1: r["SubCategory 1"],
+                SubCategory2: r["SubCategory 2"],
+                SubCategory3: r["SubCategory 3"],
+                SubCategory4: r["SubCategory 4"],
+                SubCategory5: r["SubCategory 5"],
                 MainCategoryLocal: r["Main Category Local Description"],
-                SubCategory1Local: r["Subcategory 1 Local Description"],
-                SubCategory2Local: r["Subcategory 2 Local Description"],
-                SubCategory3Local: r["Subcategory 3 Local Description"],
-                SubCategory4Local: r["Subcategory 4 Local Description"],
-                SubCategory5Local: r["Subcategory 5 Local Description"]
+                SubCategory1Local: r["SubCategory 1 Local Description"],
+                SubCategory2Local: r["SubCategory 2 Local Description"],
+                SubCategory3Local: r["SubCategory 3 Local Description"],
+                SubCategory4Local: r["SubCategory 4 Local Description"],
+                SubCategory5Local: r["SubCategory 5 Local Description"]
             })
         )
     );
@@ -614,15 +615,41 @@ module.exports = cds.service.impl(async function () {
     // 3. Part Numbers
     this.on('MassUploadPartNumbers', req =>
         handleMassUpload(req, cds.entities.PricelistPartNumberDetermination,
-            ["MainCategory", "Subcategory1", "Subcategory2", "Subcategory3", "Subcategory4", "Subcategory5", "PricelistPartNumber"], // "ProductHierarchy3", "ProductHierarchy2", "ProductHierarchy1"],
+            [
+                "Pricelist Type",
+                "Region",
+                "Country",
+                "Sales Organization",
+                "Distribution Channel",
+                "Product ID",
+                "ERP Status",
+                "Material Classification",
+                "Translation Material Classification",
+                "Pricelist Product Description",
+                "Product Description",
+                "Pricelist Material Classification",
+                "Product Status",
+                "Status Validity",
+                "3rd Party Supplier",
+                "3rd Party Supplier SKU"
+            ],
             r => ({
-                MainCategory: r["Main Category"] || r["MainCategory"],
-                Subcategory1: r["Subcategory 1"] || r["Subcategory1"],
-                Subcategory2: r["Subcategory 2"] || r["Subcategory2"],
-                Subcategory3: r["Subcategory 3"] || r["Subcategory3"],
-                Subcategory4: r["Subcategory 4"] || r["Subcategory4"],
-                Subcategory5: r["Subcategory 5"] || r["Subcategory5"],
-                PricelistPartNumber: r["Pricelist Part Number"] || r["PricelistPartNumber"]
+                PricelistType: r["Pricelist Type"],
+                MarketScopeRegion: r["Region"],
+                MarketScopeCountry: r["Country"],
+                SalesOrg: r["Sales Organization"],
+                DistChannel: r["Distribution Channel"],
+                ProductID: r["Product ID"],
+                ErpStatus: r["ERP Status"],
+                MaterialClassification1: r["Material Classification"],
+                MaterialClassification2: r["Translation Material Classification"],
+                ProductDescription2: r["Pricelist Product Description"],
+                ProductDescription1: r["Product Description"],
+                PricelistMaterialClassification: r["Pricelist Material Classification"],
+                ProductStatus: r["Product Status"],
+                StatusValidity: r["Status Validity"],
+                ThirdPartySupplier: r["3rd Party Supplier"],
+                ThirdPartySupplierSKU: r["3rd Party Supplier SKU"]
             })
         )
     );
@@ -654,27 +681,27 @@ module.exports = cds.service.impl(async function () {
                 "SubCategory 5 Terms and Condition"
             ],
             r => ({
-                PricelistType: r["Pricelist Type"] || r["PricelistType"],
-                MarketScopeRegion: r["Market Scope Region"] || r["MarketScopeRegion"] || r["Region"],
-                MarketScopeCountry: r["Market Scope Country"] || r["MarketScopeCountry"] || r["Country"],
-                SalesOrg: r["Sales Org"] || r["SalesOrg"] || r["Sales Organization"],
-                DistChannel: r["Distribution Channel"] || r["DistChannel"],
-                CustPriceList: r["Customer Pricelist"] || r["CustPriceList"],
-                CustGroup1: r["Customer Group 1"] || r["CustGroup1"],
-                ErpCustomer: r["ERP Customer"] || r["ErpCustomer"],
-                DeliveringPlant: r["Plant"] || r["DeliveringPlant"],
-                MainCategory: r["Main Category"] || r["MainCategory"],
-                SubCategory1: r["SubCategory 1"] || r["SubCategory1"],
-                SubCategory2: r["SubCategory 2"] || r["SubCategory2"],
-                SubCategory3: r["SubCategory 3"] || r["SubCategory3"],
-                SubCategory4: r["SubCategory 4"] || r["SubCategory4"],
-                SubCategory5: r["SubCategory 5"] || r["SubCategory5"],
-                MainCategoryTermsandConditions: r["Main Category Terms and Condition"] || r["MainCategoryTermsandConditions"],
-                SubCategory1TermsandConditions: r["SubCategory 1 Terms and Condition"] || r["SubCategory1TermsandConditions"],
-                SubCategory2TermsandConditions: r["SubCategory 2 Terms and Condition"] || r["SubCategory2TermsandConditions"],
-                SubCategory3TermsandConditions: r["SubCategory 3 Terms and Condition"] || r["SubCategory3TermsandConditions"],
-                SubCategory4TermsandConditions: r["SubCategory 4 Terms and Condition"] || r["SubCategory4TermsandConditions"],
-                SubCategory5TermsandConditions: r["SubCategory 5 Terms and Condition"] || r["SubCategory5TermsandConditions"]
+                PricelistType: r["Pricelist Type"],
+                MarketScopeRegion: r["Region"],
+                MarketScopeCountry: r["Country"],
+                SalesOrg: r["Sales Organization"],
+                DistChannel: r["Distribution Channel"],
+                CustPriceList: r["Customer Pricelist"],
+                CustGroup1: r["Customer Group 1"],
+                ErpCustomer: r["ERP Customer"],
+                DeliveringPlant: r["Plant"],
+                MainCategory: r["Main Category"],
+                SubCategory1: r["SubCategory 1"],
+                SubCategory2: r["SubCategory 2"],
+                SubCategory3: r["SubCategory 3"],
+                SubCategory4: r["SubCategory 4"],
+                SubCategory5: r["SubCategory 5"],
+                MainCategoryTermsandConditions: r["Main Category Terms and Condition"],
+                SubCategory1TermsandConditions: r["SubCategory 1 Terms and Condition"],
+                SubCategory2TermsandConditions: r["SubCategory 2 Terms and Condition"],
+                SubCategory3TermsandConditions: r["SubCategory 3 Terms and Condition"],
+                SubCategory4TermsandConditions: r["SubCategory 4 Terms and Condition"],
+                SubCategory5TermsandConditions: r["SubCategory 5 Terms and Condition"]
             })
         )
     );
@@ -735,7 +762,7 @@ module.exports = cds.service.impl(async function () {
             [
                 "First Name",
                 "Last Name",
-                "E-Mail",
+                "EMail",
                 "Account Type",
                 "Account Scope",
                 "Commercial Scope",
@@ -760,31 +787,31 @@ module.exports = cds.service.impl(async function () {
                 "Application Log Tile"
             ],
             r => ({
-                FirstName: r["First Name"] || r["FirstName"],
-                LastName: r["Last Name"] || r["LastName"],
-                Email: r["E-Mail"] || r["Email"],
-                AccountType: r["Account Type"] || r["AccountType"],
-                AccountScope: r["Account Scope"] || r["AccountScope"],
-                CommercialScope: r["Commercial Scope"] || r["CommercialScope"],
-                CustomerNumber: r["Customer Code"] || r["CustomerNumber"],
-                PricelistType: r["Pricelist Type"] || r["PricelistType"],
-                MarketScopeRegion: r["Region"] || r["MarketScopeRegion"],
-                MarketScopeCountry: r["Country"] || r["MarketScopeCountry"],
-                SalesOrg: r["Sales Organization"] || r["SalesOrg"],
-                DistChannel: r["Distribution Channel"] || r["DistChannel"],
-                CustPriceList: r["Customer Pricelist"] || r["CustPriceList"],
-                CustGroup1: r["Customer Group 1"] || r["CustGroup1"],
-                DeliveringPlant: r["Plant"] || r["DeliveringPlant"],
-                ControlPriceListView: r["Pricelist View"] || r["ControlPriceListView"],
-                ControlPriceView: r["Price View"] || r["ControlPriceView"],
-                ControlDiscountIndicator: r["Discount Indicator"] || r["ControlDiscountIndicator"],
-                ControlDiscountRate: r["Discount Rate"] || r["ControlDiscountRate"],
-                ControlWorkflowTile: r["Workflow Tile"] || r["ControlWorkflowTile"],
-                ControlPriceListReviewScheduleTile: r["Pricelist Review Schedule Tile"] || r["ControlPriceListReviewScheduleTile"],
-                ControlPricelistMaintenance: r["Pricelist Maintenance"] || r["ControlPricelistMaintenance"],
-                ControlDataMaintenance: r["Data Maintenance"] || r["ControlDataMaintenance"],
-                ControlMyRequestTile: r["My Requests Tile"] || r["ControlMyRequestTile"],
-                ControlApplicationLogTile: r["Application Log Tile"] || r["ControlApplicationLogTile"]
+                FirstName: r["First Name"],
+                LastName: r["Last Name"],
+                Email: r["EMail"],
+                AccountType: r["Account Type"],
+                AccountScope: r["Account Scope"],
+                CommercialScope: r["Commercial Scope"],
+                CustomerNumber: r["Customer Code"],
+                PricelistType: r["Pricelist Type"],
+                MarketScopeRegion: r["Region"],
+                MarketScopeCountry: r["Country"],
+                SalesOrg: r["Sales Organization"],
+                DistChannel: r["Distribution Channel"],
+                CustPriceList: r["Customer Pricelist"],
+                CustGroup1: r["Customer Group 1"],
+                DeliveringPlant: r["Plant"],
+                ControlPriceListView: r["Pricelist View"],
+                ControlPriceView: r["Price View"],
+                ControlDiscountIndicator: r["Discount Indicator"],
+                ControlDiscountRate: r["Discount Rate"],
+                ControlWorkflowTile: r["Workflow Tile"],
+                ControlPriceListReviewScheduleTile: r["Pricelist Review Schedule Tile"],
+                ControlPricelistMaintenance: r["Pricelist Maintenance"],
+                ControlDataMaintenance: r["Data Maintenance"],
+                ControlMyRequestTile: r["My Requests Tile"],
+                ControlApplicationLogTile: r["Application Log Tile"]
             })
         )
     );

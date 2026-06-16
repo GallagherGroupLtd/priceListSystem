@@ -75,17 +75,17 @@ sap.ui.define([
               { label: "ERP Customer", property: "ErpCustomer" },
               { label: "Plant", property: "DeliveringPlant" },
               { label: "Main Category", property: "MainCategory" },
-              { label: "Subcategory 1", property: "SubCategory1" },
-              { label: "Subcategory 2", property: "SubCategory2" },
-              { label: "Subcategory 3", property: "SubCategory3" },
-              { label: "Subcategory 4", property: "SubCategory4" },
-              { label: "Subcategory 5", property: "SubCategory5" },
+              { label: "SubCategory 1", property: "SubCategory1" },
+              { label: "SubCategory 2", property: "SubCategory2" },
+              { label: "SubCategory 3", property: "SubCategory3" },
+              { label: "SubCategory 4", property: "SubCategory4" },
+              { label: "SubCategory 5", property: "SubCategory5" },
               { label: "Main Category Local Description", property: "MainCategoryLocal" },
-              { label: "Subcategory 1 Local Description", property: "SubCategory1Local" },
-              { label: "Subcategory 2 Local Description", property: "SubCategory2Local" },
-              { label: "Subcategory 3 Local Description", property: "SubCategory3Local" },
-              { label: "Subcategory 4 Local Description", property: "SubCategory4Local" },
-              { label: "Subcategory 5 Local Description", property: "SubCategory5Local" }
+              { label: "SubCategory 1 Local Description", property: "SubCategory1Local" },
+              { label: "SubCategory 2 Local Description", property: "SubCategory2Local" },
+              { label: "SubCategory 3 Local Description", property: "SubCategory3Local" },
+              { label: "SubCategory 4 Local Description", property: "SubCategory4Local" },
+              { label: "SubCategory 5 Local Description", property: "SubCategory5Local" }
           ];
           const oSettings = {
             workbook: { columns: aColumns },

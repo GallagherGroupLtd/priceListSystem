@@ -53,14 +53,17 @@ entity PricelistPartNumberDetermination : managed, cuid {
     MarketScopeCountry              : String(255) @title: 'Country';
     SalesOrg                        : String(255) @title: 'Sales Organization';
     DistChannel                     : String(2)   @title: 'Distribution Channel';
-    ProductID                       : String(30)  @title: 'Product ID';
-    ProductDescription1             : String(255) @title: 'Product Description';
+    ProductID                       : String(30)  @title: 'Product ID';    
+    ErpStatus                       : String(255) @title: 'ERP Status';
     MaterialClassification1         : String(255) @title: 'Material Classification';
-    ProductDescription2             : String(255) @title: 'Pricelist Product Description';
     MaterialClassification2         : String(255) @title: 'Translation Material Classification';
+    ProductDescription2             : String(255) @title: 'Pricelist Product Description';
+    ProductDescription1             : String(255) @title: 'Product Description';    
     PricelistMaterialClassification : String(255) @title: 'Pricelist Material Classification';
     ProductStatus                   : String(255) @title: 'Product Status';
     StatusValidity                  : Date        @title: 'Status Validity';
+    ThirdPartySupplier              : String(255) @title: '3rd Party Supplier';
+    ThirdPartySupplierSKU           : String(255) @title: '3rd Party Supplier SKU'
 }
 
 /** Terms and Condition Determination **/
@@ -75,17 +78,17 @@ entity TermsAndConditionDetermination : managed, cuid {
     ErpCustomer                    : String(255) @title: 'ERP Customer';
     DeliveringPlant                : String(255) @title: 'Plant';
     MainCategory                   : String(255) @title: 'Main Category';
-    SubCategory1                   : String(999) @title: 'Subcategory 1';
-    SubCategory2                   : String(999) @title: 'Subcategory 2';
-    SubCategory3                   : String(999) @title: 'Subcategory 3';
-    SubCategory4                   : String(999) @title: 'Subcategory 4';
-    SubCategory5                   : String(999) @title: 'Subcategory 5';
+    SubCategory1                   : String(999) @title: 'SubCategory 1';
+    SubCategory2                   : String(999) @title: 'SubCategory 2';
+    SubCategory3                   : String(999) @title: 'SubCategory 3';
+    SubCategory4                   : String(999) @title: 'SubCategory 4';
+    SubCategory5                   : String(999) @title: 'SubCategory 5';
     MainCategoryTermsandConditions : String(999) @title: 'Main Category Terms and Condition';
-    SubCategory1TermsandConditions : String(999) @title: 'Subcategory 1 Terms and Condition';
-    SubCategory2TermsandConditions : String(999) @title: 'Subcategory 2 Terms and Condition';
-    SubCategory3TermsandConditions : String(999) @title: 'Subcategory 3 Terms and Condition';
-    SubCategory4TermsandConditions : String(999) @title: 'Subcategory 4 Terms and Condition';
-    SubCategory5TermsandConditions : String(999) @title: 'Subcategory 5 Terms and Condition';
+    SubCategory1TermsandConditions : String(999) @title: 'SubCategory 1 Terms and Condition';
+    SubCategory2TermsandConditions : String(999) @title: 'SubCategory 2 Terms and Condition';
+    SubCategory3TermsandConditions : String(999) @title: 'SubCategory 3 Terms and Condition';
+    SubCategory4TermsandConditions : String(999) @title: 'SubCategory 4 Terms and Condition';
+    SubCategory5TermsandConditions : String(999) @title: 'SubCategory 5 Terms and Condition';
 }
 
 /** Pricing Parameter Determination **/
@@ -169,8 +172,8 @@ entity InformationTileContent : managed, cuid {
     CustGroup1         : String(255) @title: 'Customer Group 1';
     ErpCustomer        : String(255) @title: 'ERP Customer Code';
     DeliveringPlant    : String(255) @title: 'Plant';
-    InformationHeading : String(30)  @title: 'Information Heading';
-    InformationDetails : String(100) @title: 'Information Details';
+    InformationHeading : String(999) @title: 'Information Heading';
+    InformationDetails : String(999) @title: 'Information Details';
     ImageLink          : String(255) @title: 'Image Link' default 'https://gallagher.com/-/media/Project/Security-Business/Security-Public-Site/Images/gallagherlogocorp.png';
 }
 
