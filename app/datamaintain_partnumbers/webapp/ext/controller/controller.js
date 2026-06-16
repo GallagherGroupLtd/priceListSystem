@@ -61,24 +61,30 @@ sap.ui.define([
       });
 
       const oDownloadButton = new Button({
-        text: "Download Part Numbers Template",
+        text: "Download Price Product Maintenance Template",
         press: () => {
           const aColumns = [
-            { label: "MainCategory", property: "MainCategory" },
-            { label: "Subcategory1", property: "Subcategory1" },
-            { label: "Subcategory2", property: "Subcategory2" },
-            { label: "Subcategory3", property: "Subcategory3" },
-            { label: "Subcategory4", property: "Subcategory4" },
-            { label: "Subcategory5", property: "Subcategory5" },
-            { label: "PricelistPartNumber", property: "PricelistPartNumber" },
-            { label: "ProductHierarchy3", property: "ProductHierarchy3" },
-            { label: "ProductHierarchy2", property: "ProductHierarchy2" },
-            { label: "ProductHierarchy1", property: "ProductHierarchy1" }
+              { label: "Pricelist Type", property: "PricelistType" },
+              { label: "Region", property: "MarketScopeRegion" },
+              { label: "Country", property: "MarketScopeCountry" },
+              { label: "Sales Organization", property: "SalesOrg" },
+              { label: "Distribution Channel", property: "DistChannel" },
+              { label: "Product ID", property: "ProductID" },
+              { label: "ERP Status", property: "ErpStatus" },
+              { label: "Material Classification", property: "MaterialClassification1" },
+              { label: "Translation Material Classification", property: "MaterialClassification2" },
+              { label: "Pricelist Product Description", property: "ProductDescription2" },
+              { label: "Product Description", property: "ProductDescription1" },
+              { label: "Pricelist Material Classification", property: "PricelistMaterialClassification" },
+              { label: "Product Status", property: "ProductStatus" },
+              { label: "Status Validity", property: "StatusValidity" },
+              { label: "3rd Party Supplier", property: "ThirdPartySupplier" },
+              { label: "3rd Party Supplier SKU", property: "ThirdPartySupplierSKU" }
           ];
           const oSettings = {
             workbook: { columns: aColumns },
             dataSource: [{}],
-            fileName: "PartNumbersTemplate.xlsx"
+            fileName: "PriceProductMaintenance Template.xlsx"
           };
           const oSpreadsheet = new Spreadsheet(oSettings);
           oSpreadsheet.build()

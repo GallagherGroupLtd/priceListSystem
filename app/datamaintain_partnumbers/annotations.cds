@@ -106,6 +106,14 @@ annotate service.PriceProductMaintenance with @(
             {
                 $Type : 'UI.DataField',
                 Value : DistChannel,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : MaterialClassification1,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ErpStatus,
             }
         ],
     },
@@ -132,6 +140,14 @@ annotate service.PriceProductMaintenance with @(
             {
                 $Type : 'UI.DataField',
                 Value : StatusValidity,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ThirdPartySupplier,
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : ThirdPartySupplierSKU,
             }
         ],
     }    
