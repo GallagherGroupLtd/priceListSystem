@@ -1839,7 +1839,7 @@ module.exports = cds.service.impl(async function () {
 
         SalesOrg && commonConditions.push(`"SALES_ORGANIZATION" = '${escapeSql(SalesOrg)}'`);
         DistChannel && commonConditions.push(`"DISTRIBUTION_CHANNEL" = '${escapeSql(DistChannel)}'`);
-        // commonConditions.push(DeliveringPlant ? `"PLANT" = '${escapeSql(DeliveringPlant)}'` : `"PLANT" = '*'`);
+        commonConditions.push(DeliveringPlant ? `"PLANT" = '${escapeSql(DeliveringPlant)}'` : `"PLANT" = '*'`);
 
         itemStructureDatas.forEach(row => {
             let catConditions = [];
