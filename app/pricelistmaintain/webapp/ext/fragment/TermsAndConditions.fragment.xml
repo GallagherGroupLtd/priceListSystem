@@ -15,7 +15,8 @@
                 value="{TermsAndConditions}" 
                 maxLength="1000" 
                 rows="6"
-                width="75%">
+                width="75%"
+                editable="{ui>/isEditable}">
                 <layoutData><FlexItemData id="TACContextTextLayoutData" growFactor="1" maxWidth="100%" /></layoutData>
             </TextArea>
         </HBox>
@@ -28,9 +29,9 @@
             <HBox id="TACDisableHBoxContent" alignItems="Center">
                 <layoutData><FlexItemData id="TACDisableHBoxContentLayoutData" growFactor="1" maxWidth="100%" /></layoutData>
                 <Text id="TermsAndCondDisableExtUserText" text="External User" class="sapUiTinyMarginEnd" />
-                <Switch id="TermsAndCondDisableExtUserSwitch" state="false" change=".onTACDisableSwitchChange" />
+                <Switch id="TermsAndCondDisableExtUserSwitch" state="false" change=".onTACDisableSwitchChange" enabled="{ui>/isEditable}"/>
                 <Text id="TermsAndCondDisableIntUserText" text="Internal User" class="sapUiLargeMarginBegin sapUiTinyMarginEnd" />
-                <Switch id="TermsAndCondDisableIntUserSwitch" state="false" change=".onTACDisableSwitchChange" />
+                <Switch id="TermsAndCondDisableIntUserSwitch" state="false" change=".onTACDisableSwitchChange" enabled="{ui>/isEditable}"/>
             </HBox>
         </HBox>
 
