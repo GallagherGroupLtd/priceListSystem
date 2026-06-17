@@ -132,7 +132,7 @@ sap.ui.define([
 		// ============================================================================
 		// Product List Toolbar Handlers
 		// ============================================================================
-		onResetPrice: function () {
+		onResetPrice: function (sCustomerNumber) {
 			const oView = this.base.getView();
 			if (this._originalSnapshot) {
 				oView.getModel('jsonModel').setProperty("/productPriceList", JSON.parse(JSON.stringify(this._originalSnapshot)));
@@ -149,7 +149,7 @@ sap.ui.define([
 
 			// fallback: if no original snapshot, fetch from backend
 			MessageToast.show("No original snapshot available; fetching from server...");
-			this._getProductPriceList()
+			this._getProductPriceList(sCustomerNumber)
 				.then((aRawData) => {
 					this._setTreeTableData(aRawData);
 					MessageToast.show("Pricelist refreshed from server.");
@@ -488,7 +488,7 @@ sap.ui.define([
 		// ============================================================================
 		// Product Tree Data
 		// ============================================================================
-		_getProductPriceList: function () {
+		_getProductPriceList: function (sCustomerNumber) {
 			// const oView = this.base.getView();
 			// const oModel = oView.getModel();
 			// const oContext = oView.getBindingContext();
@@ -543,6 +543,9 @@ sap.ui.define([
 
 			if (!oContext) { return Promise.resolve([]); }
 
+			const oJSONModel = this.base.getView().getModel("jsonModel");
+			const aProducts = oJSONModel.getProperty("/productPriceList") || [];
+
 			return oModel
 				.bindContext(oContext.getPath(), null, {
 					$select: [
@@ -563,7 +566,11 @@ sap.ui.define([
 						CustPriceList: oData.CustPriceList,
 						CustGroup1: oData.CustGroup1,
 						ErpCustomer: oData.ErpCustomer,
-						DeliveringPlant: oData.DeliveringPlant
+						DeliveringPlant: oData.DeliveringPlant,
+						PublishedDate: oData.PublishedDate,
+						// CustomerNumber: '56800',
+						CustomerNumber: sCustomerNumber,
+						ExistingProduct: []
 					};
 
 					const oAction = oModel.bindContext("/getProductTreeData(...)");
@@ -575,6 +582,51 @@ sap.ui.define([
 					});
 				});
 
+		},
+
+		_openCustomerNumberDialog: function () {
+			if (!this._oCustomerNumberDialog) {
+				this._oCustomerNumberInput = new sap.m.Input({
+					placeholder: "Enter Customer Number",
+					type: "Text"
+				});
+
+				this._oCustomerNumberDialog = new sap.m.Dialog({
+					title: "Customer Number",
+					type: "Message",
+					content: [
+						new sap.m.Label({ text: "Customer Number:", labelFor: this._oCustomerNumberInput })
+							.addStyleClass("sapUiSmallMarginBottom"),
+						this._oCustomerNumberInput
+					],
+					beginButton: new sap.m.Button({
+						text: "OK",
+						type: "Emphasized",
+						press: function () {
+							const sCustomerNumber = this._oCustomerNumberInput.getValue();
+
+							this._oCustomerNumberDialog.close();
+
+							// delegate reset to extension controller, passing customer number
+							this.onResetPrice(sCustomerNumber);
+						}.bind(this)
+					}),
+					endButton: new sap.m.Button({
+						text: "Cancel",
+						press: function () {
+							this._oCustomerNumberDialog.close();
+						}.bind(this)
+					})
+				});
+			}
+
+			this._oCustomerNumberInput.setValue(""); // reset value each time
+			this._oCustomerNumberDialog.open();
+		},
+		onExit: function () {
+			if (this._oCustomerNumberDialog) {
+				this._oCustomerNumberDialog.destroy();
+			}
 		},
 
 		_setTreeTableData: function (aFlatData) {
@@ -2126,8 +2178,6 @@ sap.ui.define([
 				}
 			];
 		}
-
-
 
 		// _getView: function (oControl) {
 		// 	let oC = oControl;
