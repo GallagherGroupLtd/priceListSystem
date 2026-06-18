@@ -314,7 +314,8 @@ sap.ui.define([
                 onClose: function (oAction) {
                     if (oAction === MessageBox.Action.YES) {
                         // delegate reset to extension controller which restores original snapshot if available
-                        ExtController.getInstance().onResetPrice();
+                        // ExtController.getInstance().onResetPrice();
+                        ExtController.getInstance()._openCustomerNumberDialog();
                     }
                 }.bind(this)
             });
