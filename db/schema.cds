@@ -63,7 +63,8 @@ entity PricelistPartNumberDetermination : managed, cuid {
     ProductStatus                   : String(255) @title: 'Product Status';
     StatusValidity                  : Date        @title: 'Status Validity';
     ThirdPartySupplier              : String(255) @title: '3rd Party Supplier';
-    ThirdPartySupplierSKU           : String(255) @title: '3rd Party Supplier SKU'
+    ThirdPartySupplierSKU           : String(255) @title: '3rd Party Supplier SKU';
+    StatusExpiry                    : Date        @title: 'Status Expiry';
 }
 
 /** Terms and Condition Determination **/
