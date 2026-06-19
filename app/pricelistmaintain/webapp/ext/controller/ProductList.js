@@ -270,55 +270,12 @@ sap.ui.define([
             ExtController._getProductPriceList.apply(this);
         },
 
-        // onRefreshPrice: function (oEvent) {
-        //     MessageToast.show("Refresh Pricelist by appending new node from item structure table.");
-        //     ExtController.getInstance()._getProductPriceList()
-        //         .then((newProductList) => {
-        //             ExtController.getInstance()._updateModeToggleEnabled();
-        //             // const result = ExtController.getInstance()._addUpdateProductList(newProductList);
-        //             // if (result && result.hasChanges) {
-        //             //     debugger;
-        //             //     ExtController.getInstance()._setTreeTableData(result.productList);
-        //             //     // clear any selection after refresh
-        //             //     try {
-        //             //         const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-        //             //         if (oTable && typeof oTable.clearSelection === 'function') oTable.clearSelection();
-        //             //         ExtController.getInstance()._setDeleteBtnState(false);
-        //             //         ExtController.getInstance()._updateModeToggleEnabled();
-        //             //     } catch (e) { /* ignore */ }
-        //             // }
-        //         });
-        // },
-
         onRefreshPrice: function () {
-            const oController = ExtController.getInstance();
-
-            MessageToast.show("Refreshing pricelist...");
-
-            oController._getProductPriceList()
-                .then((aFlatData) => {
-                    oController._setTreeTableData(aFlatData || []);
-                })
-                .catch((oErr) => {
-                    console.error("Error refreshing pricelist:", oErr);
-                    sap.m.MessageBox.error("Cannot refresh pricelist.");
-                });
+            ExtController.getInstance().onRefreshPrice();            
         },
 
         onResetPrice: function (oEvent) {
-
-            MessageBox.confirm("Table will be completely reset. Proceed?", {
-                title: "Confirm Reset Pricelist",
-                actions: [MessageBox.Action.YES, MessageBox.Action.NO],
-                emphasizedAction: MessageBox.Action.YES,
-                onClose: function (oAction) {
-                    if (oAction === MessageBox.Action.YES) {
-                        // delegate reset to extension controller which restores original snapshot if available
-                        // ExtController.getInstance().onResetPrice();
-                        ExtController.getInstance()._openCustomerNumberDialog();
-                    }
-                }.bind(this)
-            });
+            ExtController.getInstance().onResetPrice();       
         },
 
         onDelete: function (oEvent) {
