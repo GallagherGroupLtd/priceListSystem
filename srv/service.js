@@ -1963,14 +1963,14 @@ module.exports = cds.service.impl(async function () {
                 }
             }
         }
-        console.table(uniquePricingRules, ["accessSequence", "conditionType", "priority", "salesOrg", "distChannel", "isDiscount"]);
+        // console.table(uniquePricingRules, ["accessSequence", "conditionType", "priority", "salesOrg", "distChannel", "isDiscount"]);
 
         // Get Customers from external DB based on header ErpCustomer filter (if exists) to use in access sequence specific filtering later
         let Customers = [];
         if (CustomerNumber) {
             Customers = await extdb.run(`SELECT * FROM SAPECC.T_CUSTOMER_MASTER_DATA WHERE SALES_ORGANIZATION = '${escapeSql(SalesOrg)}' 
                                         AND DISTRIBUTION_CHANNEL = '${escapeSql(DistChannel)}' AND CUSTOMER = '${escapeSql(CustomerNumber)}'`);
-            console.table(Customers, ["CUSTOMER", "REGION", "COUNTRY", "DIVISION", "PRICE_GROUP", "CUSTOMER_GROUP_1", "CUSTOMER_CLASSIFICATION"]);
+            // console.table(Customers, ["CUSTOMER", "REGION", "COUNTRY", "DIVISION", "PRICE_GROUP", "CUSTOMER_GROUP_1", "CUSTOMER_CLASSIFICATION"]);
         }
 
         // 6. Get available columns in T_PRICELIST_MASTER_DATA to ensure we only query existing ones in dynamic SQL
@@ -2149,7 +2149,6 @@ module.exports = cds.service.impl(async function () {
         });
 
         // 12. Sort result by hierarchy levels (nulls first and then alphabetically)
-        // TODO: Need to be check because this will set alphabet always
         const sortByFields = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
         const sortedResults = finalFlatResults
             .filter(row => row.Price != null)
