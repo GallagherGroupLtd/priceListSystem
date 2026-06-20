@@ -45,7 +45,7 @@
                     icon="sap-icon://refresh"
                     type="Emphasized"
                     enabled="true"
-                        visible="true"                         
+                    visible="{ui>/isEditable}"                         
                     press="handler.onRefreshPrice" />
                 
                 <Button
@@ -54,7 +54,7 @@
                     icon="sap-icon://reset"
                     type="Emphasized"
                     enabled="true"
-                    visible="{jsonModel>/showReset}"
+                    visible="{ui>/isEditable}"
                     press="handler.onResetPrice" />
 
                 <ToggleButton
@@ -62,7 +62,6 @@
                     icon="sap-icon://delete"
                     text="Delete"
                     tooltip="Toggle delete mode"
-                    visible="{= !${jsonModel>/isReorderMode} }"
                     press="handler.onToggleDeleteMode" />
 
                 <Button
@@ -76,8 +75,8 @@
                 <Button
                     id="ProductListUndoDeleteBtn"
                     icon="sap-icon://undo"
-                    enabled="false"
-                    visible="{= ${jsonModel>/isDeleteMode} }"
+                    enabled="{jsonModel>/hasDeleteUndo}"
+                    visible="{= ${jsonModel>/isDeleteMode} &amp;&amp; ${jsonModel>/hasDeleteUndo} }"
                     press="handler.onUndoDelete" />
 
                 <ToggleButton
@@ -85,10 +84,9 @@
                     icon="sap-icon://sorting-ranking"
                     text="Re-order"
                     tooltip="Toggle re-order mode"
-                    visible="{= !${jsonModel>/isDeleteMode} }"
                     press="handler.onToggleReorderMode" />
 
-                <ToolbarSeparator id="ProductListToolbarSep_3" />
+                <ToolbarSeparator id="ProductListToolbarSep_3" visible="{ui>/isEditable}"/>
 
                 <Button
                     id="ProductListNavBtn"
@@ -146,7 +144,7 @@
                     text="{= ${jsonModel>/productFilterCount} > 0 ? 'Filter (' + ${jsonModel>/productFilterCount} + ')' : 'Filter' }"
                     type="{= ${jsonModel>/productFilterCount} > 0 ? 'Emphasized' : 'Default' }"
                     tooltip="Filter"
-                    enabled="{jsonModel>/hasTreeData}"
+                    enabled="{= ${jsonModel>/hasProductTreeData} &amp;&amp; !${jsonModel>/isDeleteMode} &amp;&amp; !${jsonModel>/isReorderMode} }"
                     press="handler.onOpenHierarchyFilter"/>
 
                 <Button
@@ -154,7 +152,7 @@
                     icon="sap-icon://clear-filter"
                     text="Clear Filter"
                     visible="{= ${jsonModel>/productFilterCount} > 0 }"
-                    enabled="{jsonModel>/hasTreeData}"
+                    enabled="{= ${jsonModel>/hasProductTreeData} &amp;&amp; !${jsonModel>/isDeleteMode} &amp;&amp; !${jsonModel>/isReorderMode} }"
                     press="handler.onClearHierarchyFilter"/>
 
                 <!-- <Button

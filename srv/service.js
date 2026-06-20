@@ -4,6 +4,8 @@ const { log } = require("@sap/cds");
 
 const { SELECT, INSERT } = cds.ql;
 
+const saveProductPriceList = require('./code/save-product-price-list');
+
 /**
  * Generic Mass Upload Handler
  * @param {Object} req - CAP request object
@@ -2164,6 +2166,8 @@ module.exports = cds.service.impl(async function () {
             });
         return sortedResults;
     });
+
+    this.on('saveProductPriceList', saveProductPriceList(this));
 
     //PDF Export
     this.on("exportTermsPdf", async (req) => {

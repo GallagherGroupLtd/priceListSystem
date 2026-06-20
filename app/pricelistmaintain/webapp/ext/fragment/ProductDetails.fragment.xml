@@ -23,25 +23,29 @@
                 <smartForm:GroupElement id="ProductMaterialGroupElement" label="Material Number">
                     <Input
                         id="ProductMaterialInput"
-                        value="{jsonModel>/selectedProduct/Material}" />
+                        value="{jsonModel>/selectedProduct/Material}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductMaterialKeyGroupElement" label="Material Key">
                     <Input
                         id="ProductMaterialKeyInput"
-                        value="{jsonModel>/selectedProduct/MaterialKey}" />
+                        value="{jsonModel>/selectedProduct/MaterialKey}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductTitleGroupElement" label="Product">
                     <Input
                         id="ProductTitleInput"
-                        value="{jsonModel>/selectedProduct/Title}" />
+                        value="{jsonModel>/selectedProduct/Title}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductDescriptionGroupElement" label="Description">
                     <Input
                         id="ProductDescriptionInput"
-                        value="{jsonModel>/selectedProduct/Description}" />
+                        value="{jsonModel>/selectedProduct/Description}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
             </smartForm:Group>
@@ -61,37 +65,43 @@
                 <smartForm:GroupElement id="ProductPriceGroupElement" label="Price">
                     <Input
                         id="ProductPriceInput"
-                        value="{jsonModel>/selectedProduct/Price}" />
+                        value="{jsonModel>/selectedProduct/Price}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductPriceUnitGroupElement" label="Price Unit">
                     <Input
                         id="ProductPriceUnitInput"
-                        value="{jsonModel>/selectedProduct/PriceUnit}" />
+                        value="{jsonModel>/selectedProduct/PriceUnit}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductPriceValidFromGroupElement" label="Price Valid From">
                     <Input
                         id="ProductPriceValidFromInput"
-                        value="{jsonModel>/selectedProduct/PriceValidFrom}" />
+                        value="{jsonModel>/selectedProduct/PriceValidFrom}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductPriceValidToGroupElement" label="Price Valid To">
                     <Input
                         id="ProductPriceValidToInput"
-                        value="{jsonModel>/selectedProduct/PriceValidTo}" />
+                        value="{jsonModel>/selectedProduct/PriceValidTo}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductAccessSequenceGroupElement" label="Access Sequence">
                     <Input
                         id="ProductAccessSequenceInput"
-                        value="{jsonModel>/selectedProduct/AccessSequence}" />
+                        value="{jsonModel>/selectedProduct/AccessSequence}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductConditionTypeGroupElement" label="Condition Type">
                     <Input
                         id="ProductConditionTypeInput"
-                        value="{jsonModel>/selectedProduct/ConditionType}" />
+                        value="{jsonModel>/selectedProduct/ConditionType}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
             </smartForm:Group>
@@ -101,31 +111,36 @@
                 <smartForm:GroupElement id="ProductDiscountRateGroupElement" label="Discount Rate">
                     <Input
                         id="ProductDiscountRateInput"
-                        value="{jsonModel>/selectedProduct/DiscountRate}" />
+                        value="{jsonModel>/selectedProduct/DiscountRate}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductDiscountEffectiveFromGroupElement" label="Discount Effective From">
                     <Input
                         id="ProductDiscountEffectiveFromInput"
-                        value="{= ${jsonModel>/selectedProduct/DiscountEffectiveFromDate} || ${jsonModel>/selectedProduct/DiscountEffectiveDate} || '' }" />
+                        value="{= ${jsonModel>/selectedProduct/DiscountEffectiveFromDate} || ${jsonModel>/selectedProduct/DiscountEffectiveDate} || '' }" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductDiscountEffectiveToGroupElement" label="Discount Effective To">
                     <Input
                         id="ProductDiscountEffectiveToInput"
-                        value="{= ${jsonModel>/selectedProduct/DiscountEffectiveToDate} || ${jsonModel>/selectedProduct/DiscountEffectiveDate} || '' }" />
+                        value="{= ${jsonModel>/selectedProduct/DiscountEffectiveToDate} || ${jsonModel>/selectedProduct/DiscountEffectiveDate} || '' }" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductDiscountAccessSequenceGroupElement" label="Discount Access Sequence">
                     <Input
                         id="ProductDiscountAccessSequenceInput"
-                        value="{jsonModel>/selectedProduct/DiscountAccessSequence}" />
+                        value="{jsonModel>/selectedProduct/DiscountAccessSequence}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductDiscountConditionTypeGroupElement" label="Discount Condition Type">
                     <Input
                         id="ProductDiscountConditionTypeInput"
-                        value="{jsonModel>/selectedProduct/DiscountConditionType}" />
+                        value="{jsonModel>/selectedProduct/DiscountConditionType}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
             </smartForm:Group>
@@ -146,25 +161,29 @@
                     <Switch
                         id="ProductPriceChangeIndicatorSwitch"
                         type="AcceptReject"
-                        state="{jsonModel>/selectedProduct/PriceChangeIndicator}" />
+                        state="{jsonModel>/selectedProduct/PriceChangeIndicator}" 
+                        enabled="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductFuturePriceGroupElement" label="Future Price">
                     <Input
                         id="ProductFuturePriceInput"
-                        value="{jsonModel>/selectedProduct/FuturePrice}" />
+                        value="{jsonModel>/selectedProduct/FuturePrice}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductFuturePriceValidFromGroupElement" label="Future Price Valid From">
                     <Input
                         id="ProductFuturePriceValidFromInput"
-                        value="{jsonModel>/selectedProduct/FuturePriceValidFrom}" />
+                        value="{jsonModel>/selectedProduct/FuturePriceValidFrom}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductFuturePriceValidToGroupElement" label="Future Price Valid To">
                     <Input
                         id="ProductFuturePriceValidToInput"
-                        value="{jsonModel>/selectedProduct/FuturePriceValidTo}" />
+                        value="{jsonModel>/selectedProduct/FuturePriceValidTo}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
             </smartForm:Group>
@@ -174,19 +193,22 @@
                 <smartForm:GroupElement id="ProductStatusGroupElement" label="Status">
                     <Input
                         id="ProductStatusInput"
-                        value="{jsonModel>/selectedProduct/Status}" />
+                        value="{jsonModel>/selectedProduct/Status}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductStatusValidFromGroupElement" label="Status Valid From">
                     <Input
                         id="ProductStatusValidFromInput"
-                        value="{jsonModel>/selectedProduct/StatusValidFromDate}" />
+                        value="{jsonModel>/selectedProduct/StatusValidFromDate}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductStatusValidToGroupElement" label="Status Valid To">
                     <Input
                         id="ProductStatusValidToInput"
-                        value="{jsonModel>/selectedProduct/StatusValidToDate}" />
+                        value="{jsonModel>/selectedProduct/StatusValidToDate}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
             </smartForm:Group>
@@ -206,13 +228,15 @@
                 <smartForm:GroupElement id="ProductSupplierGroupElement" label="Supplier">
                     <Input
                         id="ProductSupplierInput"
-                        value="{jsonModel>/selectedProduct/Supplier}" />
+                        value="{jsonModel>/selectedProduct/Supplier}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement id="ProductSupplierSKUGroupElement" label="Supplier SKU">
                     <Input
                         id="ProductSupplierSKUInput"
-                        value="{jsonModel>/selectedProduct/SupplierSKU}" />
+                        value="{jsonModel>/selectedProduct/SupplierSKU}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
             </smartForm:Group>

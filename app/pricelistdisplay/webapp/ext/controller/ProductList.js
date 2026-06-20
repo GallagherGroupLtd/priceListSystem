@@ -242,7 +242,7 @@ sap.ui.define([
             ExtController.getInstance().onDelete(oEvent);
         },
 
-        onUndoDelete: function (oEvent) {  
+        onUndoDelete: function (oEvent) {
             // delegate undo delete operation to extension controller
             ExtController.getInstance().onUndoDelete(oEvent);
         },
@@ -323,168 +323,82 @@ sap.ui.define([
         },
 
         onToggleDeleteMode: function (oEvent) {
-            const oToggleButton = oEvent.getSource();
-            const bDeleteMode = oToggleButton.getPressed();
-            const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-            const oDeleteButton = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
+            const bDeleteMode = oEvent.getSource().getPressed();
+            const oExt = ExtController.getInstance();
 
-            if (bDeleteMode) {
-                this.bDeleteMode = true;
-                oTable.setSelectionMode('Multi');
-                ExtController.getInstance()._setDeleteBtnState(undefined, true);
-                // change toggle appearance to 'Finish'
-                try {
-                    oToggleButton.setIcon('sap-icon://complete');
-                    oToggleButton.setText('Finish');
-                    oToggleButton.setTooltip('Finish delete mode');
-                } catch (e) { /* ignore if control API differs */ }
-                // reflect mode in jsonModel so UI updates and clear reorder mode
-                try {
-                    const oExt = ExtController.getInstance();
-                    if (oExt && oExt.base && oExt.base.getView) {
-                        const oJson = oExt.base.getView().getModel('jsonModel');
-                        if (oJson) {
-                            oJson.setProperty('/isDeleteMode', true);
-                            oJson.setProperty('/isReorderMode', false);
-                            oJson.setProperty('/showReset', false);
-                        }
-                    }
-                } catch (e) { /* ignore */ }
-            } else {
-                this.bDeleteMode = false;
-                oTable.setSelectionMode('Single');
-                ExtController.getInstance()._setDeleteBtnState(undefined, false);
-                oTable.clearSelection();
-                // revert toggle appearance to default
-                try {
-                    oToggleButton.setIcon('sap-icon://delete');
-                    oToggleButton.setText('Delete');
-                    oToggleButton.setTooltip('Toggle delete mode');
-                } catch (e) { /* ignore */ }
-                // clear delete mode flag in model and update Reset visibility
-                try {
-                    const oExt = ExtController.getInstance();
-                    if (oExt && oExt.base && oExt.base.getView) {
-                        const oView = oExt.base.getView();
-                        const oJson = oView.getModel('jsonModel');
-                        if (oJson) {
-                            oJson.setProperty('/isDeleteMode', false);
-                            const isReorder = !!oJson.getProperty('/isReorderMode');
-                            oJson.setProperty('/showReset', !isReorder);
-                        }
-                    }
-                } catch (e) {
-                    // ignore
-                }
-            }
+            oExt._setProductTreeModeState(bDeleteMode ? "Delete" : "Display");
         },
 
         onToggleReorderMode: function (oEvent) {
-            const oToggleButton = oEvent.getSource();
-            const bReorderMode = oToggleButton.getPressed();
-            const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
+            const bReorderMode = oEvent.getSource().getPressed();
+            const oExt = ExtController.getInstance();
 
-            if (bReorderMode) {
-                this.bReorderMode = true;
-                // oTable.setDragDropConfig(new sap.ui.table.TreeTableDragDropConfig({
-                //     dragStart: this.onDragStart.bind(this),
-                //     drop: this.onDrop.bind(this)
-                // }));
-                try {
-                    const oExt = ExtController.getInstance();
-                    if (oExt && oExt.base && oExt.base.getView) {
-                        const oJson = oExt.base.getView().getModel('jsonModel');
-                        if (oJson) {
-                            oJson.setProperty('/isReorderMode', true);
-                            oJson.setProperty('/isDeleteMode', false);
-                            oJson.setProperty('/showReset', false);
-                        }
-                    }
-                } catch (e) { /* ignore */ }
-            } else {
-                this.bReorderMode = false;
-                // oTable.setDragDropConfig(null);
-                try {
-                    const oExt = ExtController.getInstance();
-                    if (oExt && oExt.base && oExt.base.getView) {
-                        const oJson = oExt.base.getView().getModel('jsonModel');
-                        if (oJson) {
-                            oJson.setProperty('/isReorderMode', false);
-                            const isDelete = !!oJson.getProperty('/isDeleteMode');
-                            oJson.setProperty('/showReset', !isDelete);
-                        }
-                    }
-                } catch (e) { /* ignore */ }
-            }
+            oExt._setProductTreeModeState(bReorderMode ? "Reorder" : "Display");
         },
 
-        onSelectionChange: function (oEvent) { 
-            if (this.bDeleteMode) {
-                ExtController._onSelectionChangeDeleteMode(oEvent);
-            } else {
-                ExtController._onSelectionChangeDisplayMode(oEvent);
-            }
+        onSelectionChange: function (oEvent) {
+            ExtController.getInstance()._handleProductTreeSelectionChange(oEvent);
         },
 
-        onSelectionChangeDisplayMode: function (oEvent) {
-            //Demo code
-            MessageToast.show("Row Selection Change:");
-            const oTable = oEvent.getSource();
-            const aSelectedIndices = oTable.getSelectedIndices();
-            const oDeleteButton = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
-            const oResetButton = sap.ui.getCore().byId(idPrefix + "ProductListResetBtn");
-            const oRefreshButton = sap.ui.getCore().byId(idPrefix + "ProductListRefreshBtn");
+        // onSelectionChangeDisplayMode: function (oEvent) {
+        //     //Demo code
+        //     MessageToast.show("Row Selection Change:");
+        //     const oTable = oEvent.getSource();
+        //     const aSelectedIndices = oTable.getSelectedIndices();
+        //     const oDeleteButton = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
+        //     const oResetButton = sap.ui.getCore().byId(idPrefix + "ProductListResetBtn");
+        //     const oRefreshButton = sap.ui.getCore().byId(idPrefix + "ProductListRefreshBtn");
 
-            const iSelectedIndex = aSelectedIndices[0];
-            const oRowContext = oTable.getContextByIndex(iSelectedIndex);
+        //     const iSelectedIndex = aSelectedIndices[0];
+        //     const oRowContext = oTable.getContextByIndex(iSelectedIndex);
 
-            if (!oRowContext) {
-                MessageToast.show("No row selected.");
-                return;
-            }
+        //     if (!oRowContext) {
+        //         MessageToast.show("No row selected.");
+        //         return;
+        //     }
 
-            const oSelectedData = oRowContext.getObject();
+        //     const oSelectedData = oRowContext.getObject();
 
-            if (oSelectedData) {
+        //     if (oSelectedData) {
 
-                let sSubSectionId = null;
-                let oObjectPageLayout = null;
-                let oControl = oTable;
+        //         let sSubSectionId = null;
+        //         let oObjectPageLayout = null;
+        //         let oControl = oTable;
 
-                while (oControl) {
-                    if (oControl.isA && oControl.isA("sap.uxap.ObjectPageLayout")) {
-                        oObjectPageLayout = oControl;
-                        break;
-                    }
-                    oControl = oControl.getParent && oControl.getParent();
-                }
+        //         while (oControl) {
+        //             if (oControl.isA && oControl.isA("sap.uxap.ObjectPageLayout")) {
+        //                 oObjectPageLayout = oControl;
+        //                 break;
+        //             }
+        //             oControl = oControl.getParent && oControl.getParent();
+        //         }
 
-                switch (oSelectedData.kind) {
-                    case "Product":
-                        sSubSectionId = "pricelistapp.pricelistdisplay::PricelistDataObjectPage--fe::CustomSubSection::ProductDetails";
-                }
+        //         switch (oSelectedData.kind) {
+        //             case "Product":
+        //                 sSubSectionId = "pricelistapp.pricelistdisplay::PricelistDataObjectPage--fe::CustomSubSection::ProductDetails";
+        //         }
 
-                if (oObjectPageLayout) {
-                    oObjectPageLayout.scrollToSection(sSubSectionId);
-                } else {
-                    const oSubSection = sap.ui.getCore().byId(sSubSectionId);
-                    if (oSubSection && oSubSection.getDomRef()) {
-                        oSubSection.getDomRef().scrollIntoView({ behavior: "smooth" });
-                    }
-                }
-            }
+        //         if (oObjectPageLayout) {
+        //             oObjectPageLayout.scrollToSection(sSubSectionId);
+        //         } else {
+        //             const oSubSection = sap.ui.getCore().byId(sSubSectionId);
+        //             if (oSubSection && oSubSection.getDomRef()) {
+        //                 oSubSection.getDomRef().scrollIntoView({ behavior: "smooth" });
+        //             }
+        //         }
+        //     }
 
-            if (aSelectedIndices.length > 0) {
-                ExtController.getInstance()._setDeleteBtnState(true);
-                // oRefreshButton.setEnabled(true);
-                // oResetButton.setEnabled(true);
-            } else {
-                ExtController.getInstance()._setDeleteBtnState(false);
-                // oRefreshButton.setEnabled(false);
-                // oResetButton.setEnabled(false);
-            }
-            // oTable.clearSelection();
-        }
+        //     if (aSelectedIndices.length > 0) {
+        //         ExtController.getInstance()._setDeleteBtnState(true);
+        //         // oRefreshButton.setEnabled(true);
+        //         // oResetButton.setEnabled(true);
+        //     } else {
+        //         ExtController.getInstance()._setDeleteBtnState(false);
+        //         // oRefreshButton.setEnabled(false);
+        //         // oResetButton.setEnabled(false);
+        //     }
+        //     // oTable.clearSelection();
+        // }
 
     }
 });

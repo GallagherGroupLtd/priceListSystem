@@ -15,7 +15,8 @@
                 value="{Notes}" 
                 maxLength="5000" 
                 rows="6"
-                width="75%">
+                width="75%"
+                editable="{ui>/isEditable}">
                 <layoutData><FlexItemData id="NotesContextTextLayoutData" growFactor="1" maxWidth="100%" /></layoutData>
             </TextArea>
         </HBox>
@@ -28,9 +29,9 @@
             <HBox id="NotesDisableHBoxContent" alignItems="Center">
                 <layoutData><FlexItemData id="NotesDisableHBoxContentLayoutData" growFactor="1" maxWidth="100%" /></layoutData>
                 <Text id="NotesDisableExtUserText" text="External User" class="sapUiTinyMarginEnd" />
-                <Switch id="NotesDisableExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
+                <Switch id="NotesDisableExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" enabled="{ui>/isEditable}"/>
                 <Text id="NotesDisableIntUserText" text="Internal User" class="sapUiLargeMarginBegin sapUiTinyMarginEnd" />
-                <Switch id="NotesDisableIntUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
+                <Switch id="NotesDisableIntUserSwitch" state="false" change=".onNotesDisableSwitchChange" enabled="{ui>/isEditable}"/>
             </HBox>
         </HBox>
 
