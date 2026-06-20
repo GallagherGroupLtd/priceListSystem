@@ -47,6 +47,38 @@ sap.ui.define([
 	];
 
 	/**
+	 * Header dimension fields used to scope a direct query against the persisted
+	 * ProductPriceList entity set (used by _initialLoadProductPriceList). Excludes
+	 * MaterialKey — that's a per-row field on individual product nodes, not a
+	 * root-level scoping dimension, so filtering by it here would wrongly exclude
+	 * every Category row and all but one Product row.
+	 */
+	const PRODUCT_PRICE_LIST_FILTER_FIELDS = [
+		"PricelistType", "MarketScopeRegion", "MarketScopeCountry",
+		"SalesOrg", "DistChannel", "CustPriceList",
+		"CustGroup1", "ErpCustomer", "DeliveringPlant"
+	];
+
+	/**
+	 * Columns selected when fetching the ProductPriceList entity set directly.
+	 * Mirrors the entity's CDS definition; parent_ID is the FK generated for the
+	 * `parent` association and is used to reassemble the tree client-side.
+	 */
+	const PRODUCT_PRICE_LIST_ENTITY_FIELDS = [
+		"ID", "parent_ID",
+		"PricelistType", "MarketScopeRegion", "MarketScopeCountry",
+		"SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey",
+		"OrderIndex", "Kind", "CategoryLevel", "Title", "Description",
+		"PublishedName", "TermsAndConditions", "IsTACDisableExt", "IsTACDisableInt",
+		"Notes", "IsNotesDisableExt", "IsNotesDisableInt",
+		"Price", "PriceUnit", "PriceValidFrom", "PriceValidTo",
+		"DiscountRate", "DiscountValidFrom", "DiscountValidTo", "PriceChangeIndicator",
+		"FuturePrice", "FuturePriceValidFrom", "FuturePriceValidTo",
+		"Status", "StatusValidFromDate", "StatusValidToDate",
+		"Supplier", "SupplierSKU"
+	];
+
+	/**
 	 * Descriptor for each category level (0–5).
 	 * Acts as a single source of truth that drives init / clear / bind / sync /
 	 * navigation without repetitive switch-case chains or copy-pasted property names.
@@ -110,6 +142,8 @@ sap.ui.define([
 
 				this._syncProductTreeToolbarState();
 				this._updateModeToggleEnabled();
+
+				this._initialLoadProductPriceList();
 			},
 
 			editFlow: {
@@ -140,21 +174,21 @@ sap.ui.define([
 					return this._callSaveProductPriceList(oHeader, oOriginalHeader, aTree);
 				},
 
-				/** Clears transient delete / selection state after a successful save. */
+				/** Clears transient delete / selection state and reloads the persisted tree after a successful save. */
 				onAfterSave: function () {
 					const oJsonModel = this._getJsonModel();
 					if (!oJsonModel) return;
 
-					const aCurrentTree = oJsonModel.getProperty("/productPriceList") || [];
-
-					oJsonModel.setProperty("/pendingDeletedIds",        []);
-					oJsonModel.setProperty("/selectedKeys",             []);
-					oJsonModel.setProperty("/originalProductPriceList", this._clone(aCurrentTree));
+					oJsonModel.setProperty("/pendingDeletedIds", []);
+					oJsonModel.setProperty("/selectedKeys",      []);
 
 					this._deletedSnapshots = [];
-					this._originalSnapshot = this._clone(aCurrentTree);
 
 					this._setDeleteBtnState(false, false);
+
+					// Reload from the entity (same function used on initial page load) so the
+					// tree picks up server-assigned IDs and becomes the new edit baseline.
+					this._initialLoadProductPriceList();
 				},
 
 				/** Restores the tree to its pre-edit state when the user discards changes. */
@@ -575,6 +609,121 @@ sap.ui.define([
 
 			this._clearProductTreeTransientState();
 			oJsonModel.updateBindings(true);
+		},
+
+		// ── Initial load (direct from the ProductPriceList entity) ─────────────────
+		//
+		// Distinct from _getProductPriceList/_setTreeTableData above (used by the
+		// "Reset Pricelist" button, which re-derives the tree via the
+		// getProductTreeData action) and from onRefreshPrice (its own separate
+		// purpose). This reads the already-persisted, already-hierarchical
+		// ProductPriceList entity directly. Used on initial page load and again
+		// after every successful Save, so the tree always reflects exactly what is
+		// on the backend — including server-assigned IDs for newly created rows.
+
+		/**
+		 * Loads the persisted ProductPriceList hierarchy and shows it in the tree.
+		 * Also becomes the new "original" snapshot baseline for Discard, since at
+		 * the moment this runs (page load, or right after a successful save) there
+		 * are by definition no unsaved edits yet.
+		 *
+		 * @returns {Promise<void>}
+		 */
+		_initialLoadProductPriceList: function () {
+			const oJsonModel = this._getJsonModel();
+			if (!oJsonModel) return Promise.resolve();
+
+			return this._fetchProductPriceListEntityTree()
+				.then((aTree) => {
+					oJsonModel.setProperty("/productPriceList",         this._clone(aTree));
+					oJsonModel.setProperty("/productPriceListFull",     this._clone(aTree));
+					oJsonModel.setProperty("/originalProductPriceList", this._clone(aTree));
+
+					this._originalSnapshot = this._clone(aTree);
+
+					this._clearProductTreeTransientState();
+					oJsonModel.updateBindings(true);
+				})
+				.catch((oError) => {
+					console.error(oError);
+					MessageToast.show("Failed to load the pricelist.");
+				});
+		},
+
+		/**
+		 * Fetches flat ProductPriceList rows scoped to the current header context
+		 * and assembles them into a tree via their parent/ID relationships.
+		 *
+		 * @returns {Promise<object[]>} Root-level tree nodes.
+		 */
+		_fetchProductPriceListEntityTree: function () {
+			const oView    = this.base.getView();
+			const oContext = oView.getBindingContext();
+
+			if (!oContext) return Promise.resolve([]);
+
+			const oODataModel = oView.getModel();
+
+			const aFilters = PRODUCT_PRICE_LIST_FILTER_FIELDS
+				.map((sField) => {
+					const vValue = oContext.getProperty(sField);
+					return (vValue !== undefined && vValue !== null && vValue !== "")
+						? new Filter(sField, FilterOperator.EQ, vValue)
+						: null;
+				})
+				.filter(Boolean);
+
+			const oListBinding = oODataModel.bindList("/ProductPriceList", null, [], aFilters, {
+				$select:  PRODUCT_PRICE_LIST_ENTITY_FIELDS.join(","),
+				$orderby: "OrderIndex"
+			});
+
+			return oListBinding.requestContexts(0, 10000).then((aContexts) =>
+				this._buildTreeFromEntityRows(aContexts.map((oCtx) => oCtx.getObject()))
+			);
+		},
+
+		/**
+		 * Nests flat ProductPriceList rows into a tree using ID / parent_ID.
+		 * Unlike _buildTreeFromFlatData, no synthetic category construction is
+		 * needed — the entity already carries Kind/CategoryLevel/Title per row.
+		 *
+		 * @param {object[]} aFlatRows
+		 * @returns {object[]} Root-level tree nodes, each level sorted by OrderIndex.
+		 */
+		_buildTreeFromEntityRows: function (aFlatRows) {
+			if (!Array.isArray(aFlatRows) || !aFlatRows.length) return [];
+
+			const mById = {};
+			const aRoots = [];
+
+			aFlatRows.forEach((oRow) => {
+				mById[oRow.ID] = Object.assign({}, oRow, { children: [] });
+			});
+
+			aFlatRows.forEach((oRow) => {
+				const oNode     = mById[oRow.ID];
+				const sParentId = oRow.parent_ID;
+
+				if (sParentId && mById[sParentId]) {
+					oNode.parent = { ID: sParentId };
+					mById[sParentId].children.push(oNode);
+				} else {
+					oNode.parent = null;
+					aRoots.push(oNode);
+				}
+			});
+
+			const sortRec = (aNodes) => {
+				aNodes.sort((a, b) => (a.OrderIndex || 0) - (b.OrderIndex || 0));
+				aNodes.forEach((oNode) => {
+					if (oNode.children.length) sortRec(oNode.children);
+				});
+			};
+
+			sortRec(aRoots);
+
+			return aRoots;
 		},
 
 		/**
@@ -1840,10 +1989,6 @@ sap.ui.define([
 			if (oReorderToggle) {
 				oReorderToggle.setPressed(bReorderMode);
 				oReorderToggle.setVisible(!bDisplayMode && !bDeleteMode);
-			}
-
-			if (oResetBtn) {
-				oResetBtn.setVisible(!bDeleteMode && !bReorderMode);
 			}
 
 			if (oExpandAll && oCollapseAll) {

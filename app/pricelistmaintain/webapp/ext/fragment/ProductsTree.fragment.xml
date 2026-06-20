@@ -45,7 +45,7 @@
                     icon="sap-icon://refresh"
                     type="Emphasized"
                     enabled="true"
-                    visible="true"                         
+                    visible="{ui>/isEditable}"                         
                     press="handler.onRefreshPrice" />
                 
                 <Button
@@ -54,7 +54,7 @@
                     icon="sap-icon://reset"
                     type="Emphasized"
                     enabled="true"
-                    visible="true"
+                    visible="{ui>/isEditable}"
                     press="handler.onResetPrice" />
 
                 <ToggleButton
@@ -86,7 +86,7 @@
                     tooltip="Toggle re-order mode"
                     press="handler.onToggleReorderMode" />
 
-                <ToolbarSeparator id="ProductListToolbarSep_3" />
+                <ToolbarSeparator id="ProductListToolbarSep_3" visible="{ui>/isEditable}"/>
 
                 <Button
                     id="ProductListNavBtn"
