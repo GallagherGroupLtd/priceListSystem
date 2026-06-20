@@ -62,7 +62,6 @@
                     icon="sap-icon://delete"
                     text="Delete"
                     tooltip="Toggle delete mode"
-                    visible="{= !${jsonModel>/isReorderMode} }"
                     press="handler.onToggleDeleteMode" />
 
                 <Button
@@ -85,7 +84,6 @@
                     icon="sap-icon://sorting-ranking"
                     text="Re-order"
                     tooltip="Toggle re-order mode"
-                    visible="{= !${jsonModel>/isDeleteMode} }"
                     press="handler.onToggleReorderMode" />
 
                 <ToolbarSeparator id="ProductListToolbarSep_3" />
@@ -146,7 +144,7 @@
                     text="{= ${jsonModel>/productFilterCount} > 0 ? 'Filter (' + ${jsonModel>/productFilterCount} + ')' : 'Filter' }"
                     type="{= ${jsonModel>/productFilterCount} > 0 ? 'Emphasized' : 'Default' }"
                     tooltip="Filter"
-                    enabled="{jsonModel>/hasProductTreeData}"
+                    enabled="{= ${jsonModel>/hasProductTreeData} &amp;&amp; !${jsonModel>/isDeleteMode} &amp;&amp; !${jsonModel>/isReorderMode} }"
                     press="handler.onOpenHierarchyFilter"/>
 
                 <Button
@@ -154,7 +152,7 @@
                     icon="sap-icon://clear-filter"
                     text="Clear Filter"
                     visible="{= ${jsonModel>/productFilterCount} > 0 }"
-                    enabled="{jsonModel>/hasProductTreeData}"
+                    enabled="{= ${jsonModel>/hasProductTreeData} &amp;&amp; !${jsonModel>/isDeleteMode} &amp;&amp; !${jsonModel>/isReorderMode} }"
                     press="handler.onClearHierarchyFilter"/>
 
                 <!-- <Button
