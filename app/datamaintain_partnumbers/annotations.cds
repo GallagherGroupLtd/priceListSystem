@@ -143,6 +143,10 @@ annotate service.PriceProductMaintenance with @(
             },
             {
                 $Type : 'UI.DataField',
+                Value : StatusExpiry,
+            },
+            {
+                $Type : 'UI.DataField',
                 Value : ThirdPartySupplier,
             },
             {

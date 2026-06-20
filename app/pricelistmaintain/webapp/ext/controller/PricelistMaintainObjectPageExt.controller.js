@@ -173,11 +173,32 @@ sap.ui.define([
 		// ============================================================================
 		// Product List Toolbar Handlers
 		// ============================================================================
-		onResetPrice: function () {
+		onResetPrice: async function () {
+			const oView = this.base.getView();
 
-			this._clearProductTreeBufferAndSelection();
+			if (this._originalSnapshot) {
+				oView.getModel('jsonModel').setProperty("/productPriceList", JSON.parse(JSON.stringify(this._originalSnapshot)));
+				this._deletedSnapshots = [];
+				const oTable = sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
+				if (oTable && oTable.clearSelection) oTable.clearSelection();
+				this._setDeleteBtnState(false, false);
+				// ensure toggles reflect presence/absence of data after reset
+				this._updateModeToggleEnabled();
+				MessageToast.show("Pricelist reset to original state.");
+				// For testing will be deleted
+				// return;
+			}
 
-			this._getProductPriceList()
+			// oView.getModel("jsonModel").setProperty("/lastCustomerNumber", sCustomerNumber || null);
+			const sCustomerNumber = await this._openCustomerSelectionDialog();			
+			if (sCustomerNumber === null) {
+				return;
+			}
+
+			
+			// fallback: if no original snapshot, fetch from backend
+			MessageToast.show("No original snapshot available; fetching from server...");
+			this._getProductPriceList(sCustomerNumber)
 				.then((aRawData) => {
 					this._setTreeTableData(aRawData);
 					MessageToast.show("Pricelist refreshed from server.");
@@ -517,7 +538,7 @@ sap.ui.define([
 		// ============================================================================
 		// Product Tree Data
 		// ============================================================================
-		_getProductPriceList: function () {
+		_getProductPriceList: function (sCustomerNumber) {
 			// const oView = this.base.getView();
 			// const oModel = oView.getModel();
 			// const oContext = oView.getBindingContext();
@@ -572,6 +593,9 @@ sap.ui.define([
 
 			if (!oContext) { return Promise.resolve([]); }
 
+			const oJSONModel = this.base.getView().getModel("jsonModel");
+			const aProducts = oJSONModel.getProperty("/productPriceList") || [];
+
 			return oModel
 				.bindContext(oContext.getPath(), null, {
 					$select: [
@@ -592,7 +616,11 @@ sap.ui.define([
 						CustPriceList: oData.CustPriceList,
 						CustGroup1: oData.CustGroup1,
 						ErpCustomer: oData.ErpCustomer,
-						DeliveringPlant: oData.DeliveringPlant
+						DeliveringPlant: oData.DeliveringPlant,
+						PublishedDate: oData.PublishedDate,
+						// CustomerNumber: '56800',
+						CustomerNumber: sCustomerNumber,
+						ExistingProduct: []
 					};
 
 					const oAction = oModel.bindContext("/getProductTreeData(...)");
@@ -786,6 +814,161 @@ sap.ui.define([
 			});
 
 			return tree;
+		},
+
+		onRefreshPrice: async function () {
+			const oView = this.base.getView();
+			const oJsonModel = oView.getModel("jsonModel");
+
+			const aCurrentTree = oJsonModel.getProperty("/productPriceList") || [];
+			if (!aCurrentTree.length) {
+				MessageToast.show("No pricelist data loaded.");
+				return;
+			}
+
+			const sCustomerNumber = await this._openCustomerSelectionDialog();
+
+			// Validation check if the process was aborted
+			if (sCustomerNumber === null) {
+				return;
+			}
+
+			MessageToast.show("Refreshing prices...");
+
+			try {
+				const aFlatData = await this._getProductPriceList(sCustomerNumber);
+
+				if (!aFlatData || !aFlatData.length) {
+					MessageToast.show("No price data returned from server.");
+					return;
+				}
+
+				this._refreshPricesOnly(aFlatData);
+				MessageToast.show("Prices refreshed successfully.");
+
+			} catch (oErr) {
+				console.error("Error refreshing prices:", oErr);
+				sap.m.MessageBox.error("Cannot refresh prices. Please try again.");
+			}
+		},
+
+		_openCustomerSelectionDialog: function () {
+			return new Promise((resolve) => {
+				const oInput = new sap.m.Input({
+					placeholder: "Enter customer no",
+					type: sap.m.InputType.Text,
+					liveChange: function (oEvent) {
+						oEvent.getSource().setValueState(sap.ui.core.ValueState.None);
+					}
+				});
+
+				const oDialog = new sap.m.Dialog({
+					title: "Customer Number",
+					type: sap.m.DialogType.Message,
+					contentWidth: "10%",
+					content: [
+						new sap.m.Label({ text: "Customer Number:", labelFor: oInput }).addStyleClass("sapUiSmallMarginBottom"),
+						oInput
+					],
+					beginButton: new sap.m.Button({
+						type: sap.m.ButtonType.Emphasized,
+						text: "Confirm",
+						press: function () {
+							const sValue = oInput.getValue().trim();
+							oDialog.close();
+							resolve(sValue);
+						}
+					}),
+					endButton: new sap.m.Button({
+						text: "Cancel",
+						press: function () {
+							oDialog.close();
+							resolve(null);
+						}
+					}),
+					afterClose: function () {
+						oDialog.destroy();
+					}
+				});
+
+				oDialog.open();
+			});
+		},
+
+		_refreshPricesOnly: function (aFreshFlatData) {
+			const oView = this.base.getView();
+			const oJsonModel = oView.getModel("jsonModel");
+
+			// Field that update when refreshing prices. Must match the fields in the flat data from backend.
+			const PRICE_FIELDS = [
+				"AccessSequence", "ConditionType",
+				"Price", "PriceUnit", "PriceValidFrom", "PriceValidTo",
+				"DiscountRate", "DiscountValidFrom", "DiscountValidTo",
+				"DiscountConditionType", "DiscountAccessSequence",
+				"FuturePrice", "FuturePriceValidFrom", "FuturePriceValidTo",
+				"Status", "StatusValidFromDate", "StatusValidToDate",
+				"Supplier", "SupplierSKU"
+			];
+
+			const freshPriceMap = new Map();
+			aFreshFlatData.forEach(function (row) {
+				if (row.Material) {
+					freshPriceMap.set(row.Material, row);
+				}
+			});
+
+			/**
+			 */
+			const updatePrices = function (aNodes) {
+				if (!Array.isArray(aNodes)) return;
+
+				aNodes.forEach(function (oNode) {
+					if (!oNode) return;
+
+					if (oNode.Kind === "Product" && oNode.Title) {
+						const oFreshRow = freshPriceMap.get(oNode.Title);
+
+						if (oFreshRow) {
+							PRICE_FIELDS.forEach(function (sField) {
+								oNode[sField] = oFreshRow[sField] ?? null;
+							});
+							oNode.PriceChangeIndicator = oFreshRow.PriceChangeIndicator || false;
+						}
+					}
+
+					// Recursively patch children
+					if (Array.isArray(oNode.children) && oNode.children.length) {
+						updatePrices(oNode.children);
+					}
+				});
+			};
+
+			const aPricelistTree = oJsonModel.getProperty("/productPriceList") || [];
+			const aFullPricelistTree = oJsonModel.getProperty("/productPriceListFull") || [];
+			const aOrigPricelistTree = oJsonModel.getProperty("/originalProductPriceList") || [];
+
+			updatePrices(aPricelistTree);
+			updatePrices(aFullPricelistTree);
+			updatePrices(aOrigPricelistTree);
+
+			oJsonModel.setProperty("/productPriceList", [...aPricelistTree]);
+			oJsonModel.setProperty("/productPriceListFull", [...aFullPricelistTree]);
+			oJsonModel.setProperty("/originalProductPriceList", [...aOrigPricelistTree]);
+			oJsonModel.updateBindings(true);
+
+			// Sync in-memory snapshot
+			this._originalSnapshot = JSON.parse(JSON.stringify(aOrigPricelistTree));
+
+			// Refresh rows binding
+			const oTable = this._productTreeTable ||
+				sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
+
+			if (oTable) {
+				const oRowsBinding = oTable.getBinding("rows");
+				if (oRowsBinding && typeof oRowsBinding.refresh === "function") {
+					oRowsBinding.refresh(true);
+				}
+			}
 		},
 
 		// ============================================================================
@@ -1915,7 +2098,10 @@ sap.ui.define([
 
 				// filter state
 				productFilterCount: 0,
-				productFilter: this._getEmptyProductFilter()
+				productFilter: this._getEmptyProductFilter(),
+
+				lastCustomerNumber: null
+
 			};
 		},
 
@@ -2575,8 +2761,6 @@ sap.ui.define([
 				}
 			];
 		}
-
-
 
 		// _getView: function (oControl) {
 		// 	let oC = oControl;
