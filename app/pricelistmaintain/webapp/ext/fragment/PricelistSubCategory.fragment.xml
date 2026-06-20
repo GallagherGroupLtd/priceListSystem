@@ -22,7 +22,7 @@
             <smartForm:Group>
                 <smartForm:GroupElement label="Terms and Conditions">
                     <TextArea
-                        value="{jsonModel>Description}"
+                        value="{jsonModel>TermsAndConditions}"
                         maxLength="1000"
                         rows="10"
                         width="100%" 
@@ -32,10 +32,18 @@
                 <smartForm:GroupElement label="Disable">
                     <HBox alignContent="Center">
                         <Text text="External User" />
-                        <Switch state="{jsonModel>TermsDisableExtUser}" change="handler.onTermsDisableSwitchChange" enabled="{ui>/isEditable}"/>
+                        <Switch 
+                            state="{jsonModel>IsTACDisableExt}" 
+                            change="handler.onTermsDisableSwitchChange" 
+                            type="AcceptReject" 
+                            enabled="{ui>/isEditable}"/>
 
                         <Text text="Internal User" class="sapUiMediumMarginBegin" />
-                        <Switch state="{jsonModel>TermsDisableIntUser}" change="handler.onTermsDisableSwitchChange" enabled="{ui>/isEditable}"/>
+                        <Switch 
+                            state="{jsonModel>IsTACDisableInt}" 
+                            change="handler.onTermsDisableSwitchChange" 
+                            type="AcceptReject" 
+                            enabled="{ui>/isEditable}"/>
                     </HBox>
                 </smartForm:GroupElement>
             </smartForm:Group>
@@ -53,28 +61,21 @@
                 <smartForm:GroupElement 
                     id="SubCategoryNotesDisableGroupElement"
                     label="Disable">
-                    <HBox 
-                        id="SubCategoryNotesExtUserHBox"
-                        alignContent="Center">
-                        <Text 
-                            id="SubCategoryNotesExtUserText"
-                            text="External User" />
+                    <HBox alignContent="Center">
+                        <Text text="External User" />
 
                         <Switch 
-                            id="SubCategoryNotesExtUserSwitch"
-                            state="{jsonModel>NotesDisableExtUser}" 
+                            state="{jsonModel>IsNotesDisableExt}" 
                             change="handler.onNotesDisableSwitchChange" 
+                            type="AcceptReject"
                             enabled="{ui>/isEditable}"/>
 
-                        <Text 
-                            id="SubCategoryNotesIntUserText"
-                            text="Internal User" 
-                            class="sapUiSmallMarginBegin" />
+                        <Text text="Internal User" class="sapUiSmallMarginBegin" />
 
                         <Switch 
-                            id="SubategoryNotesIntUserSwitch"
-                            state="{jsonModel>NotesDisableIntUser}" 
+                            state="{jsonModel>IsNotesDisableInt}" 
                             change="handler.onNotesDisableSwitchChange" 
+                            type="AcceptReject"
                             enabled="{ui>/isEditable}"/>
                     </HBox>
                 </smartForm:GroupElement>

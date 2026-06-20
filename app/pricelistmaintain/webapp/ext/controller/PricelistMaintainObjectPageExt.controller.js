@@ -47,6 +47,8 @@ sap.ui.define([
 
 				this._bindProductDetailSubSections();
 
+				this._syncEditModeState();
+
 				this._captureOriginalSnapshotWhenEnteringEditMode();
 
 				this._resetProductDetailState();
@@ -61,36 +63,57 @@ sap.ui.define([
 			},
 
 			editFlow: {
-				onBeforeSave: async function (mParameters) {
-					const oView = this.base.getView();
-					const oJsonModel = oView.getModel("jsonModel");
+				onBeforeSave: function () {
+					const oJsonModel = this._getJsonModel();
+					const aTree = oJsonModel.getProperty("/productPriceList") || [];
 
-					if (!oJsonModel) {
-						return;
+					if (!aTree.length) {
+						MessageToast.show("Nothing to save.");
+						return Promise.resolve();
 					}
 
-					const aPendingDeletedIds = oJsonModel.getProperty("/pendingDeletedIds") || [];
+					// Current, possibly-edited header field values.
+					// Adjust this to however the 10 header fields are actually read in your controller.
+					const oHeader = this._getCurrentHeaderData();
 
-					if (!aPendingDeletedIds.length) {
-						return;
-					}
+					// Snapshot of header values as they were when edit mode was entered.
+					// Needed because header fields are editable — the lookup for EXISTING rows
+					// in the DB must use the OLD header values, not the live/edited ones.
+					const oOriginalHeader = this._originalHeaderSnapshot || oHeader;
 
-					const aOriginalTree = oJsonModel.getProperty("/originalProductPriceList") || [];
-					const aIdsToDelete = this._getTopLevelDeletedIds(aPendingDeletedIds, aOriginalTree);
-
-					if (!aIdsToDelete.length) {
-						return;
-					}
-
-					try {
-						await this._persistPendingDeletes(aIdsToDelete, mParameters && mParameters.context);
-					} catch (oError) {
-						console.error("Failed to persist deleted items", oError);
-						MessageBox.error("Cannot save deleted items. Save was cancelled.");
-
-						return Promise.reject(oError);
-					}
+					return this._callSaveProductPriceList(oHeader, oOriginalHeader, aTree);
 				},
+
+				// onBeforeSave: async function (mParameters) {
+				// 	const oView = this.base.getView();
+				// 	const oJsonModel = oView.getModel("jsonModel");
+
+				// 	if (!oJsonModel) {
+				// 		return;
+				// 	}
+
+				// 	const aPendingDeletedIds = oJsonModel.getProperty("/pendingDeletedIds") || [];
+
+				// 	if (!aPendingDeletedIds.length) {
+				// 		return;
+				// 	}
+
+				// 	const aOriginalTree = oJsonModel.getProperty("/originalProductPriceList") || [];
+				// 	const aIdsToDelete = this._getTopLevelDeletedIds(aPendingDeletedIds, aOriginalTree);
+
+				// 	if (!aIdsToDelete.length) {
+				// 		return;
+				// 	}
+
+				// 	try {
+				// 		await this._persistPendingDeletes(aIdsToDelete, mParameters && mParameters.context);
+				// 	} catch (oError) {
+				// 		console.error("Failed to persist deleted items", oError);
+				// 		MessageBox.error("Cannot save deleted items. Save was cancelled.");
+
+				// 		return Promise.reject(oError);
+				// 	}
+				// },
 
 				onAfterSave: function () {
 					const oView = this.base.getView();
@@ -2206,6 +2229,78 @@ sap.ui.define([
 				oReorderModeToggle.setVisible(true);
 				oReorderModeToggle.setText("Re-order");
 				oReorderModeToggle.setTooltip("Toggle re-order mode");
+			}
+		},
+
+		_callSaveProductPriceList: function (oHeader, oOriginalHeader, aTree) {
+			const oODataModel = this.base.getView().getModel(); // main OData V4 service model
+			const oActionBinding = oODataModel.bindContext("/saveProductPriceList(...)");
+
+			oActionBinding.setParameter("headerData", JSON.stringify(oHeader));
+			oActionBinding.setParameter("originalHeaderData", JSON.stringify(oOriginalHeader));
+			oActionBinding.setParameter("treeData", JSON.stringify(aTree));
+
+			return oActionBinding.execute()
+				.then(() => {
+					MessageToast.show("Pricelist saved successfully.");
+
+					// Clear session-scoped staging state now that it's persisted
+					this._originalSnapshot = null;
+					this._originalHeaderSnapshot = null;
+					this._deletedSnapshots = [];
+
+					// Re-pull the tree so newly-minted UUIDs (for genuinely new nodes)
+					// replace the local synthetic ones — keeps the client in sync with
+					// what's now actually in the DB.
+					// return this._reloadProductTreeFromBackend();
+				})
+				.catch((oError) => {
+					MessageBox.error("Save failed: " + (oError.message || "Unknown error."));
+					throw oError;
+				});
+		},
+
+		_getCurrentHeaderData: function () {
+			const oView = this.base.getView();
+			const oContext = oView.getBindingContext(); // OP's main entity context
+
+			if (!oContext) {
+				return {};
+			}
+
+			const HEADER_FIELDS = [
+				"PricelistType", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg",
+				"DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer",
+				"DeliveringPlant", "MaterialKey"
+			];
+
+			const oHeader = {};
+			HEADER_FIELDS.forEach((sField) => {
+				// getProperty (not getObject) ensures we read through the binding
+				// rather than relying on whatever happens to already be in the
+				// local cache snapshot.
+				oHeader[sField] = oContext.getProperty(sField);
+			});
+
+			return oHeader;
+		},
+
+		_syncEditModeState: function () {
+			const oContext = this.base.getView().getBindingContext();
+			if (!oContext) return;
+
+			const bIsDraft = oContext.getProperty("IsActiveEntity") === false;
+			this._bAwaitingTreeSnapshot = bIsDraft; // tree-fetch callback checks this
+
+			if (bIsDraft) {
+				if (!this._originalHeaderSnapshot) {
+					this._originalHeaderSnapshot = this._getCurrentHeaderData();
+				}
+			} else {
+				// back to display mode (after Save / Cancel) - clear staged state
+				this._originalSnapshot = null;
+				this._originalHeaderSnapshot = null;
+				this._deletedSnapshots = [];
 			}
 		},
 

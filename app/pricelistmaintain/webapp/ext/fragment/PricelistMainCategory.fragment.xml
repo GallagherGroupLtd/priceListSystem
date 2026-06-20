@@ -67,6 +67,7 @@
                             id="MainCategoryTermsExtUserSwitch"
                             state="{jsonModel>/selectedMainCategory/TermsDisableExtUser}"
                             change="handler.onTermsDisableSwitchChange" 
+                            type="AcceptReject"
                             enabled="{ui>/isEditable}"/>
 
                         <Text
@@ -78,6 +79,7 @@
                             id="MainCategoryTermsIntUserSwitch"
                             state="{jsonModel>/selectedMainCategory/TermsDisableIntUser}"
                             change="handler.onTermsDisableSwitchChange" 
+                            type="AcceptReject"
                             enabled="{ui>/isEditable}"/>
                     </HBox>
                 </smartForm:GroupElement>
@@ -110,6 +112,7 @@
                             id="MainCategoryNotesExtUserSwitch"
                             state="{jsonModel>/selectedMainCategory/NotesDisableExtUser}"
                             change="handler.onNotesDisableSwitchChange" 
+                            type="AcceptReject"
                             enabled="{ui>/isEditable}"/>
 
                         <Text
@@ -121,6 +124,7 @@
                             id="MainCategoryNotesIntUserSwitch"
                             state="{jsonModel>/selectedMainCategory/NotesDisableIntUser}"
                             change="handler.onNotesDisableSwitchChange" 
+                            type="AcceptReject"
                             enabled="{ui>/isEditable}"/>
                     </HBox>
                 </smartForm:GroupElement>

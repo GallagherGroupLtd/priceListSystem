@@ -166,7 +166,7 @@
                         "placement": "Before",
                         "anchor": "ProductPricelistFacet"
                       },
-                      "title": "Gallagher Products"
+                      "title": "Gallagher Products 1.13"
                     },
                     "ProductPricelistFacet": {
                       "subSections": {
@@ -176,7 +176,7 @@
                             "placement": "After",
                             "anchor": "ProductsTree"
                           },
-                          "title": "Main Category Details 1"
+                          "title": "Main Category Details 18"
                         },
                         "PricelistSubCategory1": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
@@ -184,7 +184,7 @@
                             "placement": "After",
                             "anchor": "PricelistMainCategory"
                           },
-                          "title": "Sub Category 1 Details v1.4"
+                          "title": "Sub Category 1 Details v1.8"
                         },
                         "PricelistSubCategory2": {
                           "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
