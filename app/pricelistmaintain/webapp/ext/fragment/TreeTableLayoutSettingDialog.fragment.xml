@@ -1,0 +1,62 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m">
+    <Dialog id="TreeTableLayoutSettingDialog" title="Manage Layouts" contentWidth="28%" verticalScrolling="true">
+        <content>
+            <VBox id="TreeTableLayoutSettingDialogBox" class="sapUiSmallMargin">
+
+                <Label id="LayoutNameLabel" text="Layout Name" design="Bold" labelFor="LayoutNameInput" class="sapUiTinyMarginBottom"/>
+                <Input id="LayoutNameInput" placeholder="Layout name" value="{jsonModel>/columnSettings/layoutNameInput}" width="100%" class="sapUiSmallMarginBottom"/>
+
+                <Label id="SavedLayoutsLabel" text="Saved Layouts" design="Bold" class="sapUiTinyMarginBottom"/>
+
+                <Table
+                    id="LayoutSettingsTable"
+                    mode="SingleSelectMaster"
+                    items="{jsonModel>/columnSettings/availableLayouts}"
+                    selectionChange="onSelectSavedLayout"
+                    noDataText="No layout">
+                    <columns>
+                        <Column id="LayoutNameColumn">
+                            <Text id="LayoutNameColumnHeader" text="Layout Name"/>
+                        </Column>
+                        <Column id="LayoutTypeColumn" hAlign="End">
+                            <Text id="LayoutTypeColumnHeader" text="Created By"/>
+                        </Column>
+                    </columns>
+                    <items>
+                        <ColumnListItem id="LayoutSettingsTableItem"
+                            selected="{= ${jsonModel>ID} === ${jsonModel>/columnSettings/selectedLayoutId} }"
+                            type="Active">
+                            <cells>
+                                <HBox id="LayoutNameCellBox" alignItems="Center">
+                                    <core:Icon id="LayoutTypeIcon" src="{= ${jsonModel>defaultLayout} ? 'sap-icon://favorite' : 'sap-icon://list' }" class="sapUiTinyMarginEnd"/>
+                                    <Text id="LayoutNameCellText" text="{jsonModel>layoutName}"/>
+                                </HBox>
+                                <Text id="LayoutTypeCellText" text="{= ${jsonModel>isOwn} ? (${jsonModel>defaultLayout} ? 'Your default' : 'Yours') : 'Shared default' }"/>
+                            </cells>
+                        </ColumnListItem>
+                    </items>
+                </Table>
+
+                <HBox id="DeleteLayoutButtonBox" justifyContent="End" class="sapUiTinyMarginTop sapUiSmallMarginBottom">
+                    <Button id="DeleteLayoutButton"
+                        text="Delete Selected"
+                        icon="sap-icon://delete"
+                        type="Transparent"
+                        enabled="{jsonModel>/columnSettings/canDeleteSelected}"
+                        press="onDeleteSavedLayout"/>
+                </HBox>
+
+                <CheckBox id="SetAsDefaultCheckBox" text="Set as my default" selected="{jsonModel>/columnSettings/setAsDefault}"/>
+                <CheckBox id="SetAsMasterDefaultCheckBox" text="Set as master default (for everyone)" selected="{jsonModel>/columnSettings/setAsMasterDefault}" class="sapUiTinyMarginTop"/>
+
+            </VBox>
+        </content>
+
+        <beginButton>
+            <Button id="SaveLayoutButton" text="Save and Apply Layout" type="Emphasized" press="onSaveColumnLayout"/>
+        </beginButton>
+        <endButton>
+            <Button id="CloseLayoutSettingsButton" text="Close" press="onCloseLayoutSettingsDialog"/>
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

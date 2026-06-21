@@ -153,8 +153,8 @@ sap.ui.define([
 				this._syncProductTreeToolbarState();
 				this._updateModeToggleEnabled();
 
-				// this._initialLoadProductPriceList();
 				this._loadProductPriceListOnEnter();
+				this._applyDefaultLayoutOnPageLoad();
 			},
 
 			editFlow: {
@@ -1946,7 +1946,17 @@ sap.ui.define([
 
 				// Filter state
 				productFilterCount: 0,
-				productFilter: this._getEmptyProductFilter()
+				productFilter: this._getEmptyProductFilter(),
+
+				columnSettings: {
+					availableLayouts: [],
+					columns: [],
+					layoutNameInput: "",
+					setAsDefault: false,
+					setAsMasterDefault: false,
+					canDeleteSelected: false
+				}
+
 			};
 		},
 
@@ -2358,7 +2368,354 @@ sap.ui.define([
 		onCustomerSelectionDialogAfterClose: function () {
 			// keep the dialog cached for reuse; clear the input for next open
 			Fragment.byId(this.getView().getId(), "customerNoInput").setValue("");
+		},
+
+		//Change Column Display for Tree Table
+		_buildColumnSnapshot: function (oTable) {
+			return oTable.getColumns().map((oColumn) => {
+				const sFullId = oColumn.getId();
+				const sLocalId = sFullId.startsWith(ID_TREE_PREFIX) ? sFullId.slice(ID_TREE_PREFIX.length) : sFullId;
+				const vLabel = oColumn.getLabel && oColumn.getLabel();
+				const sTitle = typeof vLabel === "string" ? vLabel : (vLabel?.getText?.() || sLocalId);
+
+				return { id: sLocalId, title: sTitle, visible: oColumn.getVisible(), width: oColumn.getWidth() || "" };
+			});
+		},
+
+		_onOpenColumnSettings: function () {
+			const oTable = this._productTreeTable || this._getTreeControl("ProductPriceListTreeTable");
+			if (!oTable) return MessageToast.show("Table not found.");
+
+			this._getJsonModel().setProperty("/columnSettings/columns", this._buildColumnSnapshot(oTable));
+			this._openColumnSettingsDialog();
+		},
+
+		onApplyColumnSettings: function () {
+			this._applyColumnSettingsToTable();
+			this.onCloseColumnSettingsDialog();
+			MessageToast.show("Columns updated.");
+		},
+
+		onSelectAllColumns: function () { this._setAllColumnsVisible(true); },
+		onDeselectAllColumns: function () { this._setAllColumnsVisible(false); },
+
+		_setAllColumnsVisible: function (bVisible) {
+			const oJsonModel = this._getJsonModel();
+			const aColumns = (oJsonModel.getProperty("/columnSettings/columns") || []).map((c) => ({ ...c, visible: bVisible }));
+			oJsonModel.setProperty("/columnSettings/columns", aColumns);
+		},
+
+		_openColumnSettingsDialog: function () {
+			const oView = this.base.getView();
+			const oJsonModel = oView.getModel("jsonModel");
+
+			if (this._oColumnSettingsDialog) {
+				this._oColumnSettingsDialog.setModel(oJsonModel, "jsonModel");
+				this._oColumnSettingsDialog.open();
+				return;
+			}
+
+			if (!this._pColumnSettingsDialog) {
+				this._pColumnSettingsDialog = Fragment.load({
+					id: oView.getId(),
+					name: "pricelistapp.pricelistmaintain.ext.fragment.TreeTableColumnSettingDialog",
+					controller: this
+				}).then((oDialog) => {
+					const oRealDialog = Array.isArray(oDialog) ? oDialog[0] : oDialog;
+					this._oColumnSettingsDialog = oRealDialog;
+					oView.addDependent(oRealDialog);
+					return oRealDialog;
+				});
+			}
+
+			this._pColumnSettingsDialog.then((oDialog) => {
+				oDialog.setModel(oJsonModel, "jsonModel");
+				oDialog.open();
+			});
+		},
+
+		onOpenLayoutSettings: function () {
+			const oTable = this._productTreeTable || this._getTreeControl("ProductPriceListTreeTable");
+			if (!oTable) return MessageToast.show("Table not found.");
+
+			const oJsonModel = this._getJsonModel();
+			oJsonModel.setProperty("/columnSettings/columns", this._buildColumnSnapshot(oTable));
+
+			if (!this._sSelectedLayoutId) {
+				oJsonModel.setProperty("/columnSettings/layoutNameInput", "");
+				oJsonModel.setProperty("/columnSettings/setAsDefault", false);
+				oJsonModel.setProperty("/columnSettings/setAsMasterDefault", false);
+				oJsonModel.setProperty("/columnSettings/canDeleteSelected", false);
+				oJsonModel.setProperty("/columnSettings/selectedLayoutId", null);
+			}
+
+			this._loadAvailableLayouts()
+				.then(() => this._preselectDefaultLayoutOnFirstOpen())
+				.catch((err) => console.error("Failed to load layouts", err))
+				.then(() => this._openLayoutSettingsDialog());
+		},
+
+		onCloseLayoutSettingsDialog: function () {
+			this._oLayoutSettingsDialog?.close();
+		},
+
+		_openLayoutSettingsDialog: function () {
+			const oView = this.base.getView();
+			const oJsonModel = oView.getModel("jsonModel");
+
+			if (this._oLayoutSettingsDialog) {
+				this._oLayoutSettingsDialog.setModel(oJsonModel, "jsonModel");
+				this._oLayoutSettingsDialog.open();
+				return;
+			}
+
+			if (!this._pLayoutSettingsDialog) {
+				this._pLayoutSettingsDialog = Fragment.load({
+					id: oView.getId(),
+					name: "pricelistapp.pricelistmaintain.ext.fragment.TreeTableLayoutSettingDialog",
+					controller: this
+				}).then((oDialog) => {
+					const oRealDialog = Array.isArray(oDialog) ? oDialog[0] : oDialog;
+					this._oLayoutSettingsDialog = oRealDialog;
+					oView.addDependent(oRealDialog);
+					return oRealDialog;
+				});
+			}
+
+			this._pLayoutSettingsDialog.then((oDialog) => {
+				oDialog.setModel(oJsonModel, "jsonModel");
+				oDialog.open();
+			});
+		},
+
+		// picks default layout only if user hasn't manually picked anything yet this session
+		_preselectDefaultLayoutOnFirstOpen: function () {
+			if (this._sSelectedLayoutId) return;
+
+			const aLayouts = this._getJsonModel().getProperty("/columnSettings/availableLayouts") || [];
+			const oDefault = aLayouts.find((l) => l.isOwn && l.defaultLayout) || aLayouts.find((l) => l.masterDefault);
+
+			if (oDefault) this._applySavedLayout(oDefault);
+		},
+
+		_applyDefaultLayoutOnPageLoad: function () {
+			if (this._bDefaultLayoutApplied || this._sSelectedLayoutId) return;
+			this._bDefaultLayoutApplied = true;
+
+			const oTable = this._productTreeTable || this._getTreeControl("ProductPriceListTreeTable");
+			if (!oTable) return;
+
+			const oJsonModel = this._getJsonModel();
+			if (!oJsonModel) return;
+
+			oJsonModel.setProperty("/columnSettings/columns", this._buildColumnSnapshot(oTable));
+
+			this._loadAvailableLayouts()
+				.then(() => {
+					const aLayouts = oJsonModel.getProperty("/columnSettings/availableLayouts") || [];
+					const oDefault = aLayouts.find((l) => l.isOwn && l.defaultLayout)
+						|| aLayouts.find((l) => l.masterDefault);
+
+					if (!oDefault) return;
+
+					this._applySavedLayout(oDefault);
+				})
+				.catch((oErr) => console.error("Failed to apply default layout", oErr));
+		},
+
+
+		// shared by manual selection in the list + auto-preselect on first open
+		_applySavedLayout: function (oLayout) {
+			const oJsonModel = this._getJsonModel();
+
+			oJsonModel.setProperty("/columnSettings/canDeleteSelected", !!oLayout.isOwn);
+			oJsonModel.setProperty("/columnSettings/selectedLayoutId", oLayout.ID);
+			oJsonModel.setProperty("/columnSettings/setAsDefault", !!oLayout.defaultLayout);
+			oJsonModel.setProperty("/columnSettings/setAsMasterDefault", !!oLayout.masterDefault);
+			this._sSelectedLayoutId = oLayout.ID;
+
+			let aParsedColumns = [];
+			try {
+				aParsedColumns = JSON.parse(oLayout.config || "[]");
+			} catch (e) {
+				return MessageToast.show("Error on loading layout.");
+			}
+
+			const aCurrentColumns = oJsonModel.getProperty("/columnSettings/columns") || [];
+			const oCurrentById = new Map(aCurrentColumns.map((c) => [c.id, c]));
+			const aMerged = [];
+
+			aParsedColumns.forEach((oSaved) => {
+				const oCurrent = oCurrentById.get(oSaved.id);
+				if (!oCurrent) return;
+
+				aMerged.push({ id: oSaved.id, title: oCurrent.title, visible: !!oSaved.visible, width: oSaved.width || oCurrent.width });
+				oCurrentById.delete(oSaved.id);
+			});
+
+			oCurrentById.forEach((oCurrent) => aMerged.push(oCurrent));
+
+			oJsonModel.setProperty("/columnSettings/columns", aMerged);
+			oJsonModel.setProperty("/columnSettings/layoutNameInput", oLayout.layoutName);
+			oJsonModel.setProperty("/columnSettings/setAsDefault", !!oLayout.defaultLayout);
+
+			this._applyColumnSettingsToTable();
+		},
+
+		onSelectSavedLayout: function (oEvent) {
+			const oSelectedItem = oEvent.getParameter("listItem") || oEvent.getSource().getSelectedItem();
+			const oLayout = oSelectedItem?.getBindingContext("jsonModel")?.getObject();
+			if (!oLayout) return;
+
+			this._applySavedLayout(oLayout);
+			MessageToast.show(`Layout '${oLayout.layoutName}' applied.`);
+		},
+
+		onCloseColumnSettingsDialog: function () {
+			if (this._oColumnSettingsDialog) {
+				this._oColumnSettingsDialog.close();
+			}
+		},
+
+		// Apply working column list (visible/width/order) onto the real TreeTable
+		_applyColumnSettingsToTable: function () {
+			const oJsonModel = this._getJsonModel();
+			const aWorkingColumns = oJsonModel.getProperty("/columnSettings/columns") || [];
+			const oTable = this._productTreeTable || this._getTreeControl("ProductPriceListTreeTable");
+
+			if (!oTable) return;
+
+			aWorkingColumns.forEach((oColInfo, iTargetIndex) => {
+				const oColumn = this._getTreeControl(oColInfo.id);
+				if (!oColumn) return;
+
+				oColumn.setVisible(!!oColInfo.visible);
+				if (oColInfo.width) oColumn.setWidth(oColInfo.width);
+
+				const iCurrentIndex = oTable.indexOfColumn(oColumn);
+				if (iCurrentIndex !== iTargetIndex) {
+					oTable.removeColumn(oColumn);
+					oTable.insertColumn(oColumn, iTargetIndex);
+				}
+			});
+		},
+
+		_getCurrentUserId: function () {
+			if (this._sCachedUserId) {
+				return Promise.resolve(this._sCachedUserId);
+			}
+
+			const oModel = this.base.getView().getModel();
+
+			// return oModel.bindList("/User").requestContexts(0, 1)
+			// 	.then((aCtx) => {
+			// 		const oUser = aCtx && aCtx[0] && aCtx[0].getObject();
+			// 		this._sCachedUserId = (oUser && oUser.email) || "";
+			// 		return this._sCachedUserId;
+			// 	})
+			// 	.catch(() => "");
+
+			if (sap.ushell && sap.ushell.Container) {
+				var oUser = sap.ushell.Container.getUser();
+				var sEmail = oUser.getEmail();
+				return this._sCachedUserId = sEmail || "";
+			}
+
+		},
+
+		_loadAvailableLayouts: function () {
+			const oView = this.base.getView();
+			const oModel = oView.getModel();
+			const oJsonModel = oView.getModel("jsonModel");
+
+			const oAction = oModel.bindContext("/getAvailableLayouts(...)");
+			oAction.setParameter("tableId", "ProductPriceListTreeTable");
+
+			return Promise.all([oAction.execute(), this._getCurrentUserId()]).then(([, sUserId]) => {
+				const oResult = oAction.getBoundContext().getObject();
+				const aLayouts = (oResult && (oResult.value || oResult)) || [];
+
+				oJsonModel.setProperty("/columnSettings/availableLayouts", aLayouts);
+			});
+		},
+
+		onDeleteSavedLayout: function () {
+			if (!this._sSelectedLayoutId) {
+				MessageToast.show("Please select a layout to delete.");
+				return;
+			}
+
+			const sLayoutId = this._sSelectedLayoutId;
+
+			MessageBox.confirm("Delete this saved layout? This cannot be undone.", {
+				title: "Confirm Delete",
+				onClose: (sAction) => {
+					if (sAction !== MessageBox.Action.OK) return;
+
+					const oModel = this.base.getView().getModel();
+					const oAction = oModel.bindContext("/deleteTreeLayout(...)");
+					oAction.setParameter("ID", sLayoutId);
+
+					oAction.execute()
+						.then(() => {
+							MessageToast.show("Layout deleted.");
+							this._sSelectedLayoutId = null;
+							return this._loadAvailableLayouts();
+						})
+						.catch((oErr) => {
+							console.error(oErr);
+							MessageBox.error("Cannot delete this layout.");
+						});
+				}
+			});
+		},
+
+		onSaveColumnLayout: function () {
+			const oView = this.base.getView();
+			const oJsonModel = oView.getModel("jsonModel");
+
+			const sLayoutName = (oJsonModel.getProperty("/columnSettings/layoutNameInput") || "").trim();
+			const bSetAsDefault = !!oJsonModel.getProperty("/columnSettings/setAsDefault");
+			const bSetAsMasterDefault = !!oJsonModel.getProperty("/columnSettings/setAsMasterDefault");
+			const aColumns = oJsonModel.getProperty("/columnSettings/columns") || [];
+
+			if (!sLayoutName) return MessageToast.show("Please enter a layout name.");
+
+			const sConfigJson = JSON.stringify(aColumns.map((c) => ({ id: c.id, visible: !!c.visible, width: c.width || "" })));
+
+			const aAvailable = oJsonModel.getProperty("/columnSettings/availableLayouts") || [];
+			const oExistingOwn = aAvailable.find((l) => l.isOwn && l.layoutName === sLayoutName);
+
+			const oAction = oView.getModel().bindContext("/saveTreeLayout(...)");
+			oAction.setParameter("ID", oExistingOwn ? oExistingOwn.ID : null);
+			oAction.setParameter("tableId", "ProductPriceListTreeTable");
+			oAction.setParameter("layoutName", sLayoutName);
+			oAction.setParameter("defaultLayout", bSetAsDefault);
+			oAction.setParameter("masterDefault", bSetAsMasterDefault);
+			oAction.setParameter("config", sConfigJson);
+
+			oAction.execute()
+				.then(() => {
+					// MessageToast.show(`Layout '${sLayoutName}' saved.`); 
+					// this.onCloseLayoutSettingsDialog();					
+					// return this._loadAvailableLayouts(); 
+
+					const oSavedLayout = oAction.getBoundContext().getObject();
+					this._applyColumnSettingsToTable();
+					this._sSelectedLayoutId = oSavedLayout?.ID || null;
+
+					oJsonModel.setProperty("/columnSettings/selectedLayoutId", this._sSelectedLayoutId);
+
+					MessageToast.show(`Layout '${sLayoutName}' saved and applied.`);
+
+					this._loadAvailableLayouts().catch((err) => console.error("Failed to refresh layouts", err));
+					this.onCloseLayoutSettingsDialog();
+				})
+				.catch((err) => {
+					console.error(err); MessageBox.error("Cannot save layout.");
+				});
 		}
+
 
 	});
 });

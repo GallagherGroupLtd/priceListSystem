@@ -358,6 +358,14 @@ sap.ui.define([
             oJsonModel.setProperty("/productPriceList", [...aTree]);
         },
 
+        onOpenColumnSettings: function (oEvent) {
+            ExtController.getInstance()._onOpenColumnSettings(oEvent);
+        },
+
+        onOpenLayoutSettings: function (oEvent) {
+            ExtController.getInstance().onOpenLayoutSettings(oEvent);
+        },
+
         onRowClick: function (oEvent) {
             // Reserved for future row-click behaviour (e.g. quick preview). Not wired
             // to any control yet.

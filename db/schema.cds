@@ -374,10 +374,13 @@ entity ProductPriceList : managed, cuid {
                                     on children.parent = $self;
 }
 
-entity ProductPriceListTreeLayout : managed {
-    key userId  : String(255);
-    key tableId : String(50);
-        config  : LargeString; 
+entity PriceListTreeLayout : managed, cuid {
+    tableId       : String(50)  @title: 'Table ID';
+    userId        : String(255) @title: 'User ID';
+    defaultLayout : Boolean     @title: 'Default Layout';
+    masterDefault : Boolean     @title: 'Master Layout';
+    layoutName    : String(100) @title: 'Layout Name';
+    config        : LargeString @title: 'Configuration';
 }
 
 /* -------------------------------------- Value Help -------------------------------------- */

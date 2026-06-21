@@ -190,11 +190,19 @@
                     type="Emphasized"
                     press="handler.onRefresh" /> -->
 
+                <ToolbarSeparator id="ProductListToolbarSep_4"/>
+
                 <Button 
                     id="ProductTreeColumnSettingsBtn"
                     icon="sap-icon://action-settings"
                     tooltip="Show/Hide Columns"
                     press="handler.onOpenColumnSettings" />
+
+                <Button 
+                    id="ProductTreeLayoutSettingsBtn"
+                    icon="sap-icon://table-column"
+                    tooltip="Manage Layouts"
+                    press="handler.onOpenLayoutSettings" />
 
         </OverflowToolbar>
 
