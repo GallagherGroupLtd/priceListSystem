@@ -6,8 +6,8 @@
     <VBox id="VBox4" width="100%" core:require="{ handler: 'pricelistapp/pricelistmaintain/ext/controller/TermsAndConditionsV2'}">
 
         <HBox id="TACHBox" alignItems="Start" width="100%" class="sapUiSmallMarginBottom">
-            <HBox id="TACLabelHBox" justifyContent="End">
-                <layoutData><FlexItemData id="TACLabelLayoutData" growFactor="1" maxWidth="9%" /></layoutData>
+            <HBox id="TACLabelHBox" justifyContent="End" width="9rem">
+                <layoutData><FlexItemData id="TACLabelLayoutData" growFactor="0" shrinkFactor="0" /></layoutData>
                 <Label id="TACLabel" text="Terms and Conditions:" class="sapUiSmallMarginEnd sapUiSmallMarginTop" />
             </HBox>
             <TextArea 
@@ -17,23 +17,23 @@
                 rows="6"
                 width="75%"
                 editable="{ui>/isEditable}">
-                <layoutData><FlexItemData id="TACContextTextLayoutData" growFactor="1" maxWidth="100%" /></layoutData>
+                <layoutData><FlexItemData id="TACContextTextLayoutData" growFactor="1" maxWidth="100%" shrinkFactor="1" minWidth="0" /></layoutData>
             </TextArea>
         </HBox>
 
         <HBox id="TACDisableHBox" alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
-            <HBox id="TACDisableLabelHBox" justifyContent="End">
-                <layoutData><FlexItemData id="TACDisableLabelLayoutData" growFactor="1" maxWidth="9%" /></layoutData>
+            <HBox id="TACDisableLabelHBox" justifyContent="End" width="9rem">
+                <layoutData><FlexItemData id="TACDisableLabelLayoutData" growFactor="0" shrinkFactor="0" /></layoutData>
                 <Label id="TACDisableLabel" text="Disable:" class="sapUiSmallMarginEnd" />
             </HBox>
-            <HBox id="TACDisableHBoxContent" alignItems="Center">
-                <layoutData><FlexItemData id="TACDisableHBoxContentLayoutData" growFactor="1" maxWidth="100%" /></layoutData>
-                <Text id="TermsAndCondDisableExtUserText" text="External User" class="sapUiTinyMarginEnd" />
-                <Switch id="TermsAndCondDisableExtUserSwitch" state="false" change=".onTACDisableSwitchChange" enabled="{ui>/isEditable}"/>
-                <Text id="TermsAndCondDisableIntUserText" text="Internal User" class="sapUiLargeMarginBegin sapUiTinyMarginEnd" />
-                <Switch id="TermsAndCondDisableIntUserSwitch" state="false" change=".onTACDisableSwitchChange" enabled="{ui>/isEditable}"/>
-            </HBox>
-        </HBox>
+            <HBox id="TACDisableHBoxContent" alignItems="Center" width="100%">
+                <layoutData><FlexItemData id="TACDisableHBoxContentLayoutData" growFactor="1" maxWidth="100%" shrinkFactor="1" minWidth="0" /></layoutData>
+        <Text id="TermsAndCondDisableExtUserText" text="External User" class="sapUiTinyMarginEnd" />
+        <Switch id="TermsAndCondDisableExtUserSwitch" state="false" change=".onTACDisableSwitchChange" enabled="{ui>/isEditable}"/>
+        <Text id="TermsAndCondDisableIntUserText" text="Internal User" class="sapUiLargeMarginBegin sapUiTinyMarginEnd" />
+        <Switch id="TermsAndCondDisableIntUserSwitch" state="false" change=".onTACDisableSwitchChange" enabled="{ui>/isEditable}"/>
+    </HBox>
+</HBox>
 
     </VBox>
 </core:FragmentDefinition>

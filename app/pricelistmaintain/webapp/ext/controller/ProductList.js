@@ -270,7 +270,17 @@ sap.ui.define([
         },
 
         onResetPrice: function (oEvent) {
-            ExtController.getInstance().onResetPrice();
+            MessageBox.confirm("Table will be completely reset. Proceed?", {
+                title: "Confirm Reset Pricelist",
+                actions: [MessageBox.Action.YES, MessageBox.Action.NO],
+                emphasizedAction: MessageBox.Action.YES,
+                onClose: function (oAction) {
+                    if (oAction === MessageBox.Action.YES) {
+                        // delegate reset to extension controller which restores original snapshot if available
+                        ExtController.getInstance().onResetPrice();
+                    }
+                }
+            });
         },
 
         onDelete: function (oEvent) {
