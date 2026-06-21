@@ -2,7 +2,7 @@ const XLSX = require("xlsx");
 const PDFDocument = require("pdfkit");
 const { log } = require("@sap/cds");
 
-const { SELECT, INSERT } = cds.ql;
+const { SELECT, INSERT, UPDATE, DELETE } = cds.ql;
 
 const saveProductPriceList = require('./code/save-product-price-list');
 
@@ -334,7 +334,7 @@ const publishVersion = (current) => {
 module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
     const { User, TradeScenarios, ItemStructure, PriceProductMaintenance, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, PricingCondType,
-        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest } = this.entities;
+        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest, PriceListTreeLayout } = this.entities;
 
     //Selection of Materials
     async function resolveItems(filters, db, extdb) {
@@ -1767,7 +1767,7 @@ module.exports = cds.service.impl(async function () {
             'A020': (rec, mat, cust) => rec.DIVISION === mat.DIVISION && rec.CUSTOMER_PRICE_GROUP === cust.PRICE_GROUP,
             'A932': (rec, mat, cust) => rec.DIVISION === mat.DIVISION && rec.MATERIAL_CLASS === mat.MATERIAL_GROUP_2 && rec.SOLD_TO === CustomerNumber,
             'A030': (rec, mat, cust) => rec.SOLDTO === CustomerNumber && rec.MATERIAL_PRICE_GROUP === mat.MATERIAL_PRICE_GROUP,
-            'A031': (rec, mat, cust) =>  rec.CUSTOMER_PRICE_GROUP === cust.PRICE_GROUP && rec.MATERIAL_PRICE_GROUP === mat.MATERIAL_PRICING_GROUP,
+            'A031': (rec, mat, cust) => rec.CUSTOMER_PRICE_GROUP === cust.PRICE_GROUP && rec.MATERIAL_PRICE_GROUP === mat.MATERIAL_PRICING_GROUP,
             'A917': (rec, mat, cust) => rec.CUSTOMER_GROUP_1 === cust.CUSTOMER_GROUP_1 && rec.PRICELIST === CustPriceList,
             // 'A916': (rec, mat, cust) => rec.PRICELIST_TYPE === cust.PRICE_LIST_TYPE,
             'A916': (rec, mat, cust) => rec.PRICELIST_TYPE === CustPriceList,
@@ -2240,6 +2240,89 @@ module.exports = cds.service.impl(async function () {
         res.status(200).end(pdfBuffer);
 
         return;
+    });
+
+    // Tree Table Column Layout (Save/Load/Delete)
+    this.on('getAvailableLayouts', async (req) => {
+        const { tableId } = req.data;
+        if (!tableId) return req.error(400, "Table Id is required");
+
+        const db = cds.transaction(req);
+        const sUserId = req.user?.id || req.user?.email || '';
+
+        const [aOwn, aMasterDefaults] = await Promise.all([
+            db.run(SELECT.from(PriceListTreeLayout).where({ tableId: tableId, userId: sUserId })),
+            db.run(SELECT.from(PriceListTreeLayout).where({ tableId: tableId, masterDefault: true }))
+        ]);
+
+        const oMerged = new Map();
+        aOwn.forEach(r => oMerged.set(r.ID, r));
+        aMasterDefaults.forEach(r => { if (!oMerged.has(r.ID)) oMerged.set(r.ID, r); });
+
+        return Array.from(oMerged.values())
+            .map(r => ({ ...r, isOwn: r.userId === sUserId }))
+            .sort((a, b) => String(a.layoutName || '').localeCompare(String(b.layoutName || '')));
+    });
+
+    this.on('saveTreeLayout', async (req) => {
+        const { ID, tableId, layoutName, defaultLayout, masterDefault, config } = req.data;
+
+        if (!tableId || !layoutName) return req.error(400, "Table Id and layout Name are required");
+
+        const db = cds.transaction(req);
+        const sUserId = req.user?.id || req.user?.email || '';
+
+        // only one personal default per user, only one master default per table
+        if (defaultLayout) {
+            await db.run(UPDATE(PriceListTreeLayout).set({ defaultLayout: false }).where({ tableId, userId: sUserId }));
+        }
+        if (masterDefault) {
+            await db.run(UPDATE(PriceListTreeLayout).set({ masterDefault: false }).where({ tableId }));
+        }
+
+        if (ID) {
+            const oExisting = await db.run(SELECT.one.from(PriceListTreeLayout).where({ ID }));
+            if (!oExisting) return req.error(404, "Layout not found");
+            if (oExisting.userId !== sUserId) return req.error(403, "You can only update your own layouts");
+
+            await db.run(
+                UPDATE(PriceListTreeLayout)
+                    .set({ layoutName, defaultLayout: !!defaultLayout, masterDefault: !!masterDefault, config })
+                    .where({ ID })
+            );
+            return await db.run(SELECT.one.from(PriceListTreeLayout).where({ ID }));
+        }
+
+        const sNewId = cds.utils.uuid();
+        await db.run(
+            INSERT.into(PriceListTreeLayout).entries({
+                ID: sNewId, userId: sUserId, tableId, layoutName,
+                defaultLayout: !!defaultLayout, masterDefault: !!masterDefault, config
+            })
+        );
+        return await db.run(SELECT.one.from(PriceListTreeLayout).where({ ID: sNewId }));
+    });
+
+    this.on('deleteTreeLayout', async (req) => {
+
+        const { ID, tableId, layoutName, defaultLayout, masterDefault, config } = req.data;
+ 
+        const db = cds.transaction(req);
+        const sUserId = req.user?.id || req.user?.email || '';
+
+        const oExisting = await db.run(SELECT.one.from(PriceListTreeLayout).where({ ID }));
+
+        if (!oExisting) {
+            return req.error(404, "Layout not found");
+        }
+
+        if (oExisting.userId !== sUserId) {
+            return req.error(403, "You can only delete your own layouts");
+        }
+
+        await db.run(DELETE.from(PriceListTreeLayout).where({ ID }));
+
+        return true;
     });
 
     // My request
