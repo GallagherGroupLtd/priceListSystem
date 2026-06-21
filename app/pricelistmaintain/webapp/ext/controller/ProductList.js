@@ -266,6 +266,7 @@ sap.ui.define([
         },
 
         onRefreshPrice: function () {
+            MessageToast.show("Refreshing Price.");
             ExtController.getInstance().onRefreshPrice();
         },
 

@@ -268,10 +268,10 @@ sap.ui.define([
 			}
 
 			let sCustomerNumber = "";
-			sCustomerNumber = await this._openCustomerSelectionDialog();
-			if (sCustomerNumber === null) {
-				return;
-			}
+			// sCustomerNumber = await this._openCustomerSelectionDialog();
+			// if (sCustomerNumber === null) {
+			// 	return;
+			// }
 
 			this._clearProductTreeBufferAndSelection();
 
