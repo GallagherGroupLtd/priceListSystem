@@ -24,7 +24,8 @@
                     label="Main Category Name">
                     <Input
                         id="MainCategoryInput"
-                        value="{jsonModel>/selectedMainCategory/Title}" />
+                        value="{jsonModel>/selectedMainCategory/Title}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement
@@ -32,7 +33,8 @@
                     label="Published Main Category Name">
                     <Input
                         id="PublishedMainCategoryInput"
-                        value="{jsonModel>/selectedMainCategory/PublishedCategoryName}" />
+                        value="{jsonModel>/selectedMainCategory/PublishedCategoryName}" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
             </smartForm:Group>
         </smartForm:SmartForm>
@@ -47,7 +49,8 @@
                         value="{jsonModel>/selectedMainCategory/Description}"
                         maxLength="1000"
                         rows="10"
-                        width="100%" />
+                        width="100%" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement
@@ -63,7 +66,9 @@
                         <Switch
                             id="MainCategoryTermsExtUserSwitch"
                             state="{jsonModel>/selectedMainCategory/TermsDisableExtUser}"
-                            change="handler.onTermsDisableSwitchChange" />
+                            change="handler.onTermsDisableSwitchChange" 
+                            type="AcceptReject"
+                            enabled="{ui>/isEditable}"/>
 
                         <Text
                             id="MainCategoryTermsIntUserText"
@@ -73,7 +78,9 @@
                         <Switch
                             id="MainCategoryTermsIntUserSwitch"
                             state="{jsonModel>/selectedMainCategory/TermsDisableIntUser}"
-                            change="handler.onTermsDisableSwitchChange" />
+                            change="handler.onTermsDisableSwitchChange" 
+                            type="AcceptReject"
+                            enabled="{ui>/isEditable}"/>
                     </HBox>
                 </smartForm:GroupElement>
             </smartForm:Group>
@@ -87,7 +94,8 @@
                         value="{jsonModel>/selectedMainCategory/Notes}"
                         maxLength="5000"
                         rows="10"
-                        width="100%" />
+                        width="100%" 
+                        editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement
@@ -103,7 +111,9 @@
                         <Switch
                             id="MainCategoryNotesExtUserSwitch"
                             state="{jsonModel>/selectedMainCategory/NotesDisableExtUser}"
-                            change="handler.onNotesDisableSwitchChange" />
+                            change="handler.onNotesDisableSwitchChange" 
+                            type="AcceptReject"
+                            enabled="{ui>/isEditable}"/>
 
                         <Text
                             id="MainCategoryNotesIntUserText"
@@ -113,7 +123,9 @@
                         <Switch
                             id="MainCategoryNotesIntUserSwitch"
                             state="{jsonModel>/selectedMainCategory/NotesDisableIntUser}"
-                            change="handler.onNotesDisableSwitchChange" />
+                            change="handler.onNotesDisableSwitchChange" 
+                            type="AcceptReject"
+                            enabled="{ui>/isEditable}"/>
                     </HBox>
                 </smartForm:GroupElement>
             </smartForm:Group>

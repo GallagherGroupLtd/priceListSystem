@@ -530,6 +530,12 @@ service PriceListService {
 
     action getProductTreeData(headerData: LargeString) returns array of ProductPricelistTree;
 
+    action saveProductPriceList(
+        headerData: LargeString,
+        originalHeaderData: LargeString,
+        treeData: LargeString
+    ) returns String;
+
     // entity ProductPricelistTree    as
     //     select from my.PricelistItemStructureComponents {
     //         key PricelistType,

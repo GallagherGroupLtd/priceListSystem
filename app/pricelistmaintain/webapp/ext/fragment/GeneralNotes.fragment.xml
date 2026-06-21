@@ -6,8 +6,8 @@
     <VBox id="VBox" width="100%" core:require="{handler: 'pricelistapp/pricelistmaintain/ext/controller/GeneralNotes'}">
 
         <HBox id="NotesHBox" alignItems="Start" width="100%" class="sapUiSmallMarginBottom">
-            <HBox id="NotesLabelHBox" justifyContent="End">
-                <layoutData><FlexItemData id="NotesLabelLayoutData" growFactor="1" maxWidth="9%" /></layoutData>
+            <HBox id="NotesLabelHBox" justifyContent="End" width="9rem">
+                <layoutData><FlexItemData id="NotesLabelLayoutData" growFactor="0" shrinkFactor="0" /></layoutData>
                 <Label id="NotesLabel" text="Notes:" class="sapUiSmallMarginEnd sapUiSmallMarginTop" />
             </HBox>
             <TextArea 
@@ -15,22 +15,23 @@
                 value="{Notes}" 
                 maxLength="5000" 
                 rows="6"
-                width="75%">
-                <layoutData><FlexItemData id="NotesContextTextLayoutData" growFactor="1" maxWidth="100%" /></layoutData>
+                width="75%"
+                editable="{ui>/isEditable}">
+                <layoutData><FlexItemData id="NotesContextTextLayoutData" growFactor="1" maxWidth="100%" shrinkFactor="1" minWidth="0" /></layoutData>
             </TextArea>
         </HBox>
 
         <HBox id="NotesDisableHBox" alignItems="Center" width="100%" class="sapUiSmallMarginBottom">
-            <HBox id="NotesDisableLabelHBox" justifyContent="End">
-                <layoutData><FlexItemData id="NotesDisableLabelLayoutData" growFactor="1" maxWidth="9%" /></layoutData>
+            <HBox id="NotesDisableLabelHBox" justifyContent="End" width="9rem">
+                <layoutData><FlexItemData id="NotesDisableLabelLayoutData" growFactor="0" shrinkFactor="0" /></layoutData>
                 <Label id="NotesDisableLabel" text="Disable:" class="sapUiSmallMarginEnd" />
             </HBox>
-            <HBox id="NotesDisableHBoxContent" alignItems="Center">
-                <layoutData><FlexItemData id="NotesDisableHBoxContentLayoutData" growFactor="1" maxWidth="100%" /></layoutData>
+            <HBox id="NotesDisableHBoxContent" alignItems="Center" width="100%">
+                <layoutData><FlexItemData id="NotesDisableHBoxContentLayoutData" growFactor="1" maxWidth="100%" shrinkFactor="1" minWidth="0" /></layoutData>
                 <Text id="NotesDisableExtUserText" text="External User" class="sapUiTinyMarginEnd" />
-                <Switch id="NotesDisableExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
+                <Switch id="NotesDisableExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" enabled="{ui>/isEditable}"/>
                 <Text id="NotesDisableIntUserText" text="Internal User" class="sapUiLargeMarginBegin sapUiTinyMarginEnd" />
-                <Switch id="NotesDisableIntUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
+                <Switch id="NotesDisableIntUserSwitch" state="false" change=".onNotesDisableSwitchChange" enabled="{ui>/isEditable}"/>
             </HBox>
         </HBox>
 
