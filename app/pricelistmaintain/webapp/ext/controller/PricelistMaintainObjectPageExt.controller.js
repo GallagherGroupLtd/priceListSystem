@@ -90,6 +90,15 @@ sap.ui.define([
 		"Supplier", "SupplierSKU"
 	];
 
+	const CATEGORY_NODE_FIELD_CONFIG = [
+		{ level: 0, titleField: "MainCategory", descField: "MainCategoryLocal", extraFields: { TermsAndConditions: "MainCategoryTermsandCond" } },
+		{ level: 1, titleField: "SubCategory1", descField: "SubCategory1Local", extraFields: { TermsAndConditions: "SubCategory1TermsandCond" } },
+		{ level: 2, titleField: "SubCategory2", descField: "SubCategory2Local", extraFields: { TermsAndConditions: "SubCategory2TermsandCond" } },
+		{ level: 3, titleField: "SubCategory3", descField: "SubCategory3Local", extraFields: { TermsAndConditions: "SubCategory3TermsandCond" } },
+		{ level: 4, titleField: "SubCategory4", descField: "SubCategory4Local", extraFields: { TermsAndConditions: "SubCategory4TermsandCond" } },
+		{ level: 5, titleField: "SubCategory5", descField: "SubCategory5Local", extraFields: { TermsAndConditions: "SubCategory5TermsandCond" } }
+	];
+
 	/**
 	 * Descriptor for each category level (0–5).
 	 * Acts as a single source of truth that drives init / clear / bind / sync /
@@ -894,22 +903,29 @@ sap.ui.define([
 				 * Finds or creates a Category node for the given level.
 				 * Mutates `parentNode` and `currentPath` via closure.
 				 */
-				const addCategoryNode = (level, titleField, descField) => {
-					const title = row[titleField];
+				const addCategoryNode = (oLevelConfig) => {
+					const title = row[oLevelConfig.titleField];
 					if (!title) return; // skip empty levels
 
 					currentPath = (currentPath ? `${currentPath}|` : "") + title;
 
 					if (!nodeMap[currentPath]) {
+
+						const oExtraFields = Object.entries(oLevelConfig.extraFields).reduce((oAcc, [sNodeField, sSourceField]) => {
+							oAcc[sNodeField] = row[sSourceField] || null;
+							return oAcc;
+						}, {});
+
 						const newNode = {
 							...this._buildSharedNodeFields(row),
-							ID: `cat-${level}-${currentPath.replace(/\s+/g, '-')}`,
+							ID: `cat-${oLevelConfig.level}-${currentPath.replace(/\s+/g, '-')}`,
 							Sequence: row.Sequence,
 							OrderIndex: Object.keys(nodeMap).length + 1,
 							Kind: "Category",
-							CategoryLevel: level,
+							CategoryLevel: oLevelConfig.level,
 							Title: title,
-							Description: row[descField] || null,
+							Description: row[oLevelConfig.descField] || null,
+							...oExtraFields,
 
 							// Categories carry no price or discount data.
 							Price: null, PriceUnit: null,
@@ -939,12 +955,7 @@ sap.ui.define([
 				};
 
 				// Build category hierarchy; empty levels are skipped automatically.
-				addCategoryNode(0, "MainCategory", "MainCategoryLocal");
-				addCategoryNode(1, "SubCategory1", "SubCategory1Local");
-				addCategoryNode(2, "SubCategory2", "SubCategory2Local");
-				addCategoryNode(3, "SubCategory3", "SubCategory3Local");
-				addCategoryNode(4, "SubCategory4", "SubCategory4Local");
-				addCategoryNode(5, "SubCategory5", "SubCategory5Local");
+				CATEGORY_NODE_FIELD_CONFIG.forEach(addCategoryNode);
 
 				// Leaf product node (CategoryLevel 6).
 				if (row.Material) {
@@ -2772,7 +2783,7 @@ sap.ui.define([
 				if (oError) MessageBox.error("Export failed: " + (oError.message || "Unknown error."));
 			});
 		},
-		
+
 		/**
 		 * Builds the export column config from whatever columns are currently visible on the TreeTable
 		 */

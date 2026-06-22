@@ -46,7 +46,7 @@
                     label="Terms and Conditions">
                     <TextArea
                         id="MainCategoryTermsAndCondContextText"
-                        value="{jsonModel>/selectedMainCategory/Description}"
+                        value="{jsonModel>/selectedMainCategory/TermsAndConditions}"
                         maxLength="1000"
                         rows="10"
                         width="100%" 

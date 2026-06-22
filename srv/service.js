@@ -1833,6 +1833,46 @@ module.exports = cds.service.impl(async function () {
 
         if (!itemStructureDatas || itemStructureDatas.length === 0) return [];
 
+        // 1.1 Fetch Terms & Conditions per category
+        // same header context as the Item Structure         
+        const CATEGORY_PATH_FIELDS = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
+        const CATEGORY_TERMS_FIELD_MAP = [
+            { source: "MainCategoryTermsandConditions", target: "MainCategoryTermsandCond" },
+            { source: "SubCategory1TermsandConditions", target: "SubCategory1TermsandCond" },
+            { source: "SubCategory2TermsandConditions", target: "SubCategory2TermsandCond" },
+            { source: "SubCategory3TermsandConditions", target: "SubCategory3TermsandCond" },
+            { source: "SubCategory4TermsandConditions", target: "SubCategory4TermsandCond" },
+            { source: "SubCategory5TermsandConditions", target: "SubCategory5TermsandCond" },
+        ];
+
+        const getCategoryPathKey = (oRow) => CATEGORY_PATH_FIELDS.map((f) => oRow[f] || "").join("|");
+        const termsAndConditionRows = await db.run(SELECT.from(TermsAndConditions)
+            .where({
+                PricelistType: PricelistType,
+                MarketScopeRegion: MarketScopeRegion,
+                MarketScopeCountry: MarketScopeCountry,
+                SalesOrg: SalesOrg,
+                DistChannel: DistChannel,
+                CustPriceList: CustPriceList,
+                ErpCustomer: ErpCustomer,
+                CustGroup1: CustGroup1,
+                DeliveringPlant: DeliveringPlant
+            }));
+        console.table(termsAndConditionRows, ["MainCategory", "SubCategory1", "SubCategory2", "MainCategoryTermsandConditions", "SubCategory1TermsandConditions", "SubCategory2TermsandConditions"]);
+        const termsByPath = new Map(termsAndConditionRows.map((row) => [getCategoryPathKey(row), row]));
+
+        // Mergeing matched terms directly onto itemStructureDatas rows
+        itemStructureDatas.forEach((row) => {
+            const oMatch = termsByPath.get(getCategoryPathKey(row));
+            if (!oMatch) return;
+
+            CATEGORY_TERMS_FIELD_MAP.forEach(({ source, target }) => {
+                row[target] = oMatch[source] || null;
+            });
+        });
+
+
+        // console.table(itemStructureDatas, ["Sequence", "MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5", "MainCategoryTermsandCond", "SubCategory1TermsandCond", "SubCategory2TermsandCond", "SubCategory3TermsandCond", "SubCategory4TermsandCond", "SubCategory5TermsandCond"]);
 
         // 2. Build Dynamic WHERE clause for external DB query based on item structure components and header filters
         let finalQueryString = '';
@@ -2306,7 +2346,7 @@ module.exports = cds.service.impl(async function () {
     this.on('deleteTreeLayout', async (req) => {
 
         const { ID, tableId, layoutName, defaultLayout, masterDefault, config } = req.data;
- 
+
         const db = cds.transaction(req);
         const sUserId = req.user?.id || req.user?.email || '';
 
