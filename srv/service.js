@@ -326,7 +326,7 @@ const computeVersion = (current, oldStatus, newStatus) => {
     if (newStatus === PUBLISHED && oldStatus !== PUBLISHED) {
         return String(version + 1);          // 0.1→1, 1.1→2
     }
- 
+
     if (newStatus !== PUBLISHED && oldStatus === PUBLISHED) {
         return `${version}.1`;               // 1→1.1
     }
@@ -1804,10 +1804,14 @@ module.exports = cds.service.impl(async function () {
                 MarketScopeRegion: MarketScopeRegion,
                 MarketScopeCountry: MarketScopeCountry,
                 SalesOrg: SalesOrg,
-                DistChannel: DistChannel
+                DistChannel: DistChannel,
+                CustPriceList: CustPriceList,
+                ErpCustomer: ErpCustomer,
+                CustGroup1: CustGroup1,
+                DeliveringPlant: DeliveringPlant
             })
             .orderBy({ Sequence: 'asc' }));
-        // console.table(itemStructureDatas, ["Sequence", "MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5", "DeliveringPlant"]);
+        // console.table(itemStructureDatas, ["Sequence", "MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"]);
 
         if (!itemStructureDatas || itemStructureDatas.length === 0) return [];
 
@@ -1836,7 +1840,7 @@ module.exports = cds.service.impl(async function () {
                 CustGroup1: CustGroup1,
                 DeliveringPlant: DeliveringPlant
             }));
-        console.table(termsAndConditionRows, ["MainCategory", "SubCategory1", "SubCategory2", "MainCategoryTermsandConditions", "SubCategory1TermsandConditions", "SubCategory2TermsandConditions"]);
+        // console.table(termsAndConditionRows, ["MainCategory", "SubCategory1", "SubCategory2", "MainCategoryTermsandConditions", "SubCategory1TermsandConditions", "SubCategory2TermsandConditions"]);
         const termsByPath = new Map(termsAndConditionRows.map((row) => [getCategoryPathKey(row), row]));
 
         // Mergeing matched terms directly onto itemStructureDatas rows
@@ -1848,7 +1852,6 @@ module.exports = cds.service.impl(async function () {
                 row[target] = oMatch[source] || null;
             });
         });
-
 
         // console.table(itemStructureDatas, ["Sequence", "MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5", "MainCategoryTermsandCond", "SubCategory1TermsandCond", "SubCategory2TermsandCond", "SubCategory3TermsandCond", "SubCategory4TermsandCond", "SubCategory5TermsandCond"]);
 
@@ -2168,20 +2171,21 @@ module.exports = cds.service.impl(async function () {
             }
         });
 
+
         // 12. Sort result by hierarchy levels (nulls first and then alphabetically)
-        const sortByFields = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
+        const groupKey = (row) => [row.MainCategory, row.SubCategory1, row.SubCategory2, row.SubCategory3, row.SubCategory4, row.SubCategory5].join('|');
+
         const sortedResults = finalFlatResults
             .filter(row => row.Price != null)
             .sort((a, b) => {
-                for (const field of sortByFields) {
-                    const valA = a[field];
-                    const valB = b[field];
-                    if (valA === null && valB !== null) return -1;
-                    if (valA !== null && valB === null) return 1;
-                    if (valA !== valB) return (valA || '').localeCompare(valB || '');
+                if (groupKey(a) === groupKey(b)) {
+                    return (a.Material || '').localeCompare(b.Material || '');
                 }
                 return 0;
             });
+
+        // console.table(sortedResults, ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5", "MaterialKey"]);
+
         return sortedResults;
     });
 
