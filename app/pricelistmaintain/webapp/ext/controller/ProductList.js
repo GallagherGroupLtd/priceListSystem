@@ -294,6 +294,14 @@ sap.ui.define([
             ExtController.getInstance().onUndoDelete(oEvent);
         },
 
+        onExportExcel: function () {
+            ExtController.getInstance().onExportExcel(false);
+        },
+
+        onExportExcelAs: function () {
+            ExtController.getInstance().onExportExcel(true);
+        },
+        
         onDrop: function (oEvent) {
             const oDragCtx = oEvent.getParameter("draggedControl").getBindingContext("jsonModel");
             const oDropCtx = oEvent.getParameter("droppedControl").getBindingContext("jsonModel");

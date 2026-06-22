@@ -5,8 +5,10 @@ sap.ui.define([
 	'sap/ui/model/Filter',
 	'sap/ui/model/FilterOperator',
 	'sap/m/MessageToast',
-	'sap/m/MessageBox'
-], function (ControllerExtension, JSONModel, Fragment, Filter, FilterOperator, MessageToast, MessageBox) {
+	'sap/m/MessageBox',
+	'sap/ui/export/library',
+	'sap/ui/export/ExportHandler'
+], function (ControllerExtension, JSONModel, Fragment, Filter, FilterOperator, MessageToast, MessageBox, exportLibrary, ExportHandler) {
 	'use strict';
 
 	// ── Module-level constants ────────────────────────────────────────────────────
@@ -103,6 +105,25 @@ sap.ui.define([
 		{ level: 4, showPath: "/showSubCategory4Details", dataPath: "/selectedSubCategory4", sectionKey: "PricelistSubCategory4" },
 		{ level: 5, showPath: "/showSubCategory5Details", dataPath: "/selectedSubCategory5", sectionKey: "PricelistSubCategory5" }
 	];
+
+	const EdmType = exportLibrary.EdmType;
+	const EXPORT_COLUMN_FIELD_MAP = {
+		ColCategoriesAndProducts: "Title",
+		ColDescription: "Description",
+		ColPriceCurrency: "PriceDisplay",
+		ColValidity: "PriceValidFrom",
+		ColDiscountRate: "DiscountRate",
+		ColDiscountValidity: "DiscountValidFrom",
+		ColDiscountExpiry: "DiscountValidTo",
+		ColPriceChangeIndicator: "PriceChangeIndicator",
+		ColFuturePrice: "FuturePriceDisplay",
+		ColFuturePriceValidity: "FuturePriceValidityDisplay",
+		ColStatus: "Status",
+		ColStatusValidFrom: "StatusValidFromDate",
+		ColStatusValidTo: "StatusValidToDate",
+		ColSupplier: "Supplier",
+		ColSupplierSKU: "SupplierSKU"
+	};
 
 	/** Controller singleton – exposed via getInstance() for use in fragment event handlers. */
 	let _oInstance = null;
@@ -2714,8 +2735,96 @@ sap.ui.define([
 				.catch((err) => {
 					console.error(err); MessageBox.error("Cannot save layout.");
 				});
-		}
+		},
 
+		/**
+		* Exports the currently visible tree data to Excel, respecting the current column visibility and order in the TreeTable.
+		* If bShowSettingsDialog is true, the user is prompted with the "Export As" dialog where they can adjust export settings before confirming. 
+		*/
+		onExportExcel: function (bShowSettingsDialog) {
+			const oTable = this._productTreeTable || this._getTreeControl("ProductPriceListTreeTable");
+			if (!oTable) return MessageToast.show("Table not found.");
+
+			const aTree = this._getJsonModel().getProperty("/productPriceList") || [];
+			const aRows = this._flattenTreeForExport(aTree);
+
+			if (!aRows.length) return MessageToast.show("Nothing to export.");
+
+			const mSettings = {
+				workbook: {
+					columns: this._buildExportColumns(oTable),
+					context: { sheetName: "Product Price List" }
+				},
+				dataSource: aRows,
+				fileName: "ProductPriceList.xlsx"
+			};
+
+			if (!this._oExportHandler) {
+				this._oExportHandler = new ExportHandler();
+			}
+
+			const pExport = bShowSettingsDialog
+				? this._oExportHandler.exportAs(mSettings)
+				: this._oExportHandler.export(mSettings);
+
+			pExport.catch((oError) => {
+				// User cancelling the "Export As" dialog rejects with no error
+				if (oError) MessageBox.error("Export failed: " + (oError.message || "Unknown error."));
+			});
+		},
+		
+		/**
+		 * Builds the export column config from whatever columns are currently visible on the TreeTable
+		 */
+		_buildExportColumns: function (oTable) {
+			return oTable.getColumns()
+				.filter((oColumn) => oColumn.getVisible())
+				.map((oColumn) => {
+					const sLocalId = oColumn.getId().replace(ID_TREE_PREFIX, "");
+					const vLabel = oColumn.getLabel && oColumn.getLabel();
+					const sTitle = typeof vLabel === "string" ? vLabel : (vLabel?.getText?.() || sLocalId);
+
+					return {
+						label: sTitle,
+						property: EXPORT_COLUMN_FIELD_MAP[sLocalId] || sLocalId,
+						type: EdmType.String
+					};
+				});
+		},
+
+		/**
+		 * Flattens the (nested) tree into export rows, depth-first, pre-computing the same display values the table shows
+		 */
+		_flattenTreeForExport: function (aNodes, iLevel = 0, aOut = []) {
+			(aNodes || []).forEach((oNode) => {
+				const bIsProduct = oNode.Kind === "Product";
+				aOut.push({
+					Title: "    ".repeat(iLevel) + (oNode.Title || ""),
+					Description: bIsProduct ? (oNode.Description || "") : "",
+					PriceDisplay: bIsProduct ? `${oNode.Price || ""} ${oNode.PriceUnit || ""}`.trim() : "",
+					PriceValidFrom: bIsProduct ? (oNode.PriceValidFrom || "") : "",
+					DiscountRate: bIsProduct ? (oNode.DiscountRate || "") : "",
+					DiscountValidFrom: bIsProduct ? (oNode.DiscountValidFrom || "") : "",
+					DiscountValidTo: bIsProduct ? (oNode.DiscountValidTo || "") : "",
+					PriceChangeIndicator: bIsProduct ? !!oNode.PriceChangeIndicator : "",
+					FuturePriceDisplay: bIsProduct ? `${oNode.FuturePrice || ""} ${oNode.PriceUnit || ""}`.trim() : "",
+					FuturePriceValidityDisplay: bIsProduct
+						? `${oNode.FuturePriceValidFrom || ""} - ${oNode.FuturePriceValidTo || ""}`
+						: "",
+					Status: bIsProduct ? (oNode.Status || "") : "",
+					StatusValidFromDate: bIsProduct ? (oNode.StatusValidFromDate || "") : "",
+					StatusValidToDate: bIsProduct ? (oNode.StatusValidToDate || "") : "",
+					Supplier: bIsProduct ? (oNode.Supplier || "") : "",
+					SupplierSKU: bIsProduct ? (oNode.SupplierSKU || "") : ""
+				});
+
+				if (Array.isArray(oNode.children) && oNode.children.length) {
+					this._flattenTreeForExport(oNode.children, iLevel + 1, aOut);
+				}
+			});
+
+			return aOut;
+		}
 
 	});
 });
