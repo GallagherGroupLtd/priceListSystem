@@ -37,6 +37,8 @@ sap.ui.define([
 
         const iInsertIdx = sDropPosition === "Before" ? iNewDropIdx : iNewDropIdx + 1;
         aChildren.splice(iInsertIdx, 0, oDraggedNode);
+
+        aChildren.forEach((oNode, i) => { oNode.OrderIndex = i; });
     }
 
     return {

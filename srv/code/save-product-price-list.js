@@ -229,7 +229,7 @@ module.exports = (srv) => async function saveProductPriceList(req) {
     const seenIds = new Set();
 
     const flatten = (aNodes, sParentId) => {
-        aNodes.forEach((oNode) => {
+        aNodes.forEach((oNode, iIndex) => {
             const bReuseExistingId =
                 oNode.ID &&
                 existingIds.has(oNode.ID);
@@ -249,7 +249,8 @@ module.exports = (srv) => async function saveProductPriceList(req) {
                 ...currentHeader,
                 ID: sId,
                 parent_ID: sParentId,
-                ...pick(oNode, STORED_FIELDS)
+                ...pick(oNode, STORED_FIELDS),
+                OrderIndex: iIndex
             });
 
             if (Array.isArray(oNode.children) && oNode.children.length > 0) {

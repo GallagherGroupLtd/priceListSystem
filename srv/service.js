@@ -319,16 +319,19 @@ function buildPdfBuffer({ headerCriteria, headerTerms, detailTerms }) {
 }
 
 // ─── Version Helpers ──────────────────────────────────────────────────────────
-const incrementDraftVersion = (current) => {
-    const num = parseFloat(current) || 0;
-    return (Math.round((num + 0.1) * 10) / 10).toFixed(1);
-};
+const PUBLISHED = 'Published';
+const computeVersion = (current, oldStatus, newStatus) => {
+    const version = Math.floor(parseFloat(current) || 0);
 
-const publishVersion = (current) => {
-    const num = parseFloat(current) || 0;
-    return Math.ceil(num).toFixed(1);
+    if (newStatus === PUBLISHED && oldStatus !== PUBLISHED) {
+        return String(version + 1);          // 0.1→1, 1.1→2
+    }
+ 
+    if (newStatus !== PUBLISHED && oldStatus === PUBLISHED) {
+        return `${version}.1`;               // 1→1.1
+    }
+    return current;
 };
-
 
 
 module.exports = cds.service.impl(async function () {
@@ -1189,40 +1192,15 @@ module.exports = cds.service.impl(async function () {
         req.data.Status = 'Drafted';
     });
 
-
-    this.before('draftEdit', PricelistData, async (req) => {
-        const ID = req.params?.[0]?.ID;
+    this.before('SAVE', PricelistData, async (req) => {
+        const ID = req.data?.ID;
         if (!ID) return;
 
         const active = await SELECT.one(PricelistData)
-            .where({ ID })
-            .columns('Version', 'Status');
+            .where({ ID }).columns('Status', 'Version');
 
-        if (active) {
-            req._newVersion = incrementDraftVersion(active.Version);
-        }
-    });
-
-    // ─── Version: increment on edit Draft ───────────────────────────────
-    this.after('draftEdit', PricelistData, async (req) => {
-        const ID = req.params?.[0]?.ID;
-        if (!ID || !req._newVersion) return;
-
-        await UPDATE(PricelistData.drafts)
-            .set({ Version: req._newVersion })
-            .where({ ID });
-    });
-
-    // ─── Version: round to x.0 on Publish (draftActivate) ────────────────────
-    this.before('draftActivate', PricelistData, async (req) => {
-        const ID = req.params?.[0]?.ID;
-        if (!ID) return;
-        const draft = await SELECT.one(PricelistData.drafts).where({ ID });
-        if (draft) {
-            req.data ??= {};
-            req.data.Version = publishVersion(draft.Version);
-            req.data.Status = 'Published';
-        }
+        const baseVersion = active?.Version ?? req.data.Version ?? '0.1';
+        req.data.Version = computeVersion(baseVersion, active?.Status, req.data.Status);
     });
 
     // Handler upon create of Pricing Parameters
