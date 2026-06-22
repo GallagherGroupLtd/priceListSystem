@@ -204,6 +204,27 @@
                     tooltip="Manage Layouts"
                     press="handler.onOpenLayoutSettings" />
 
+                <MenuButton
+                    id="ProductTreeExportMenuBtn"
+                    icon="sap-icon://excel-attachment"
+                    tooltip="Export Excel"
+                    buttonMode="Split"
+                    useDefaultActionOnly="true"
+                    defaultAction="handler.onExportExcel">
+                    <menu>                    
+                        <Menu id="ProductTreeExportMenu">
+                            <MenuItem
+                                id="ProductTreeExportMenuItem"
+                                text="Export"
+                                press="handler.onExportExcel" />                        
+                            <MenuItem
+                                id="ProductTreeExportAsMenuItem"
+                                text="Export As..."
+                                press="handler.onExportExcelAs" />
+                        </Menu>
+                    </menu>
+                </MenuButton>
+
         </OverflowToolbar>
 
         <t:TreeTable

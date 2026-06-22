@@ -12,7 +12,7 @@
                 </smartForm:GroupElement>
 
                 <smartForm:GroupElement label="Published Sub Category Name">
-                    <Input value="{jsonModel>PublishedTitle}" editable="{ui>/isEditable}"/>
+                    <Input value="{jsonModel>PublishedName}" editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
             </smartForm:Group>
         </smartForm:SmartForm>
@@ -33,7 +33,7 @@
                     <HBox alignContent="Center">
                         <Text text="External User" />
                         <Switch 
-                            state="{jsonModel>IsTACDisableExt}" 
+                            state="{jsonModel>IsTACDisableInt}" 
                             change="handler.onTermsDisableSwitchChange" 
                             type="AcceptReject" 
                             enabled="{ui>/isEditable}"/>

@@ -24,7 +24,7 @@
                     label="Main Category Name">
                     <Input
                         id="MainCategoryInput"
-                        value="{jsonModel>/selectedMainCategory/Title}" 
+                        value="{jsonModel>Title}" 
                         editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
 
@@ -33,7 +33,7 @@
                     label="Published Main Category Name">
                     <Input
                         id="PublishedMainCategoryInput"
-                        value="{jsonModel>/selectedMainCategory/PublishedCategoryName}" 
+                        value="{jsonModel>PublishedName}" 
                         editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
             </smartForm:Group>
@@ -46,7 +46,7 @@
                     label="Terms and Conditions">
                     <TextArea
                         id="MainCategoryTermsAndCondContextText"
-                        value="{jsonModel>/selectedMainCategory/Description}"
+                        value="{jsonModel>TermsAndConditions}"
                         maxLength="1000"
                         rows="10"
                         width="100%" 
@@ -65,7 +65,7 @@
 
                         <Switch
                             id="MainCategoryTermsExtUserSwitch"
-                            state="{jsonModel>/selectedMainCategory/TermsDisableExtUser}"
+                            state="{jsonModel>IsTACDisableExt}"
                             change="handler.onTermsDisableSwitchChange" 
                             type="AcceptReject"
                             enabled="{ui>/isEditable}"/>
@@ -77,7 +77,7 @@
 
                         <Switch
                             id="MainCategoryTermsIntUserSwitch"
-                            state="{jsonModel>/selectedMainCategory/TermsDisableIntUser}"
+                            state="{jsonModel>IsTACDisableInt}"
                             change="handler.onTermsDisableSwitchChange" 
                             type="AcceptReject"
                             enabled="{ui>/isEditable}"/>
@@ -91,7 +91,7 @@
                     label="Notes">
                     <TextArea
                         id="MainCategoryGeneralNotesText"
-                        value="{jsonModel>/selectedMainCategory/Notes}"
+                        value="{jsonModel>Notes}"
                         maxLength="5000"
                         rows="10"
                         width="100%" 
@@ -110,7 +110,7 @@
 
                         <Switch
                             id="MainCategoryNotesExtUserSwitch"
-                            state="{jsonModel>/selectedMainCategory/NotesDisableExtUser}"
+                            state="{jsonModel>IsNotesDisableExt}"
                             change="handler.onNotesDisableSwitchChange" 
                             type="AcceptReject"
                             enabled="{ui>/isEditable}"/>
@@ -122,7 +122,7 @@
 
                         <Switch
                             id="MainCategoryNotesIntUserSwitch"
-                            state="{jsonModel>/selectedMainCategory/NotesDisableIntUser}"
+                            state="{jsonModel>IsNotesDisableInt}"
                             change="handler.onNotesDisableSwitchChange" 
                             type="AcceptReject"
                             enabled="{ui>/isEditable}"/>

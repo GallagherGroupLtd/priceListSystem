@@ -5,8 +5,10 @@ sap.ui.define([
 	'sap/ui/model/Filter',
 	'sap/ui/model/FilterOperator',
 	'sap/m/MessageToast',
-	'sap/m/MessageBox'
-], function (ControllerExtension, JSONModel, Fragment, Filter, FilterOperator, MessageToast, MessageBox) {
+	'sap/m/MessageBox',
+	'sap/ui/export/library',
+	'sap/ui/export/ExportHandler'
+], function (ControllerExtension, JSONModel, Fragment, Filter, FilterOperator, MessageToast, MessageBox, exportLibrary, ExportHandler) {
 	'use strict';
 
 	// ── Module-level constants ────────────────────────────────────────────────────
@@ -22,7 +24,7 @@ sap.ui.define([
 	 * Object-Page binding context. Must stay in sync with the backend action signature.
 	 */
 	const HEADER_FIELDS = [
-		"PricelistType", "MarketScopeRegion", "MarketScopeCountry",
+		"ID", "PricelistType", "MarketScopeRegion", "MarketScopeCountry",
 		"SalesOrg", "DistChannel", "CustPriceList",
 		"CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey"
 	];
@@ -65,7 +67,7 @@ sap.ui.define([
 	 * `parent` association and is used to reassemble the tree client-side.
 	 */
 	const PRODUCT_PRICE_LIST_ENTITY_FIELDS = [
-		"ID", "parent_ID",
+		"ID", "parent_ID", "pricelist_ID",
 		"PricelistType", "MarketScopeRegion", "MarketScopeCountry",
 		"SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey",
 		"OrderIndex", "Kind", "CategoryLevel", "Title", "Description",
@@ -88,6 +90,15 @@ sap.ui.define([
 		"Supplier", "SupplierSKU"
 	];
 
+	const CATEGORY_NODE_FIELD_CONFIG = [
+		{ level: 0, titleField: "MainCategory", descField: "MainCategoryLocal", extraFields: { TermsAndConditions: "MainCategoryTermsandCond" } },
+		{ level: 1, titleField: "SubCategory1", descField: "SubCategory1Local", extraFields: { TermsAndConditions: "SubCategory1TermsandCond" } },
+		{ level: 2, titleField: "SubCategory2", descField: "SubCategory2Local", extraFields: { TermsAndConditions: "SubCategory2TermsandCond" } },
+		{ level: 3, titleField: "SubCategory3", descField: "SubCategory3Local", extraFields: { TermsAndConditions: "SubCategory3TermsandCond" } },
+		{ level: 4, titleField: "SubCategory4", descField: "SubCategory4Local", extraFields: { TermsAndConditions: "SubCategory4TermsandCond" } },
+		{ level: 5, titleField: "SubCategory5", descField: "SubCategory5Local", extraFields: { TermsAndConditions: "SubCategory5TermsandCond" } }
+	];
+
 	/**
 	 * Descriptor for each category level (0–5).
 	 * Acts as a single source of truth that drives init / clear / bind / sync /
@@ -103,6 +114,25 @@ sap.ui.define([
 		{ level: 4, showPath: "/showSubCategory4Details", dataPath: "/selectedSubCategory4", sectionKey: "PricelistSubCategory4" },
 		{ level: 5, showPath: "/showSubCategory5Details", dataPath: "/selectedSubCategory5", sectionKey: "PricelistSubCategory5" }
 	];
+
+	const EdmType = exportLibrary.EdmType;
+	const EXPORT_COLUMN_FIELD_MAP = {
+		ColCategoriesAndProducts: "Title",
+		ColDescription: "Description",
+		ColPriceCurrency: "PriceDisplay",
+		ColValidity: "PriceValidFrom",
+		ColDiscountRate: "DiscountRate",
+		ColDiscountValidity: "DiscountValidFrom",
+		ColDiscountExpiry: "DiscountValidTo",
+		ColPriceChangeIndicator: "PriceChangeIndicator",
+		ColFuturePrice: "FuturePriceDisplay",
+		ColFuturePriceValidity: "FuturePriceValidityDisplay",
+		ColStatus: "Status",
+		ColStatusValidFrom: "StatusValidFromDate",
+		ColStatusValidTo: "StatusValidToDate",
+		ColSupplier: "Supplier",
+		ColSupplierSKU: "SupplierSKU"
+	};
 
 	/** Controller singleton – exposed via getInstance() for use in fragment event handlers. */
 	let _oInstance = null;
@@ -788,14 +818,10 @@ sap.ui.define([
 
 			const oODataModel = oView.getModel();
 
-			const aFilters = PRODUCT_PRICE_LIST_FILTER_FIELDS
-				.map((sField) => {
-					const vValue = oContext.getProperty(sField);
-					return (vValue !== undefined && vValue !== null && vValue !== "")
-						? new Filter(sField, FilterOperator.EQ, vValue)
-						: null;
-				})
-				.filter(Boolean);
+			const sHeaderId = oContext.getProperty("ID");
+			if (!sHeaderId) return Promise.resolve([]);
+
+			const aFilters = [new Filter("pricelist_ID", FilterOperator.EQ, sHeaderId)];
 
 			const oListBinding = oODataModel.bindList("/ProductPriceList", null, [], aFilters, {
 				$select: PRODUCT_PRICE_LIST_ENTITY_FIELDS.join(","),
@@ -805,6 +831,9 @@ sap.ui.define([
 			return oListBinding.requestContexts(0, 10000).then((aContexts) =>
 				this._buildTreeFromEntityRows(aContexts.map((oCtx) => oCtx.getObject()))
 			);
+
+
+
 		},
 
 		/**
@@ -873,22 +902,29 @@ sap.ui.define([
 				 * Finds or creates a Category node for the given level.
 				 * Mutates `parentNode` and `currentPath` via closure.
 				 */
-				const addCategoryNode = (level, titleField, descField) => {
-					const title = row[titleField];
+				const addCategoryNode = (oLevelConfig) => {
+					const title = row[oLevelConfig.titleField];
 					if (!title) return; // skip empty levels
 
 					currentPath = (currentPath ? `${currentPath}|` : "") + title;
 
 					if (!nodeMap[currentPath]) {
+
+						const oExtraFields = Object.entries(oLevelConfig.extraFields).reduce((oAcc, [sNodeField, sSourceField]) => {
+							oAcc[sNodeField] = row[sSourceField] || null;
+							return oAcc;
+						}, {});
+
 						const newNode = {
 							...this._buildSharedNodeFields(row),
-							ID: `cat-${level}-${currentPath.replace(/\s+/g, '-')}`,
+							ID: `cat-${oLevelConfig.level}-${currentPath.replace(/\s+/g, '-')}`,
 							Sequence: row.Sequence,
 							OrderIndex: Object.keys(nodeMap).length + 1,
 							Kind: "Category",
-							CategoryLevel: level,
+							CategoryLevel: oLevelConfig.level,
 							Title: title,
-							Description: row[descField] || null,
+							Description: row[oLevelConfig.descField] || null,
+							...oExtraFields,
 
 							// Categories carry no price or discount data.
 							Price: null, PriceUnit: null,
@@ -918,12 +954,7 @@ sap.ui.define([
 				};
 
 				// Build category hierarchy; empty levels are skipped automatically.
-				addCategoryNode(0, "MainCategory", "MainCategoryLocal");
-				addCategoryNode(1, "SubCategory1", "SubCategory1Local");
-				addCategoryNode(2, "SubCategory2", "SubCategory2Local");
-				addCategoryNode(3, "SubCategory3", "SubCategory3Local");
-				addCategoryNode(4, "SubCategory4", "SubCategory4Local");
-				addCategoryNode(5, "SubCategory5", "SubCategory5Local");
+				CATEGORY_NODE_FIELD_CONFIG.forEach(addCategoryNode);
 
 				// Leaf product node (CategoryLevel 6).
 				if (row.Material) {
@@ -2714,8 +2745,96 @@ sap.ui.define([
 				.catch((err) => {
 					console.error(err); MessageBox.error("Cannot save layout.");
 				});
-		}
+		},
 
+		/**
+		* Exports the currently visible tree data to Excel, respecting the current column visibility and order in the TreeTable.
+		* If bShowSettingsDialog is true, the user is prompted with the "Export As" dialog where they can adjust export settings before confirming. 
+		*/
+		onExportExcel: function (bShowSettingsDialog) {
+			const oTable = this._productTreeTable || this._getTreeControl("ProductPriceListTreeTable");
+			if (!oTable) return MessageToast.show("Table not found.");
+
+			const aTree = this._getJsonModel().getProperty("/productPriceList") || [];
+			const aRows = this._flattenTreeForExport(aTree);
+
+			if (!aRows.length) return MessageToast.show("Nothing to export.");
+
+			const mSettings = {
+				workbook: {
+					columns: this._buildExportColumns(oTable),
+					context: { sheetName: "Product Price List" }
+				},
+				dataSource: aRows,
+				fileName: "ProductPriceList.xlsx"
+			};
+
+			if (!this._oExportHandler) {
+				this._oExportHandler = new ExportHandler();
+			}
+
+			const pExport = bShowSettingsDialog
+				? this._oExportHandler.exportAs(mSettings)
+				: this._oExportHandler.export(mSettings);
+
+			pExport.catch((oError) => {
+				// User cancelling the "Export As" dialog rejects with no error
+				if (oError) MessageBox.error("Export failed: " + (oError.message || "Unknown error."));
+			});
+		},
+
+		/**
+		 * Builds the export column config from whatever columns are currently visible on the TreeTable
+		 */
+		_buildExportColumns: function (oTable) {
+			return oTable.getColumns()
+				.filter((oColumn) => oColumn.getVisible())
+				.map((oColumn) => {
+					const sLocalId = oColumn.getId().replace(ID_TREE_PREFIX, "");
+					const vLabel = oColumn.getLabel && oColumn.getLabel();
+					const sTitle = typeof vLabel === "string" ? vLabel : (vLabel?.getText?.() || sLocalId);
+
+					return {
+						label: sTitle,
+						property: EXPORT_COLUMN_FIELD_MAP[sLocalId] || sLocalId,
+						type: EdmType.String
+					};
+				});
+		},
+
+		/**
+		 * Flattens the (nested) tree into export rows, depth-first, pre-computing the same display values the table shows
+		 */
+		_flattenTreeForExport: function (aNodes, iLevel = 0, aOut = []) {
+			(aNodes || []).forEach((oNode) => {
+				const bIsProduct = oNode.Kind === "Product";
+				aOut.push({
+					Title: "    ".repeat(iLevel) + (oNode.Title || ""),
+					Description: bIsProduct ? (oNode.Description || "") : "",
+					PriceDisplay: bIsProduct ? `${oNode.Price || ""} ${oNode.PriceUnit || ""}`.trim() : "",
+					PriceValidFrom: bIsProduct ? (oNode.PriceValidFrom || "") : "",
+					DiscountRate: bIsProduct ? (oNode.DiscountRate || "") : "",
+					DiscountValidFrom: bIsProduct ? (oNode.DiscountValidFrom || "") : "",
+					DiscountValidTo: bIsProduct ? (oNode.DiscountValidTo || "") : "",
+					PriceChangeIndicator: bIsProduct ? !!oNode.PriceChangeIndicator : "",
+					FuturePriceDisplay: bIsProduct ? `${oNode.FuturePrice || ""} ${oNode.PriceUnit || ""}`.trim() : "",
+					FuturePriceValidityDisplay: bIsProduct
+						? `${oNode.FuturePriceValidFrom || ""} - ${oNode.FuturePriceValidTo || ""}`
+						: "",
+					Status: bIsProduct ? (oNode.Status || "") : "",
+					StatusValidFromDate: bIsProduct ? (oNode.StatusValidFromDate || "") : "",
+					StatusValidToDate: bIsProduct ? (oNode.StatusValidToDate || "") : "",
+					Supplier: bIsProduct ? (oNode.Supplier || "") : "",
+					SupplierSKU: bIsProduct ? (oNode.SupplierSKU || "") : ""
+				});
+
+				if (Array.isArray(oNode.children) && oNode.children.length) {
+					this._flattenTreeForExport(oNode.children, iLevel + 1, aOut);
+				}
+			});
+
+			return aOut;
+		}
 
 	});
 });

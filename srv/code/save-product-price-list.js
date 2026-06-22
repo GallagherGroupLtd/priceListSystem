@@ -151,8 +151,13 @@ module.exports = (srv) => async function saveProductPriceList(req) {
         return oResult;
     };
 
-    const currentHeader = cleanObject(normalizeHeader(header));
-    const originalHeaderWhere = cleanObject(normalizeHeader(originalHeader));
+    const headerId = header.ID || originalHeader.ID;
+    if (!headerId) {
+        return req.error(400, "Missing header ID — cannot scope pricelist items.");
+    }
+
+    const currentHeader = { ...cleanObject(normalizeHeader(header)), pricelist_ID: headerId };
+    const headerWhere = { pricelist_ID: headerId };
 
     const STORED_FIELDS = [
         "OrderIndex",
@@ -207,14 +212,13 @@ module.exports = (srv) => async function saveProductPriceList(req) {
         return oResult;
     };
 
-    console.log("[saveProductPriceList] currentHeader:", currentHeader);
-    console.log("[saveProductPriceList] originalHeaderWhere:", originalHeaderWhere);
-    console.log("[saveProductPriceList] submitted root nodes:", tree.length);
+    // console.log("[saveProductPriceList] currentHeader:", currentHeader);
+    // console.log("[saveProductPriceList] submitted root nodes:", tree.length);
 
     const existingRows = await tx.run(
         SELECT.from(ProductPriceList)
             .columns("ID")
-            .where(originalHeaderWhere)
+            .where(headerWhere)
     );
 
     const existingIds = new Set(existingRows.map((r) => r.ID));
@@ -225,7 +229,7 @@ module.exports = (srv) => async function saveProductPriceList(req) {
     const seenIds = new Set();
 
     const flatten = (aNodes, sParentId) => {
-        aNodes.forEach((oNode) => {
+        aNodes.forEach((oNode, iIndex) => {
             const bReuseExistingId =
                 oNode.ID &&
                 existingIds.has(oNode.ID);
@@ -245,7 +249,8 @@ module.exports = (srv) => async function saveProductPriceList(req) {
                 ...currentHeader,
                 ID: sId,
                 parent_ID: sParentId,
-                ...pick(oNode, STORED_FIELDS)
+                ...pick(oNode, STORED_FIELDS),
+                OrderIndex: iIndex
             });
 
             if (Array.isArray(oNode.children) && oNode.children.length > 0) {
@@ -255,12 +260,12 @@ module.exports = (srv) => async function saveProductPriceList(req) {
     };
 
     // Add this just before flatten() call
-    console.log("[saveProductPriceList] sample node IDs from payload:", 
-        tree.slice(0, 3).map(n => n.ID));
+    // console.log("[saveProductPriceList] sample node IDs from payload:", 
+    //     tree.slice(0, 3).map(n => n.ID));
 
     flatten(tree, null);
 
-    console.log("[saveProductPriceList] rows to upsert:", flatRows.length);
+    // console.log("[saveProductPriceList] rows to upsert:", flatRows.length);
 
     if (flatRows.length === 0) {
         return req.error(400, "No rows to save. Submitted tree is empty.");
@@ -268,7 +273,7 @@ module.exports = (srv) => async function saveProductPriceList(req) {
 
     const idsToDelete = [...existingIds].filter((id) => !seenIds.has(id));
 
-    console.log("[saveProductPriceList] rows to delete:", idsToDelete.length);
+    // console.log("[saveProductPriceList] rows to delete:", idsToDelete.length);
 
     // At the bottom — replace the UPSERT/DELETE block with this:
 
@@ -296,7 +301,4 @@ module.exports = (srv) => async function saveProductPriceList(req) {
         return req.error(500, `Save failed: ${e.message}`);
     }
 
-    console.log("[saveProductPriceList] save completed");
-
-    return "OK";
 };

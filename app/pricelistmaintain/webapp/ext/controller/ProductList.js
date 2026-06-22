@@ -37,6 +37,8 @@ sap.ui.define([
 
         const iInsertIdx = sDropPosition === "Before" ? iNewDropIdx : iNewDropIdx + 1;
         aChildren.splice(iInsertIdx, 0, oDraggedNode);
+
+        aChildren.forEach((oNode, i) => { oNode.OrderIndex = i; });
     }
 
     return {
@@ -294,6 +296,14 @@ sap.ui.define([
             ExtController.getInstance().onUndoDelete(oEvent);
         },
 
+        onExportExcel: function () {
+            ExtController.getInstance().onExportExcel(false);
+        },
+
+        onExportExcelAs: function () {
+            ExtController.getInstance().onExportExcel(true);
+        },
+        
         onDrop: function (oEvent) {
             const oDragCtx = oEvent.getParameter("draggedControl").getBindingContext("jsonModel");
             const oDropCtx = oEvent.getParameter("droppedControl").getBindingContext("jsonModel");
