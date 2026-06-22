@@ -323,6 +323,7 @@ entity PricelistItemData : managed, cuid {
 entity ProductPriceList : managed, cuid {
 
     // mapping fields
+    pricelist                 : Association to PricelistData;
     PricelistType             : String(255) @title: 'Pricelist Type';
     MarketScopeRegion         : String(255) @title: 'Region';
     MarketScopeCountry        : String(255) @title: 'Country';

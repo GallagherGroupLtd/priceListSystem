@@ -24,7 +24,7 @@ sap.ui.define([
 	 * Object-Page binding context. Must stay in sync with the backend action signature.
 	 */
 	const HEADER_FIELDS = [
-		"PricelistType", "MarketScopeRegion", "MarketScopeCountry",
+		"ID", "PricelistType", "MarketScopeRegion", "MarketScopeCountry",
 		"SalesOrg", "DistChannel", "CustPriceList",
 		"CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey"
 	];
@@ -67,7 +67,7 @@ sap.ui.define([
 	 * `parent` association and is used to reassemble the tree client-side.
 	 */
 	const PRODUCT_PRICE_LIST_ENTITY_FIELDS = [
-		"ID", "parent_ID",
+		"ID", "parent_ID", "pricelist_ID",
 		"PricelistType", "MarketScopeRegion", "MarketScopeCountry",
 		"SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey",
 		"OrderIndex", "Kind", "CategoryLevel", "Title", "Description",
@@ -818,14 +818,10 @@ sap.ui.define([
 
 			const oODataModel = oView.getModel();
 
-			const aFilters = PRODUCT_PRICE_LIST_FILTER_FIELDS
-				.map((sField) => {
-					const vValue = oContext.getProperty(sField);
-					return (vValue !== undefined && vValue !== null && vValue !== "")
-						? new Filter(sField, FilterOperator.EQ, vValue)
-						: null;
-				})
-				.filter(Boolean);
+			const sHeaderId = oContext.getProperty("ID");
+			if (!sHeaderId) return Promise.resolve([]);
+
+			const aFilters = [new Filter("pricelist_ID", FilterOperator.EQ, sHeaderId)];
 
 			const oListBinding = oODataModel.bindList("/ProductPriceList", null, [], aFilters, {
 				$select: PRODUCT_PRICE_LIST_ENTITY_FIELDS.join(","),
@@ -835,6 +831,9 @@ sap.ui.define([
 			return oListBinding.requestContexts(0, 10000).then((aContexts) =>
 				this._buildTreeFromEntityRows(aContexts.map((oCtx) => oCtx.getObject()))
 			);
+
+
+
 		},
 
 		/**
