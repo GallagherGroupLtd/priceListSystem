@@ -337,7 +337,7 @@ const computeVersion = (current, oldStatus, newStatus) => {
 module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
     const { User, TradeScenarios, ItemStructure, PriceProductMaintenance, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, PricingCondType,
-        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest, PriceListTreeLayout } = this.entities;
+        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest, PriceListTreeLayout, ProductPriceList } = this.entities;
 
     //Selection of Materials
     async function resolveItems(filters, db, extdb) {
@@ -1192,6 +1192,13 @@ module.exports = cds.service.impl(async function () {
         req.data.Status = 'Drafted';
     });
 
+    this.before('DELETE', PricelistData, async (req) => {
+        const ID = req.params?.[0]?.ID;
+        if (!ID) return;
+
+        await DELETE.from(ProductPriceList).where({ pricelist_ID: ID });
+    });
+
     this.before('SAVE', PricelistData, async (req) => {
         const ID = req.data?.ID;
         if (!ID) return;
@@ -1840,7 +1847,7 @@ module.exports = cds.service.impl(async function () {
                 CustGroup1: CustGroup1,
                 DeliveringPlant: DeliveringPlant
             }));
-        // console.table(termsAndConditionRows, ["MainCategory", "SubCategory1", "SubCategory2", "MainCategoryTermsandConditions", "SubCategory1TermsandConditions", "SubCategory2TermsandConditions"]);
+
         const termsByPath = new Map(termsAndConditionRows.map((row) => [getCategoryPathKey(row), row]));
 
         // Mergeing matched terms directly onto itemStructureDatas rows

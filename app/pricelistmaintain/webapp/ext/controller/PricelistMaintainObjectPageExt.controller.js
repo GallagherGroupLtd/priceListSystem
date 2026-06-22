@@ -570,6 +570,11 @@ sap.ui.define([
 			const selectedPathSet = new Set(aSelectedPaths);
 
 			aSelectedPaths.forEach((sPath) => {
+				this._collectDescendantPathsByContextPath(aCurrentTree, sPath)
+					.forEach((sDescPath) => selectedPathSet.add(sDescPath));
+			});
+
+			selectedPathSet.forEach((sPath) => {
 				const oNode = this._getNodeByContextPath(aCurrentTree, sPath);
 				if (oNode && oNode.ID) pendingDeletedIdSet.add(oNode.ID);
 			});
@@ -948,6 +953,14 @@ sap.ui.define([
 						} else {
 							tree.push(newNode);
 						}
+					} else {
+						const oExisting = nodeMap[currentPath];
+						Object.entries(oLevelConfig.extraFields).forEach(([sNodeField, sSourceField]) => {
+							const vCurrent = oExisting[sNodeField];
+							if ((vCurrent === null || vCurrent === undefined || vCurrent === "") && row[sSourceField]) {
+								oExisting[sNodeField] = row[sSourceField];
+							}
+						});
 					}
 
 					parentNode = nodeMap[currentPath];
