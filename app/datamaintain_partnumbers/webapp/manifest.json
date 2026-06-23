@@ -111,7 +111,7 @@
           ]
         },
         {
-          "pattern": "PartNumbers({key}):?query:",
+          "pattern": "PriceProductMaintenance({key}):?query:",
           "name": "PartNumbersObjectPage",
           "target": [
             "PartNumbersList",
@@ -126,10 +126,10 @@
           "name": "sap.fe.templates.ListReport",
           "options": {
             "settings": {
-              "contextPath": "/PartNumbers",
+              "contextPath": "/PriceProductMaintenance",
               "variantManagement": "Page",
               "navigation": {
-                "PartNumbers": {
+                "PriceProductMaintenance": {
                   "detail": {
                     "route": "PartNumbersObjectPage"
                   }
@@ -140,7 +140,7 @@
                   "tableSettings": {
                     "type": "ResponsiveTable",
                     "creationMode": "Inline",
-                    "selectionMode": "Single",
+                    "selectionMode": "Multi",
                     "useExportToExcel": true
                   },
                   "actions": {
@@ -160,7 +160,8 @@
                     }
                   }
                 }
-              }
+              },
+              "initialLoad": "Enabled"
             }
           },
           "controlAggregation": "beginColumnPages",
@@ -173,11 +174,11 @@
           "options": {
             "settings": {
               "editableHeaderContent": false,
-              "contextPath": "/PartNumbers"
+              "contextPath": "/PriceProductMaintenance"
             }
           },
           "controlAggregation": "midColumnPages",
-          "contextPattern": "/PartNumbers({key})"
+          "contextPattern": "/PriceProductMaintenance({key})"
         }
       }
     },

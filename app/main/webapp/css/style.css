@@ -1,6 +1,6 @@
 /* Custom Background Box */
 .welcomeBox {
-    background-color: #005085; /* Change this hex code to any color you want */
+    background-color: #FF9D00; /* Change this hex code to any color you want */
     border-radius: 0.5rem;     /* Rounded corners */
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); /* Optional: Drop shadow */
 }
@@ -8,8 +8,8 @@
 /* Force the Text and Title inside the box to be White */
 .welcomeBox .sapMText, 
 .welcomeBox .sapMTitle {
-    color: #ffffff !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5); /* Optional: Text shadow for readability */
+    color: #000000 !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0); /* Optional: Text shadow for readability */
 }
 
 /* Card Look for the Background */
@@ -93,4 +93,21 @@ width: 100% !important;
     max-width: 100% !important;
     padding: 0 !important;
     height: 10rem;
+}
+
+/* Contact Link Style */
+.contactLinkStyleClass {
+    padding-right: 15rem !important;
+    padding-left: 0.5rem !important;
+}
+
+.innerHBox{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.outerHBox{
+    display: flex;
+    gap: 10rem;
 }

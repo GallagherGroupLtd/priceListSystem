@@ -8,7 +8,7 @@ sap.ui.define(['sap/fe/test/ListReport'], function(ListReport) {
 
     return new ListReport(
         {
-            appId: 'pricelistapp.myrequest.myrequest',
+            appId: 'pricelistapp.myrequest',
             componentId: 'MyRequestList',
             contextPath: '/MyRequest'
         },

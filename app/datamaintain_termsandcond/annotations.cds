@@ -1,49 +1,43 @@
 using PriceListService as service from '../../srv/service';
 annotate service.TermsAndConditions with @(
     UI.HeaderInfo: {
-        TypeName      : 'Term & Condition',
+        TypeName      : 'Terms & Conditions',
         TypeNamePlural: 'Terms & Conditions'
     },
-
-    // Selection Fields for Filtering
-    UI.SelectionFields: [ TradeScenario,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
 
     // Header Section at the top
     UI.HeaderInfo                 : {
         ImageUrl      : 'sap-icon://sales-order-item'
     },    
-
-    // Header Section at the top
     UI.HeaderFacets               : [
         {
             $Type : 'UI.ReferenceFacet',
             ID    : 'DatesFacet',
-            Target: '@UI.FieldGroup#DatesGroup'
+            Target: '@UI.FieldGroup#CreateGroup'
         },
         {
             $Type : 'UI.ReferenceFacet',
             ID    : 'UsersFacet',
-            Target: '@UI.FieldGroup#UsersGroup'
+            Target: '@UI.FieldGroup#UpdateGroup'
         }
     ],
-    UI.FieldGroup #DatesGroup     : {
+    UI.FieldGroup #CreateGroup     : {
         Data: [
             {
                 Value: createdAt,
                 Label: 'Created On'
             },
             {
-                Value: modifiedAt,
-                Label: 'Updated On'
+                Value: createdBy,
+                Label: 'Created BY'
             }
         ]
     },
- 
-    UI.FieldGroup #UsersGroup     : {
+    UI.FieldGroup #UpdateGroup     : {
         Data: [
             {
-                Value: createdBy,
-                Label: 'Created By'
+                Value: modifiedAt,
+                Label: 'Updated On'
             },
             {
                 Value: modifiedBy,
@@ -52,8 +46,11 @@ annotate service.TermsAndConditions with @(
         ]
     },
 
+    // Selection Fields for Filtering
+    UI.SelectionFields: [ PricelistType,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer ],
+
     UI.LineItem  : [
-        { Value: TradeScenario },
+        { Value: PricelistType },
         { Value: MarketScopeRegion },
         { Value: MarketScopeCountry },
         { Value: SalesOrg },
@@ -62,41 +59,12 @@ annotate service.TermsAndConditions with @(
         { Value: CustGroup1 },
         { Value: ErpCustomer },
         { Value: DeliveringPlant },
-        { Value: TermsAndConditionCategory },
         { Value: MainCategory },
-        { Value: Subcategory1 },
-        { Value: Subcategory2 },
-        { Value: Subcategory3 },
-        { Value: Subcategory4 },
-        { Value: Subcategory5 },
-        { Value: PricelistFieldName }, 
-        { Value: PricelistDataLevel },
-        { Value: TermsAndConditionContent },
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.uploadData',
-            Label : 'Upload Files',
-            InvocationGrouping : #ChangeSet
-        },   
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.duplicateRecord',
-            Label : 'Duplicate Record',
-            InvocationGrouping : #ChangeSet
-        },         
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.copy',
-            Label : 'Copy',
-            InvocationGrouping : #ChangeSet
-        },       
-        {
-            $Type : 'UI.DataFieldForAction',
-            Action : 'MyService.exportExcel',
-            Label : 'Export as Excel',
-            InvocationGrouping : #ChangeSet,
-            criticality: #CRITICAL
-        } 
+        { Value: SubCategory1 },
+        { Value: SubCategory2 },
+        { Value: SubCategory3 },
+        { Value: SubCategory4 },
+        { Value: SubCategory5 }
     ],
 
     UI.PresentationVariant : {
@@ -117,13 +85,13 @@ annotate service.TermsAndConditions with @(
 
     UI.FieldGroup #TradeParameters : {
         Data: [
-            { Value: TradeScenario, Label: 'Trade Scenario' },
+            { Value: PricelistType, Label: 'Pricelist Type' },
             { Value: MarketScopeRegion, Label: 'Region' },
             { Value: MarketScopeCountry, Label: 'Country' }
         ]
     },
 
-    UI.FieldGroup #CommercialScope : {
+    UI.FieldGroup #ErpData : {
         Data: [
             { Value: SalesOrg, Label: 'Sales Org' },
             { Value: DistChannel, Label: 'Dist. Channel' },
@@ -134,19 +102,75 @@ annotate service.TermsAndConditions with @(
         ]
     },
 
-    UI.FieldGroup #TermsDetails : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            { $Type : 'UI.DataField', Value : TermsAndConditionCategory },
-            { $Type : 'UI.DataField', Value : PricelistFieldName },
-            { $Type : 'UI.DataField', Value : PricelistDataLevel }
+    UI.FieldGroup #MainCategory : {
+        Data: [
+            { $Type : 'UI.DataField', Value : MainCategory }
         ]
     },
 
-    UI.FieldGroup #TermsContent : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            { $Type : 'UI.DataField', Value : TermsAndConditionContent }
+    UI.FieldGroup #MainCategoryTermsandConditions : {
+        Data: [
+            { $Type : 'UI.DataField', Value : MainCategoryTermsandConditions }
+        ]
+    },
+
+    UI.FieldGroup #SubCategory1 : {
+        Data: [
+            { $Type : 'UI.DataField', Value : SubCategory1 }
+        ]
+    },
+
+    UI.FieldGroup #SubCategory1TermsandConditions : {
+        Data: [
+            { $Type : 'UI.DataField', Value : SubCategory1TermsandConditions }
+        ]
+    },
+
+    UI.FieldGroup #SubCategory2 : {
+        Data: [
+            { $Type : 'UI.DataField', Value : SubCategory2 }
+        ]
+    },
+
+    UI.FieldGroup #SubCategory2TermsandConditions : {
+        Data: [
+            { $Type : 'UI.DataField', Value : SubCategory2TermsandConditions }
+        ]
+    },
+
+    UI.FieldGroup #SubCategory3 : {
+        Data: [
+            { $Type : 'UI.DataField', Value : SubCategory3 }
+        ]
+    },
+
+    UI.FieldGroup #SubCategory3TermsandConditions : {
+        Data: [
+            { $Type : 'UI.DataField', Value : SubCategory3TermsandConditions }
+        ]
+    },
+
+    UI.FieldGroup #SubCategory4 : {
+        Data: [
+            { $Type : 'UI.DataField', Value : SubCategory4 }
+        ]
+    },
+
+    UI.FieldGroup #SubCategory4TermsandConditions : {
+        Data: [
+            { $Type : 'UI.DataField', Value : SubCategory4TermsandConditions }
+        ]
+    },
+
+    UI.FieldGroup #SubCategory5 : {
+        Data: [
+            { $Type : 'UI.DataField', Value : SubCategory5 }
+        ]
+    },
+
+    UI.FieldGroup #SubCategory5TermsandConditions : {
+        Data: [
+            { $Type : 'UI.DataField', Value : SubCategory5TermsandConditions }
         ]
     },
 
@@ -164,17 +188,76 @@ annotate service.TermsAndConditions with @(
             Target: '@UI.FieldGroup#ERPData'
         },
         {
-            $Type : 'UI.CollectionFacet',
-            ID    : 'FacetProductCategories',
-            Label : 'Terms and Condition Details',
-            Facets: [
-                { $Type : 'UI.ReferenceFacet', Label : 'Main Category', Target: '@UI.FieldGroup#MainCategory' },
-                { $Type : 'UI.ReferenceFacet', Label : 'Subcategory 1', Target: '@UI.FieldGroup#Subcategory1' },
-                { $Type : 'UI.ReferenceFacet', Label : 'Subcategory 2', Target: '@UI.FieldGroup#Subcategory2' },
-                { $Type : 'UI.ReferenceFacet', Label : 'Subcategory 3', Target: '@UI.FieldGroup#Subcategory3' },
-                { $Type : 'UI.ReferenceFacet', Label : 'Subcategory 4', Target: '@UI.FieldGroup#Subcategory4' },
-                { $Type : 'UI.ReferenceFacet', Label : 'Subcategory 5', Target: '@UI.FieldGroup#Subcategory5' }
-            ]
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet3',
+            Label  : 'Main Category',
+            Target : '@UI.FieldGroup#MainCategory'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet4',
+            Label  : 'Main Category Terms and Conditions',
+            Target : '@UI.FieldGroup#MainCategoryTermsandConditions'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet5',
+            Label  : 'SubCategory1',
+            Target : '@UI.FieldGroup#SubCategory1'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet6',
+            Label  : 'SubCategory1 Terms and Conditions',
+            Target : '@UI.FieldGroup#SubCategory1TermsandConditions'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet7',
+            Label  : 'SubCategory2',
+            Target : '@UI.FieldGroup#SubCategory2'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet8',
+            Label  : 'SubCategory2 Terms and Conditions',
+            Target : '@UI.FieldGroup#SubCategory2TermsandConditions'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet9',
+            Label  : 'SubCategory3',
+            Target : '@UI.FieldGroup#SubCategory3'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet10',
+            Label  : 'SubCategory3 Terms and Conditions',
+            Target : '@UI.FieldGroup#SubCategory3TermsandConditions'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet11',
+            Label  : 'SubCategory4',
+            Target : '@UI.FieldGroup#SubCategory4'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet12',
+            Label  : 'SubCategory4 Terms and Conditions',
+            Target : '@UI.FieldGroup#SubCategory4TermsandConditions'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet13',
+            Label  : 'SubCategory5',
+            Target : '@UI.FieldGroup#SubCategory5'
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID    : 'Facet14',
+            Label  : 'SubCategory5 Terms and Conditions',
+            Target : '@UI.FieldGroup#SubCategory5TermsandConditions'
         }
     ],
 
@@ -190,95 +273,16 @@ annotate service.TermsAndConditions with @(
             { $Type : 'UI.DataField', Value : DeliveringPlant }
         ]
     },
-
-    UI.FieldGroup #MainCategory : {
-        Data: [
-            { $Type : 'UI.DataField', Value : MainCategory },
-            { $Type : 'UI.DataField', Value : MainCategoryLocal }
-        ]
-    },
-
-    UI.FieldGroup #Subcategory1 : {
-        Data: [
-            { $Type : 'UI.DataField', Value : Subcategory1 },
-            { $Type : 'UI.DataField', Value : Subcategory1Local }
-        ]
-    },
-
-    UI.FieldGroup #Subcategory2 : {
-        Data: [
-            { $Type : 'UI.DataField', Value : Subcategory2 },
-            { $Type : 'UI.DataField', Value : Subcategory2Local }
-        ]
-    },
-
-    UI.FieldGroup #Subcategory3 : {
-        Data: [
-            { $Type : 'UI.DataField', Value : Subcategory3 },
-            { $Type : 'UI.DataField', Value : Subcategory3Local }
-        ]
-    },
-
-    UI.FieldGroup #Subcategory4 : {
-        Data: [
-            { $Type : 'UI.DataField', Value : Subcategory4 },
-            { $Type : 'UI.DataField', Value : Subcategory4Local }
-        ]
-    },
-
-    UI.FieldGroup #Subcategory5 : {
-        Data: [
-            { $Type : 'UI.DataField', Value : Subcategory5 },
-            { $Type : 'UI.DataField', Value : Subcategory5Local }
-        ]
-    }
-    
-    // UI.Facets : [
-    //     {
-    //         $Type : 'UI.CollectionFacet',
-    //         Label : 'Terms and Conditions',
-    //         ID    : 'TCFacet',
-    //         Facets: [
-    //             { 
-    //                 $Type : 'UI.CollectionFacet', 
-    //                 ID : 'ScopeContainer', 
-    //                 Label : '', 
-    //                 Facets: [
-    //                     { $Type : 'UI.ReferenceFacet', Label : 'Market Scope', Target: '@UI.FieldGroup#MarketScope' },
-    //                     { $Type : 'UI.ReferenceFacet', Label : 'Commercial Scope', Target: '@UI.FieldGroup#CommercialScope' }
-    //                 ]
-    //             },
-    //             { 
-    //                 $Type : 'UI.ReferenceFacet', 
-    //                 Label : '', 
-    //                 Target: '@UI.FieldGroup#ProductCategory' 
-    //             },
-    //             { 
-    //                 $Type : 'UI.ReferenceFacet', 
-    //                 Label : '', 
-    //                 Target: '@UI.FieldGroup#TermsDetails' 
-    //             },
-    //             { 
-    //                 $Type : 'UI.ReferenceFacet', 
-    //                 Label : '', 
-    //                 Target: '@UI.FieldGroup#TermsContent' 
-    //             }
-    //         ]
-    //     }
-    // ]    
 );
 
-annotate service.TermsAndConditions with {
-    // PricelistFieldName @UI.MultiLineText;
-    // TermsAndConditionContent @UI.MultiLineText;
-    
-    TradeScenario @(
+annotate service.TermsAndConditions with {  
+    PricelistType @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'TradeScenarioVH',
+            CollectionPath: 'PricelistTypeVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'PricelistType', ValueListProperty: 'PricelistType' }
             ]
         }
     );
@@ -289,7 +293,6 @@ annotate service.TermsAndConditions with {
             $Type         : 'Common.ValueListType',
             CollectionPath: 'MarketRegionVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' },
                 { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeRegion', ValueListProperty: 'MarketScopeRegion' }
             ]
         }
@@ -301,61 +304,193 @@ annotate service.TermsAndConditions with {
             $Type         : 'Common.ValueListType',
             CollectionPath: 'MarketCountryVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' },
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeRegion', ValueListProperty: 'MarketScopeRegion' },
                 { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeCountry', ValueListProperty: 'MarketScopeCountry' }
             ]
         }
     );
 
-    PricelistDataLevel @(
+    MainCategory @(
+        Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
-            CollectionPath: 'TermsDataLevelValues',
+            CollectionPath: 'MainCategoryVH',
             Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'Level', ValueListProperty: 'Level' }
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'MainCategory', 
+                    ValueListProperty: 'MainCategory' }
+            ]
+        }
+    );
+    
+    SubCategory1 @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'SubCategory1VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SubCategory1', 
+                    ValueListProperty: 'SubCategory1' }
             ]
         }
     );
 
-    SalesOrg @(
+    SubCategory3 @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
+            CollectionPath: 'SubCategory3VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SubCategory3', 
+                    ValueListProperty: 'SubCategory3' }
+            ]
+        }
+    );
+
+    SubCategory4 @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'SubCategory4VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SubCategory4', 
+                    ValueListProperty: 'SubCategory4' }
+            ]
+        }
+    );
+
+    SubCategory5 @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'SubCategory5VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SubCategory5', 
+                    ValueListProperty: 'SubCategory5' }
+            ]
+        }
+    );
+
+    SubCategory2 @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'SubCategory2VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SubCategory2', 
+                    ValueListProperty: 'SubCategory2' }
+            ]
+        }
+    );
+    SalesOrg @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'SalesOrgVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'SalesOrg', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly',
+                    ValueListProperty: 'Description' 
+                }
+            ]            
         }        
     );
 
     DistChannel @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'DistributionChannelVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'DistChannel', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
         }        
     );
 
     CustPriceList @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'PricelistVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'CustPriceList', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
         }        
     );
 
     CustGroup1 @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'CustomerGroup1VH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'CustGroup1', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
         }        
     );
-        
-    ErpCustomer @(
+
+    DeliveringPlant @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
-            $Type         : 'Common.ValueListType',
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'PlantVH',
+            Parameters: [
+                { 
+                    $Type: 'Common.ValueListParameterInOut', 
+                    LocalDataProperty: 'DeliveringPlant', 
+                    ValueListProperty: 'Code' 
+                },
+                { 
+                    $Type: 'Common.ValueListParameterDisplayOnly', 
+                    ValueListProperty: 'Description' 
+                }
+            ]              
         }        
-    );
-    MainCategoryLocal @UI.MultiLineText;
-    Subcategory1Local @UI.MultiLineText;
-    Subcategory2Local @UI.MultiLineText;
-    Subcategory3Local @UI.MultiLineText;
-    Subcategory4Local @UI.MultiLineText;
-    Subcategory5Local @UI.MultiLineText;    
+    ); 
+    
+    MainCategoryTermsandConditions  @UI.MultiLineText;
+    SubCategory1TermsandConditions  @UI.MultiLineText;
+    SubCategory2TermsandConditions  @UI.MultiLineText;
+    SubCategory3TermsandConditions  @UI.MultiLineText;
+    SubCategory4TermsandConditions  @UI.MultiLineText;
+    SubCategory5TermsandConditions  @UI.MultiLineText;  
 }

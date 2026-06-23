@@ -4,7 +4,7 @@ service PriceListService {
     //For URLs
     entity User {
         key email                  : String;
-            AppURL_DMTradeScenario : String;
+            AppURL_DMPricelistType : String;
             AppURL_DMItemStructure : String;
             AppURL_DMPartNumbers   : String;
             AppURL_DMTermsandCond  : String;
@@ -15,137 +15,143 @@ service PriceListService {
             AppURL_DataMaintain    : String;
             AppURL_PriceMaintain   : String;
             AppURL_PriceDisplay    : String;
+            AppURL_MyRequest       : String;
     };
 
     //Data Maintenance Application
-    entity TableDirectory       as projection on my.MaintenanceTableDirectory;
+    entity TableDirectory             as projection on my.MaintenanceTableDirectory;
     annotate TableDirectory with @odata.draft.enabled;
 
-    entity TradeScenarios       as projection on my.TradeAndMarketScenarioDetermination
+    entity TradeScenarios             as projection on my.TradeAndMarketScenarioDetermination
         actions {
             action copyRow() returns TradeScenarios;
         };
 
     annotate TradeScenarios with @odata.draft.enabled;
 
-    entity ItemStructure        as projection on my.PricelistItemStructureComponents
+    entity ItemStructure              as projection on my.PricelistItemStructureComponents
         actions {
             action copyRow() returns ItemStructure;
         };
 
     annotate ItemStructure with @odata.draft.enabled;
 
-    entity PartNumbers          as projection on my.PricelistPartNumberDetermination
+    entity PriceProductMaintenance    as projection on my.PricelistPartNumberDetermination
         actions {
-            action copyRow() returns PartNumbers;
+            action copyRow() returns PriceProductMaintenance;
         };
 
-    annotate PartNumbers with @odata.draft.enabled;
+    annotate PriceProductMaintenance with @odata.draft.enabled;
 
-    entity TermsAndConditions   as projection on my.TermsAndConditionDetermination
+    entity TermsAndConditions         as projection on my.TermsAndConditionDetermination
         actions {
             action copyRow() returns TermsAndConditions;
         };
 
     annotate TermsAndConditions with @odata.draft.enabled;
 
-    entity PricingParameters    as projection on my.PricingParameterDetermination
+    entity PricingParameters          as projection on my.PricingParameterDetermination
         actions {
             action copyRow() returns PricingParameters;
         };
 
     annotate PricingParameters with @odata.draft.enabled;
 
-    entity TileContent          as projection on my.InformationTileContent
+    entity TileContent                as projection on my.InformationTileContent
         actions {
             action copyRow() returns TileContent;
         };
 
     annotate TileContent with @odata.draft.enabled;
 
-    entity ContactInfo          as projection on my.ContactInformation
+    entity ContactInfo                as projection on my.ContactInformation
         actions {
             action copyRow() returns ContactInfo;
         };
 
     annotate ContactInfo with @odata.draft.enabled;
 
-    entity AccountAssignment    as projection on my.AccountAssignment
+    entity AccountAssignment          as projection on my.AccountAssignment
         actions {
             action copyRow() returns AccountAssignment;
         };
 
     annotate AccountAssignment with @odata.draft.enabled;
 
-    entity ErpSalesOrg    as projection on my.ErpSalesOrg
+    entity ErpSalesOrg                as projection on my.ErpSalesOrg
         actions {
             action copyRow() returns ErpDistributionChannel;
         };
 
     annotate ErpSalesOrg with @odata.draft.enabled;
 
-    entity ErpDistributionChannel    as projection on my.ErpDistributionChannel
+    entity ErpDistributionChannel     as projection on my.ErpDistributionChannel
         actions {
             action copyRow() returns ErpDistributionChannel;
         };
 
     annotate ErpDistributionChannel with @odata.draft.enabled;
 
-    entity ErpDivision    as projection on my.ErpDivision
+    entity ErpDivision                as projection on my.ErpDivision
         actions {
             action copyRow() returns ErpDivision;
         };
 
     annotate ErpDivision with @odata.draft.enabled;
 
-    entity ErpPlant    as projection on my.ErpPlant
+    entity ErpPlant                   as projection on my.ErpPlant
         actions {
             action copyRow() returns ErpPlant;
         };
 
     annotate ErpPlant with @odata.draft.enabled;
 
-    entity ErpMaterialGroup1    as projection on my.ErpMaterialGroup1
+    entity ErpMaterialGroup1          as projection on my.ErpMaterialGroup1
         actions {
             action copyRow() returns ErpMaterialGroup1;
         };
 
     annotate ErpMaterialGroup1 with @odata.draft.enabled;
 
-    entity ErpMaterialGroup2    as projection on my.ErpMaterialGroup2
+    entity ErpMaterialGroup2          as projection on my.ErpMaterialGroup2
         actions {
             action copyRow() returns ErpMaterialGroup2;
         };
 
     annotate ErpMaterialGroup2 with @odata.draft.enabled;
 
-    entity ErpMaterialGroup5    as projection on my.ErpMaterialGroup5
+    entity ErpMaterialGroup5          as projection on my.ErpMaterialGroup5
         actions {
             action copyRow() returns ErpMaterialGroup5;
         };
 
     annotate ErpMaterialGroup5 with @odata.draft.enabled;
 
-    entity ErpPricelist    as projection on my.ErpPricelist
+    entity ErpPricelist               as projection on my.ErpPricelist
         actions {
             action copyRow() returns ErpPricelist;
         };
 
     annotate ErpPricelist with @odata.draft.enabled;
 
-    entity ErpCustomerGroup1    as projection on my.ErpCustomerGroup1
+    entity ErpCustomerGroup1          as projection on my.ErpCustomerGroup1
         actions {
             action copyRow() returns ErpPricelist;
         };
 
     annotate ErpCustomerGroup1 with @odata.draft.enabled;
 
-    entity ErpPriceStatus    as projection on my.ErpPriceStatus
+    entity ErpPriceStatus             as projection on my.ErpPriceStatus
         actions {
             action copyRow() returns ErpPricelist;
         };
 
     annotate ErpPriceStatus with @odata.draft.enabled;
+
+    entity ApplicationLog             as projection on my.ApplicationLog
+        actions {
+            action copyRow() returns ErpPricelist;
+        };
 
     //File Upload Functions
     action MassUploadTradeScenarios(file: String)                    returns String;
@@ -157,27 +163,43 @@ service PriceListService {
     action MassUploadContactInfo(file: String)                       returns String;
     action MassUploadAcctAssign(file: String)                        returns String;
 
-    entity PricingCondType      as projection on my.PricingCondType;
+    entity PricingCondType            as projection on my.PricingCondType;
 
-    entity UserTypeValues       as projection on my.UserTypeValues;
-    entity TermsDataLevelValues as projection on my.TermsDataLevelValues;
-    entity StatusValues         as projection on my.StatusValues;
+    entity UserTypeValues             as projection on my.UserTypeValues;
+    entity TermsDataLevelValues       as projection on my.TermsDataLevelValues;
+    entity StatusValues               as projection on my.StatusValues;
 
     //Pricelist Maintenance Application
     @odata.draft.enabled
-    entity PricelistData        as
+    entity PricelistData              as
         projection on my.PricelistData {
             *,
             MarketScopeRegion || ' (' || MarketScopeCountry || ')' as MarketDisplay : String,
-            Status @(Common.FieldControl: #ReadOnly),
+            Status @(Common.FieldControl: #Mandatory),
 
             items                                                                   : redirected to PricelistItemData
         };
 
-    entity PricelistItemData    as
+    entity PricelistItemData          as
         projection on my.PricelistItemData {
             *
         };
+
+    entity PriceListTreeLayout as projection on my.PriceListTreeLayout;
+
+    type LayoutInfo {
+        ID            : UUID;
+        tableId       : String(50);
+        userId        : String(255);
+        layoutName    : String(100);
+        defaultLayout : Boolean;
+        masterDefault : Boolean;
+        config        : LargeString;
+    }
+
+    action getAvailableLayouts(tableId: String) returns array of LayoutInfo;
+    action saveTreeLayout(ID: UUID, tableId: String, layoutName: String, defaultLayout: Boolean, masterDefault: Boolean, config: String) returns LayoutInfo;
+    action deleteTreeLayout(ID: UUID) returns Boolean;
 
     type UploadValidatedItem {
         PricelistPartNumber      : String;
@@ -205,7 +227,7 @@ service PriceListService {
     }
 
     action MassUploadItemTermsandConditions(file: String,
-                                            TradeScenario: String,
+                                            PricelistType: String,
                                             MarketScopeRegion: String,
                                             MarketScopeCountry: String,
                                             SalesOrg: String,
@@ -220,7 +242,7 @@ service PriceListService {
 
     //Pricelist App
     @cds.redirection.target
-    entity PricelistItemTree    as
+    entity PricelistItemTree          as
         projection on my.PricelistItemData {
             ID,
             pricelist,
@@ -285,7 +307,7 @@ service PriceListService {
     entity ExternalCustomers {
         key CUSTOMER_KEY              : String(100);
             SYSTEM_CLIENT_GENERAL     : String(100);
-            CUSTOMER                  : String(100);
+            CUSTOMER                  : String(100) @title: 'Customer';
             GENERAL_CREATED_ON        : String(100);
             CUSTOMER_NAME_1           : String(100);
             CUSTOMER_NAME_2           : String(100);
@@ -301,8 +323,8 @@ service PriceListService {
             CENTRAL_DELIVERY_BLOCK    : String(100);
             CENTRAL_POSTING_BLOCK     : String(100);
             CENTRAL_SALES_BLOCK       : String(100);
-            SALES_ORGANIZATION        : String(100);
-            DISTRIBUTION_CHANNEL      : String(100);
+            SALES_ORGANIZATION        : String(100) @title: 'Sales Organization';
+            DISTRIBUTION_CHANNEL      : String(100) @title: 'Distribution Channel';
             DIVISION                  : String(100);
             CREATED_ON_DATE           : String(100);
             SALES_AREA_DELETION_FLAG  : String(100);
@@ -462,7 +484,7 @@ service PriceListService {
             MaterialStatus           : String(100);
             MaterialStatusEffecDate  : String(100);
 
-            TradeScenario            : String(50);
+            PricelistType            : String(50);
             MarketScopeRegion        : String(50);
             MarketScopeCountry       : String(50);
             SalesOrg                 : String(50);
@@ -483,10 +505,78 @@ service PriceListService {
 
     annotate ResolvedPricelistItem with @cds.persistence.skip;
 
+    // Pricelist Maintain -- Product Pricelist Tree Table
+    @readonly
+    entity ProductPricelistTree {
+        key PricelistType            : String(255) @title: 'Pricelist Type';
+        key MarketScopeRegion        : String(255) @title: 'Region';
+        key MarketScopeCountry       : String(255) @title: 'Country';
+        key SalesOrg                 : String(4)   @title: 'Sales Organization';
+        key DistChannel              : String(2)   @title: 'Distribution Channel';
+        key CustPriceList            : String(20)  @title: 'Customer Pricelist';
+        key CustGroup1               : String(255) @title: 'Customer Group 1';
+        key ErpCustomer              : String(255) @title: 'ERP Customer';
+        key DeliveringPlant          : String(255) @title: 'Plant';
+        key MaterialKey              : String(100) @title: 'Material Key';
+            MainCategory             : String(255) @title: 'Main Category';
+            SubCategory1             : String(255) @title: 'Subcategory 1';
+            SubCategory2             : String(255) @title: 'Subcategory 2';
+            SubCategory3             : String(255) @title: 'Subcategory 3';
+            SubCategory4             : String(255) @title: 'Subcategory 4';
+            SubCategory5             : String(255) @title: 'Subcategory 5';
+            Material                 : String(100) @title: 'Material Number';
+            MaterialDescription      : String(100) @title: 'Material Description';
+            Price                    : String(100);
+            PriceUnit                : String(100);
+            DiscountRate             : String(100);
+            DiscountValidFrom        : String(100);
+            DiscountValidTo          : String(100);
+            PartNumberTermsandCond   : String;
+            MainCategoryTermsandCond : String;
+            SubCategory1TermsandCond : String;
+            SubCategory2TermsandCond : String;
+            SubCategory3TermsandCond : String;
+            SubCategory4TermsandCond : String;
+            SubCategory5TermsandCond : String;
+    };
+
+    entity ProductPriceList           as projection on my.ProductPriceList;
+
+    action getProductTreeData(headerData: LargeString)               returns array of ProductPricelistTree;
+
+    action saveProductPriceList(headerData: LargeString,
+                                originalHeaderData: LargeString,
+                                treeData: LargeString)               returns String;
+
+    // entity ProductPricelistTree    as
+    //     select from my.PricelistItemStructureComponents {
+    //         key PricelistType,
+    //         key MarketScopeRegion,
+    //         key MarketScopeCountry,
+    //         key SalesOrg,
+    //         key DistChannel,
+    //         key CustPriceList,
+    //         key CustGroup1,
+    //         key ErpCustomer,
+    //         key DeliveringPlant,
+    //             MainCategory,
+    //             SubCategory1,
+    //             SubCategory2,
+    //             SubCategory3,
+    //             SubCategory4,
+    //             SubCategory5,
+    //             _Materials : Association to many ExternalMaterials
+    //                              on  _Materials.MAIN_CATEGORY = $self.MainCategory
+    //                              and _Materials.SUBCATEGORY_1 = $self.SubCategory1
+    //                              and _Materials.SUBCATEGORY_2 = $self.SubCategory2
+    //                              and _Materials.SUBCATEGORY_3 = $self.SubCategory3
+    //                              and _Materials.SUBCATEGORY_4 = $self.SubCategory4
+    //                              and _Materials.SUBCATEGORY_5 = $self.SubCategory5
+    //     };
 
     //For PDF Creation
     action exportTermsPdf(ID: UUID,
-                          TradeScenario: String,
+                          PricelistType: String,
                           MarketScopeRegion: String,
                           MarketScopeCountry: String,
                           SalesOrg: String,
@@ -497,59 +587,155 @@ service PriceListService {
                           DeliveringPlant: String)                   returns Binary;
 
     //Value Help Views
-    @cds.persistence.skip
-    entity TradeScenarioVH      as projection on my.TradeAndMarketScenarioDetermination;
+    // @cds.persistence.skip
+    // entity TradeScenarioVH      as projection on my.TradeAndMarketScenarioDetermination;
+
+    // @cds.persistence.skip
+    // entity MarketRegionVH       as projection on my.TradeAndMarketScenarioDetermination;
+
+    // @cds.persistence.skip
+    // entity MarketCountryVH      as projection on my.TradeAndMarketScenarioDetermination;
 
     @cds.persistence.skip
-    entity MarketRegionVH       as projection on my.TradeAndMarketScenarioDetermination;
+    entity PricelistTypeVH {
+        key PricelistType : String(255);
+    }
 
     @cds.persistence.skip
-    entity MarketCountryVH      as projection on my.TradeAndMarketScenarioDetermination;
+    entity MarketRegionVH {
+        key MarketScopeRegion : String(255);
+    }
 
     @cds.persistence.skip
-    entity CustomerVH           as projection on ExternalCustomers;
+    entity MarketCountryVH {
+        key MarketScopeCountry : String(255);
+    }
 
     @cds.persistence.skip
-    entity SalesOrgVH        as projection on my.ErpSalesOrg;
+    entity CustomerVH                 as projection on ExternalCustomers;
+
+    @cds.persistence.skip
+    entity SalesOrgVH                 as projection on my.ErpSalesOrg;
 
     @cds.persistence.skip
     entity DistributionChannelVH      as projection on my.ErpDistributionChannel;
 
     @cds.persistence.skip
-    entity DivisionVH      as projection on my.ErpDivision;
+    entity DivisionVH                 as projection on my.ErpDivision;
 
     @cds.persistence.skip
-    entity PlantVH      as projection on my.ErpPlant;
+    entity PlantVH                    as projection on my.ErpPlant;
 
     @cds.persistence.skip
-    entity MaterialGroup1VH      as projection on my.ErpMaterialGroup1;
+    entity MaterialGroup1VH           as projection on my.ErpMaterialGroup1;
 
     @cds.persistence.skip
-    entity MaterialGroup2VH      as projection on my.ErpMaterialGroup2;
+    entity MaterialGroup2VH           as projection on my.ErpMaterialGroup2;
 
     @cds.persistence.skip
-    entity MaterialGroup5VH      as projection on my.ErpMaterialGroup5;
+    entity MaterialGroup5VH           as projection on my.ErpMaterialGroup5;
 
     @cds.persistence.skip
-    entity PricelistVH      as projection on my.ErpPricelist;
+    entity PricelistVH                as projection on my.ErpPricelist;
 
     @cds.persistence.skip
-    entity CustomerGroup1VH      as projection on my.ErpCustomerGroup1;
+    entity CustomerGroup1VH           as projection on my.ErpCustomerGroup1;
 
     @cds.persistence.skip
-    entity CustPricelistVH      as projection on ExternalCustomers;
+    entity CustPricelistVH            as projection on ExternalCustomers;
 
     @cds.persistence.skip
-    entity StatusVH             as projection on StatusValues;    
-    entity PriceStatusVH      as projection on my.ErpPriceStatus;
-                                                   
+    entity StatusVH                   as projection on StatusValues;
+
+    entity PriceStatusVH              as projection on my.ErpPriceStatus;
+
     @odata.draft.enabled
-    entity MyRequest
-        as projection on my.MyRequest
+    entity MyRequest                  as projection on my.MyRequest
         actions {
             action SubmitRequest();
         };
 
+    @cds.persistence.skip
+    entity MainCategoryVH {
+        key MainCategory : String(255);
+    }
+
+    @cds.persistence.skip
+    entity SubCategory1VH {
+        key SubCategory1 : String(255);
+    }
+
+    @cds.persistence.skip
+    entity SubCategory2VH {
+        key SubCategory2 : String(255);
+    }
+
+    @cds.persistence.skip
+    entity SubCategory3VH {
+        key SubCategory3 : String(255);
+    }
+
+    @cds.persistence.skip
+    entity SubCategory4VH {
+        key SubCategory4 : String(255);
+    }
+
+    @cds.persistence.skip
+    entity SubCategory5VH {
+        key SubCategory5 : String(255);
+    }
+
+    @cds.persistence.skip
+    entity PriceConditionTypeVH {
+        key Code : String(4);
+    }
+
+    @cds.persistence.skip
+    entity PriceAccessSequenceVH {
+        key Code        : String(4);
+            Description : String(255);
+    }
+
+    @cds.persistence.skip
+    entity DiscountConditionTypeVH {
+        key Code : String(4);
+    }
+
+    @cds.persistence.skip
+    entity DiscountAccessSequenceVH {
+        key Code        : String(4);
+            Description : String(255);
+    }
+
+    @cds.persistence.skip
+    entity RequestStatusVH {
+        key Code : String(4);
+    }
+
+    @cds.persistence.skip
+    entity AccountTypeVH {
+        key Code : String(8);
+    }
+
+    @cds.persistence.skip
+    entity AccountScopeVH {
+        key Code : String(8);
+    }
+
+    @cds.persistence.skip
+    entity MatGruop2VH {
+        key Code        : String(8);
+            Description : String(255);
+    }
+
+    @cds.persistence.skip
+    entity MatMasVH {
+        key Code        : String(100);
+            Description : String(100);
+    }
 }
 
-
+@cds.persistence.skip
+entity Subcategory1VH {
+    key Subategory1 : String(255);
+}

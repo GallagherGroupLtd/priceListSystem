@@ -36,67 +36,61 @@ sap.ui.define([
 
           const oReader = new FileReader();
           oReader.onload = async (e) => {
-            // Strip off the "data:...;base64," prefix
             const base64 = e.target.result.split(",")[1];
-
-            // Get Model
             const oModel = this.getModel();
 
+            const oOperation = oModel.bindContext("/MassUploadTermsandCond(...)");
+            oOperation.setParameter("file", base64);
+
             try {
-              const response = await fetch("/odata/v4/price-list/MassUploadTermsandCond", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ file: base64 })
-              });
-
-              if (!response.ok) {
-                throw new Error(await response.text());
-              }
-
-              //Refresh model.
-              oModel.refresh();
-
+              await oOperation.execute();
               MessageToast.show("Upload successful.");
-              if (this._oUploadDialog) {
-                this._oUploadDialog.close();
-              }
+              oModel.refresh();
+              oDialog.close();
+
             } catch (err) {
               MessageToast.show("Upload failed: " + err.message);
+            } finally {
+              sap.ui.core.BusyIndicator.hide();
             }
           };
+
           oReader.readAsDataURL(this._file);
           oDialog.close();
         }
       });
 
+
       const oDownloadButton = new Button({
         text: "Download Terms and Conditions Template",
         press: () => {
           const aColumns = [
-            { label: "TradeScenario", property: "TradeScenario" },
-            { label: "MarketScopeRegion", property: "MarketScopeRegion" },
-            { label: "MarketScopeCountry", property: "MarketScopeCountry" },
-            { label: "SalesOrg", property: "SalesOrg" },
-            { label: "DistChannel", property: "DistChannel" },
-            { label: "CustPriceList", property: "CustPriceList" },
-            { label: "CustGroup1", property: "CustGroup1" },
-            { label: "ErpCustomer", property: "ErpCustomer" },
-            { label: "DeliveringPlant", property: "DeliveringPlant" },
-            { label: "MainCategory", property: "MainCategory" },
-            { label: "Subcategory1", property: "Subcategory1" },
-            { label: "Subcategory2", property: "Subcategory2" },
-            { label: "Subcategory3", property: "Subcategory3" },
-            { label: "Subcategory4", property: "Subcategory4" },
-            { label: "Subcategory5", property: "Subcategory5" },            
-            { label: "TermsAndConditionCategory", property: "TermsAndConditionCategory" },
-            { label: "PricelistFieldName", property: "PricelistFieldName" },
-            { label: "PricelistDataLevel", property: "PricelistDataLevel" },
-            { label: "TermsAndConditionContent", property: "TermsAndConditionContent" }
+              { label: "Pricelist Type",                    property: "PricelistType" },
+              { label: "Region",                            property: "MarketScopeRegion" },
+              { label: "Country",                           property: "MarketScopeCountry" },
+              { label: "Sales Organization",                property: "SalesOrg" },
+              { label: "Distribution Channel",              property: "DistChannel" },
+              { label: "Customer Pricelist",                property: "CustPriceList" },
+              { label: "Customer Group 1",                  property: "CustGroup1" },
+              { label: "ERP Customer",                      property: "ErpCustomer" },
+              { label: "Plant",                             property: "DeliveringPlant" },
+              { label: "Main Category",                     property: "MainCategory" },
+              { label: "SubCategory 1",                     property: "SubCategory1" },
+              { label: "SubCategory 2",                     property: "SubCategory2" },
+              { label: "SubCategory 3",                     property: "SubCategory3" },
+              { label: "SubCategory 4",                     property: "SubCategory4" },
+              { label: "SubCategory 5",                     property: "SubCategory5" },
+              { label: "Main Category Terms and Condition", property: "MainCategoryTermsandConditions" },
+              { label: "SubCategory 1 Terms and Condition", property: "SubCategory1TermsandConditions" },
+              { label: "SubCategory 2 Terms and Condition", property: "SubCategory2TermsandConditions" },
+              { label: "SubCategory 3 Terms and Condition", property: "SubCategory3TermsandConditions" },
+              { label: "SubCategory 4 Terms and Condition", property: "SubCategory4TermsandConditions" },
+              { label: "SubCategory 5 Terms and Condition", property: "SubCategory5TermsandConditions" }
           ];
           const oSettings = {
             workbook: { columns: aColumns },
             dataSource: [{}],
-            fileName: "TermsAndConditionsTemplate.xlsx"
+            fileName: "TermsandConditionssTemplate.xlsx"
           };
           const oSpreadsheet = new Spreadsheet(oSettings);
           oSpreadsheet.build()

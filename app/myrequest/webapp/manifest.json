@@ -1,7 +1,7 @@
 {
   "_version": "1.84.0",
   "sap.app": {
-    "id": "pricelistapp.myrequest.myrequest",
+    "id": "pricelistapp.myrequest",
     "type": "application",
     "i18n": "i18n/i18n.properties",
     "applicationVersion": {
@@ -21,14 +21,14 @@
         "type": "OData",
         "settings": {
           "annotations": [],
-          "odataVersion": "4.01"
+          "odataVersion": "4.0"
         }
       }
     },
     "crossNavigation": {
       "inbounds": {
         "myrequest-maintain": {
-          "semanticObject": "myrequest",
+          "semanticObject": "Myrequest",
           "action": "maintain",
           "title": "{{myrequest-maintain.flpTitle}}",
           "signature": {
@@ -73,7 +73,7 @@
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
-          "bundleName": "pricelistapp.myrequest.myrequest.i18n.i18n"
+          "bundleName": "pricelistapp.myrequest.i18n.i18n"
         }
       },
       "": {
@@ -130,7 +130,10 @@
               "controlConfiguration": {
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
-                    "type": "ResponsiveTable"
+                    "type": "ResponsiveTable",
+                    "creationMode": "Inline",
+                    "selectionMode": "Multi",
+                    "useExportToExcel": true
                   }
                 }
               }
