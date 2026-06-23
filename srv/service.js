@@ -1167,18 +1167,60 @@ module.exports = cds.service.impl(async function () {
     });
 
     this.before('PATCH', 'PriceProductMaintenance.drafts', async (req) => {
-        const productId = req.data.PricelistPartNumber;
-        if (!productId) return;
+        const db    = cds.transaction(req);
         const extdb = await cds.connect.to('extdb');
-        const material = await extdb.run(
+
+        const draft = await db.run(
+            SELECT.one.from('PRICELISTSERVICE_PRICEPRODUCTMAINTENANCE.drafts')
+                .where({ ID: req.data.ID })
+        );
+
+        const productId   = req.data.ProductID   || draft?.PRODUCTID;
+        const salesOrg    = req.data.SalesOrg    || draft?.SALESORG;
+        const distChannel = req.data.DistChannel || draft?.DISTCHANNEL;
+
+        // console.log('ID:', ID);
+        // console.log('ProductID:', productId);
+        // console.log('SalesOrg:', salesOrg);
+        // console.log('DistChannel:', distChannel);
+        // console.log('draft JSON =', JSON.stringify(draft, null, 2));
+
+        if (!productId) return;
+        
+        // Get Product Description
+        const data1 = await extdb.run(
             SELECT.one
                 .from('T_MATERIAL_MASTER_DATA')
-                .columns('MATERIAL_DESCRIPTION')
+                .columns( 'MATERIAL_DESCRIPTION' )       
                 .where({ MATERIAL: productId })
         );
 
-        if (material) {
-            req.data.PartNumberDescr = material.MATERIAL_DESCRIPTION;
+        // Get Product Description
+        const data2 = await extdb.run(
+            SELECT.one
+                .from('T_MATERIAL_MASTER_DATA')
+                .columns( 'MATERIAL_GROUP_2','MATERIAL_GROUP_5' )       
+                .where({ 
+                    MATERIAL: productId,
+                    SALES_ORGANIZATION: salesOrg,
+                    DISTRIBUTION_CHANNEL: distChannel
+                })
+        );
+
+        console.log('ProductID:', productId);
+        console.log('SalesOrg:', salesOrg);
+        console.log('DistChannel:', distChannel);
+        console.log('MATERIAL_DESCRIPTION:', data1?.MATERIAL_DESCRIPTION);
+        console.log('MATERIAL_GROUP_2:', data2?.MATERIAL_GROUP_2);
+        console.log('MATERIAL_GROUP_5:', data2?.MATERIAL_GROUP_5);
+
+        if (data1) {
+            req.data.ProductDescription1 = data1.MATERIAL_DESCRIPTION;
+        }
+
+        if (data2) {
+            req.data.MaterialClassification1 = data2.MATERIAL_GROUP_2;
+            req.data.ErpStatus = data2.MATERIAL_GROUP_5;
         }
     });
 
