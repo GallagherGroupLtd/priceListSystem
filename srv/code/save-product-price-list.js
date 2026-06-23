@@ -264,23 +264,21 @@ module.exports = (srv) => async function saveProductPriceList(req) {
     //     tree.slice(0, 3).map(n => n.ID));
 
     flatten(tree, null);
+    const idsToDelete = [...existingIds].filter((id) => !seenIds.has(id));
 
-    // console.log("[saveProductPriceList] rows to upsert:", flatRows.length);
-
-    if (flatRows.length === 0) {
+    if (flatRows.length === 0 && idsToDelete.length === 0) {
         return req.error(400, "No rows to save. Submitted tree is empty.");
     }
-
-    const idsToDelete = [...existingIds].filter((id) => !seenIds.has(id));
 
     // console.log("[saveProductPriceList] rows to delete:", idsToDelete.length);
 
     // At the bottom — replace the UPSERT/DELETE block with this:
 
     try {
-        await tx.run(
-            UPSERT.into(ProductPriceList).entries(flatRows)
-        );
+
+        if (flatRows.length > 0) {
+            await tx.run(UPSERT.into(ProductPriceList).entries(flatRows));
+        }
 
         if (idsToDelete.length > 0) {
             await tx.run(

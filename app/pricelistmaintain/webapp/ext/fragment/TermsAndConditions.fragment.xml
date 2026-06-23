@@ -29,9 +29,9 @@
             <HBox id="TACDisableHBoxContent" alignItems="Center" width="100%">
                 <layoutData><FlexItemData id="TACDisableHBoxContentLayoutData" growFactor="1" maxWidth="100%" shrinkFactor="1" minWidth="0" /></layoutData>
         <Text id="TermsAndCondDisableExtUserText" text="External User" class="sapUiTinyMarginEnd" />
-        <Switch id="TermsAndCondDisableExtUserSwitch" state="false" change=".onTACDisableSwitchChange" enabled="{ui>/isEditable}"/>
+        <Switch id="TermsAndCondDisableExtUserSwitch" state="{TACDisableExtUser}" enabled="{ui>/isEditable}"/>
         <Text id="TermsAndCondDisableIntUserText" text="Internal User" class="sapUiLargeMarginBegin sapUiTinyMarginEnd" />
-        <Switch id="TermsAndCondDisableIntUserSwitch" state="false" change=".onTACDisableSwitchChange" enabled="{ui>/isEditable}"/>
+        <Switch id="TermsAndCondDisableIntUserSwitch" state="{TACDisableIntUser}" enabled="{ui>/isEditable}"/>
     </HBox>
 </HBox>
 

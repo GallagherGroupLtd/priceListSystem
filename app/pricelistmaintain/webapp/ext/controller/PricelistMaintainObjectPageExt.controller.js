@@ -203,8 +203,9 @@ sap.ui.define([
 					}
 
 					const aTree = oJsonModel.getProperty("/productPriceList") || [];
+					const aPendingDeletedIds = oJsonModel.getProperty("/pendingDeletedIds") || [];
 
-					if (!aTree.length) {
+					if (!aTree.length && !aPendingDeletedIds.length) {
 						MessageToast.show("Nothing to save.");
 						return Promise.resolve();
 					}
@@ -597,7 +598,30 @@ sap.ui.define([
 					.filter(Boolean);
 			};
 
-			oModel.setProperty("/productPriceList", filterTree(aCurrentTree, "/productPriceList"));
+			// After removing the selected rows, drop any Category that has become empty
+			// Deleting the last child of a parent should delete the parent too. 
+			const removeEmptyCategories = (aNodes) => {
+				if (!Array.isArray(aNodes)) return [];
+
+				return aNodes
+					.map((oNode) => {
+						if (!oNode) return null;
+
+						const aCleanChildren = removeEmptyCategories(oNode.children || []);
+						const oUpdatedNode = Object.assign({}, oNode, { children: aCleanChildren });
+
+						if (oUpdatedNode.Kind === "Category" && aCleanChildren.length === 0) {
+							if (oUpdatedNode.ID) pendingDeletedIdSet.add(oUpdatedNode.ID);
+							return null;
+						}
+
+						return oUpdatedNode;
+					})
+					.filter(Boolean);
+			};
+			const aCleanTree = removeEmptyCategories(filterTree(aCurrentTree, "/productPriceList"));
+
+			oModel.setProperty("/productPriceList", aCleanTree);
 			oModel.setProperty("/pendingDeletedIds", Array.from(pendingDeletedIdSet));
 			oModel.setProperty("/selectedKeys", []);
 

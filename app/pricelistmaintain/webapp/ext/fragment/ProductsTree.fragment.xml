@@ -249,6 +249,7 @@
                     id="ProductTreeDragDropInfo"
                     sourceAggregation="rows"
                     targetAggregation="rows"
+                    enabled="{= ${jsonModel>/isReorderMode} }"
                     dropPosition="OnOrBetween"
                     drop="handler.onDrop" />
             </t:dragDropConfig>            

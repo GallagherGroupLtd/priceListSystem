@@ -29,9 +29,9 @@
             <HBox id="NotesDisableHBoxContent" alignItems="Center" width="100%">
                 <layoutData><FlexItemData id="NotesDisableHBoxContentLayoutData" growFactor="1" maxWidth="100%" shrinkFactor="1" minWidth="0" /></layoutData>
                 <Text id="NotesDisableExtUserText" text="External User" class="sapUiTinyMarginEnd" />
-                <Switch id="NotesDisableExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" enabled="{ui>/isEditable}"/>
+                <Switch id="NotesDisableExtUserSwitch" state="{NotesDisableExtUser}" enabled="{ui>/isEditable}"/>
                 <Text id="NotesDisableIntUserText" text="Internal User" class="sapUiLargeMarginBegin sapUiTinyMarginEnd" />
-                <Switch id="NotesDisableIntUserSwitch" state="false" change=".onNotesDisableSwitchChange" enabled="{ui>/isEditable}"/>
+                <Switch id="NotesDisableIntUserSwitch" state="{NotesDisableIntUser}" enabled="{ui>/isEditable}"/>
             </HBox>
         </HBox>
 
