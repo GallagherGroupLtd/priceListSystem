@@ -384,6 +384,17 @@ entity PriceListTreeLayout : managed, cuid {
     config        : LargeString @title: 'Configuration';
 }
 
+entity PricelistChangeLog : cuid {
+    changedAt  : DateTime;
+    changedBy  : String(255);
+    source     : String(10);    // 'Header' | 'Tree'
+    refId      : String(100);   // bound entity ID (header) or ProductPriceList row ID (tree)
+    changeType : String(10);    // 'CREATE' | 'UPDATE' | 'DELETE'
+    field      : String(100);   // '*' for CREATE/DELETE, field name for UPDATE
+    oldValue   : String(1000);
+    newValue   : String(1000);
+}
+
 /* -------------------------------------- Value Help -------------------------------------- */
 
 /* Sales Org Table */

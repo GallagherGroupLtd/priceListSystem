@@ -540,13 +540,15 @@ service PriceListService {
             SubCategory5TermsandCond : String;
     };
 
-    entity ProductPriceList           as projection on my.ProductPriceList;
+    entity ProductPriceList as projection on my.ProductPriceList;
 
     action getProductTreeData(headerData: LargeString)               returns array of ProductPricelistTree;
 
     action saveProductPriceList(headerData: LargeString,
                                 originalHeaderData: LargeString,
                                 treeData: LargeString)               returns String;
+
+    entity PricelistChangeLog as projection on my.PricelistChangeLog;
 
     // entity ProductPricelistTree    as
     //     select from my.PricelistItemStructureComponents {

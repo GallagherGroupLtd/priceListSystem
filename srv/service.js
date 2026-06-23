@@ -5,6 +5,7 @@ const { log } = require("@sap/cds");
 const { SELECT, INSERT, UPDATE, DELETE } = cds.ql;
 
 const saveProductPriceList = require('./code/save-product-price-list');
+const logHeaderChanges     = require('./code/log-header-changes');
 
 /**
  * Generic Mass Upload Handler
