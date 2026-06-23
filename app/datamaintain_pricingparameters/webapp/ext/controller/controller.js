@@ -36,36 +36,44 @@ sap.ui.define([
 
           const oReader = new FileReader();
           oReader.onload = async (e) => {
+            // Strip off the "data:...;base64," prefix
             const base64 = e.target.result.split(",")[1];
+
+            // Get Model
             const oModel = this.getModel();
 
-            const oOperation = oModel.bindContext("/MassUploadPricingParam(...)");
-            oOperation.setParameter("file", base64);
-
             try {
-              await oOperation.execute();
-              MessageToast.show("Upload successful.");
-              oModel.refresh();
-              oDialog.close();
+              const response = await fetch("/odata/v4/price-list/MassUploadPricingParam", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ file: base64 })
+              });
 
+              if (!response.ok) {
+                throw new Error(await response.text());
+              }
+
+              //Refresh model.
+              oModel.refresh();
+
+              MessageToast.show("Upload successful.");
+              if (this._oUploadDialog) {
+                this._oUploadDialog.close();
+              }
             } catch (err) {
               MessageToast.show("Upload failed: " + err.message);
-            } finally {
-              sap.ui.core.BusyIndicator.hide();
             }
           };
-
           oReader.readAsDataURL(this._file);
           oDialog.close();
         }
       });
 
-
       const oDownloadButton = new Button({
         text: "Download Pricing Parameters Template",
         press: () => {
           const aColumns = [
-            { label: "PricelistType", property: "PricelistType" },
+            { label: "TradeScenario", property: "TradeScenario" },
             { label: "MarketScopeRegion", property: "MarketScopeRegion" },
             { label: "MarketScopeCountry", property: "MarketScopeCountry" },
             { label: "SalesOrg", property: "SalesOrg" },

@@ -3,6 +3,18 @@
     xmlns="sap.m"
     xmlns:core="sap.ui.core" >
     <Page id= "Page" enableScrolling="true">
+    <!-- <Page id= "Page" title="Pricelist System123" enableScrolling="true">
+        <customHeader>
+            <Bar id="headerBar" class="barLogo">
+                <contentMiddle> 
+                    <Image
+                        id="companyLogo"
+                        src="./images/logo.png"
+                        class="sapUiSmallMarginEnd"
+                        alt="Company Logo"/> 
+                </contentMiddle>    
+            </Bar>       
+        </customHeader>         -->
         <content>          
             <IconTabBar id="idIconTabBar" expanded="true" class="sapUiResponsiveContentPadding IconTabColor">
                 <items>
@@ -18,20 +30,29 @@
   
                                 <VBox id="CardNews_All" class="sapUiTinyMarginTop sapUiSmallMarginBottom newsCardStyle">
                                     <Image id="ImageNews"
-                                        src="{imgModel>/banner}"
+                                        src="./images/TrendsBanenrBG.jpg"
                                         width="100%"
                                         height="10rem"
                                         class="sapUiTinyMarginBottom newsCardImage" />
+
                                     <VBox id="VBox2" class="sapUiTinyMarginBeginEnd sapUiTinyMarginBottom">
-                                        <Title id="TitleGallagher" text="{tileModel>/heading}" titleStyle="H3" class="sapUiTinyMarginBottom" />
-                                        <Text id="TitleAccess" text="{tileModel>/subHeading}" class="sapUiSmallMarginBottom" />
-                                    </VBox>
-                                    <!-- <VBox id="VBox2" class="sapUiTinyMarginBeginEnd sapUiTinyMarginBottom">
                                         <Title id="TitleGallagher" text="Gallagher New Zealand Pricelist" titleStyle="H3" class="sapUiTinyMarginBottom" />
                                         <Text id="TitleAccess" text="Access the official Gallagher New Zealand pricing information." class="sapUiSmallMarginBottom" />
-                                    </VBox> -->
+                                    </VBox>
                                 </VBox>
-                                
+
+                                <!-- <GenericTile id="TileNews_All" frameType="TwoByOne" backgroundImage="../images/newsImage.jpg" class="sapUiSmallMarginBottom">
+                                    <tileContent>
+                                        <TileContent id="TileContentNews">
+                                            <NewsContent id="NewsContent" contentText="Gallagher New Zealand Pricelist" subheader="Access the official Gallagher New Zealand pricing information." />
+                                        </TileContent>
+                                    </tileContent>
+
+                                    <customData>
+                                        <core:CustomData key="target" value="News-display" />
+                                    </customData>
+                                </GenericTile> -->
+
                                 <Title id="TitlePricelist" text="Price Information" level="H2" class="sapUiSmallsapUiTinyMarginBottom sapUiMediumMarginTopMarginTopBottom" />
  
                                 <HBox id="HBox1" wrap="Wrap">
@@ -54,7 +75,7 @@
                                                 </TileContent>
                                             </tileContent>
                                             <customData>
-                                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="Myrequest-maintain" />
+                                                <core:CustomData xmlns:core="sap.ui.core" key="target" value="MyRequest-display" />
                                             </customData>
                                         </GenericTile>
 
@@ -121,17 +142,15 @@
                                 </HBox>
 
                                 <Title id="TitleContactUs" text="Contact Us" level="H2" class="sapUiSmallMarginTop sapUiMediumMarginToprginTopBottom" />
-                                <VBox id="contactBox" width="100%" class="sapUiSmallMarginTop sapUiSmallMarginBottom sapUiTinyMarginBeginEnd sapUiSmallPadding contactBox">
-                                </VBox>
-                                <!-- <HBox id="HBox2" wrap="Wrap">
+                                <HBox id="HBox2" wrap="Wrap">
                                     <items>
                                         <core:Icon id="IconPhone" src="sap-icon://headset" size="1rem" class="sapUiTinyMarginEnd" color="#333333"/>
-                                        <Link id="LinkPhone" text="{contactModel>/contactNumber}" href="tel:+64993587556" class="sapUiMediumMarginEnd" />
+                                        <Link id="LinkPhone" text="+64 993587556" href="tel:+64993587556" class="sapUiMediumMarginEnd" />
 
                                         <core:Icon id="IconMail" src="sap-icon://email" size="1rem" class="sapUiTinyMarginEnd" color="#333333"/>
-                                        <Link id="LinkMail" text="{contactModel>/contactEmail}" href="mailto:pricing@gallagher.com" />
+                                        <Link id="LinkMail" text="pricing@gallagher.com" href="mailto:pricing@gallagher.com" />
                                     </items>
-                                </HBox> -->
+                                </HBox>
                             </items>
                         </VBox>
                     </IconTabFilter>

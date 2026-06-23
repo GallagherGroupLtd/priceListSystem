@@ -36,59 +36,53 @@ sap.ui.define([
 
                     const oReader = new FileReader();
                     oReader.onload = async (e) => {
+                        // Strip off the "data:...;base64," prefix
                         const base64 = e.target.result.split(",")[1];
+
+                        // Get Model
                         const oModel = this.getModel();
 
-                        const oOperation = oModel.bindContext("/MassUploadAcctAssign(...)");
-                        oOperation.setParameter("file", base64);
-
                         try {
-                            await oOperation.execute();
-                            MessageToast.show("Upload successful.");
-                            oModel.refresh();
-                            oDialog.close();
+                            const response = await fetch("/odata/v4/price-list/MassUploadAcctAssign", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ file: base64 })
+                            });
 
+                            if (!response.ok) {
+                                throw new Error(await response.text());
+                            }
+
+                            //Refresh model.
+                            oModel.refresh();
+
+                            MessageToast.show("Upload successful.");
+                            if (this._oUploadDialog) {
+                                this._oUploadDialog.close();
+                            }
                         } catch (err) {
                             MessageToast.show("Upload failed: " + err.message);
-                        } finally {
-                            sap.ui.core.BusyIndicator.hide();
                         }
                     };
-
                     oReader.readAsDataURL(this._file);
                     oDialog.close();
                 }
             });
 
             const oDownloadButton = new Button({
-                text: "Download Account Assignment Template",
+                text: "Download Template",
                 press: () => {
                     const aColumns = [
-                        { label: "First Name", property: "FirstName" },
-                        { label: "Last Name", property: "LastName" },
-                        { label: "EMail", property: "Email" },
-                        { label: "Account Type", property: "AccountType" },
-                        { label: "Account Scope", property: "AccountScope" },
-                        { label: "Commercial Scope", property: "CommercialScope" },
-                        { label: "Customer Code", property: "CustomerNumber" },
-                        { label: "Pricelist Type", property: "PricelistType" },
-                        { label: "Region", property: "MarketScopeRegion" },
-                        { label: "Country", property: "MarketScopeCountry" },
-                        { label: "Sales Organization", property: "SalesOrg" },
-                        { label: "Distribution Channel", property: "DistChannel" },
-                        { label: "Customer Pricelist", property: "CustPriceList" },
-                        { label: "Customer Group 1", property: "CustGroup1" },
-                        { label: "Plant", property: "DeliveringPlant" },
-                        { label: "Pricelist View", property: "ControlPriceListView" },
-                        { label: "Price View", property: "ControlPriceView" },
-                        { label: "Discount Indicator", property: "ControlDiscountIndicator" },
-                        { label: "Discount Rate", property: "ControlDiscountRate" },
-                        { label: "Workflow Tile", property: "ControlWorkflowTile" },
-                        { label: "Pricelist Review Schedule Tile", property: "ControlPriceListReviewScheduleTile" },
-                        { label: "Pricelist Maintenance", property: "ControlPricelistMaintenance" },
-                        { label: "Data Maintenance", property: "ControlDataMaintenance" },
-                        { label: "My Requests Tile", property: "ControlMyRequestTile" },
-                        { label: "Application Log Tile", property: "ControlApplicationLogTile" }
+                        { label: "FirstName", property: "FirstName" },
+                        { label: "LastName", property: "LastName" },
+                        { label: "Type", property: "Type" },
+                        { label: "Email" , property: "Email" },
+                        { label: "TradeScenario", property: "TradeScenario" },
+                        { label: "MarketScopeRegion", property: "MarketScopeRegion" }, 
+                        { label: "MarketScopeCountry", property: "MarketScopeCountry" },
+                        { label: "CustomerNumber", property: "CustomerNumber" },
+                        { label: "SalesOrg", property: "SalesOrg" },
+                        { label: "DistChannel", property: "DistChannel" }
                     ];
 
                     const aData = [{}];
@@ -151,7 +145,7 @@ sap.ui.define([
                 if (successCount > 0) {
                     MessageToast.show(successCount + " record(s) duplicated.");
                 }
-
+                
                 if (failCount > 0) {
                     MessageToast.show(failCount + " record(s) failed to duplicate.");
                 }

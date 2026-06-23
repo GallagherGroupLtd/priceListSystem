@@ -30,7 +30,7 @@
         "PriceListSystemMain-display": {
           "semanticObject": "PriceListSystemMain",
           "action": "display",
-          "title": "Main Pricelist Application",
+          "title": "Price Systemization",
           "signature": {
             "parameters": {},
             "additionalParameters": "allowed"

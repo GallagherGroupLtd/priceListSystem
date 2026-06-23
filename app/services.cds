@@ -24,5 +24,3 @@ using from './pricelistdisplay/annotations';
 using from './datamaintain_acctassign/annotations';
 
 using from './myrequest/annotations';
-
-using from './applicationlog/annotations';

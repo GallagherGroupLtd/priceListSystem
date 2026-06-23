@@ -36,25 +36,34 @@ sap.ui.define([
 
           const oReader = new FileReader();
           oReader.onload = async (e) => {
+            // Strip off the "data:...;base64," prefix
             const base64 = e.target.result.split(",")[1];
+
+            // Get Model
             const oModel = this.getModel();
 
-            const oOperation = oModel.bindContext("/MassUploadContactInfo(...)");
-            oOperation.setParameter("file", base64);
-
             try {
-              await oOperation.execute();
-              MessageToast.show("Upload successful.");
-              oModel.refresh();
-              oDialog.close();
+              const response = await fetch("/odata/v4/price-list/MassUploadContactInfo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ file: base64 })
+              });
 
+              if (!response.ok) {
+                throw new Error(await response.text());
+              }
+
+              //Refresh model.
+              oModel.refresh();
+
+              MessageToast.show("Upload successful.");
+              if (this._oUploadDialog) {
+                this._oUploadDialog.close();
+              }
             } catch (err) {
               MessageToast.show("Upload failed: " + err.message);
-            } finally {
-              sap.ui.core.BusyIndicator.hide();
             }
           };
-
           oReader.readAsDataURL(this._file);
           oDialog.close();
         }
@@ -64,7 +73,7 @@ sap.ui.define([
         text: "Download Contact Info Template",
         press: () => {
           const aColumns = [
-            { label: "PricelistType", property: "PricelistType" },
+            { label: "TradeScenario", property: "TradeScenario" },
             { label: "MarketScopeRegion", property: "MarketScopeRegion" },
             { label: "MarketScopeCountry", property: "MarketScopeCountry" },
             { label: "ContactEmail", property: "ContactEmail" },
@@ -107,7 +116,7 @@ sap.ui.define([
 
       // Call the bound action passing the selected context of the row to copy.
       const oOperation = oModel.bindContext("PriceListService.copyRow(...)", oContext, {
-        $$groupId: "$auto"
+        $$groupId: "$auto" 
       });
 
       oOperation.execute().then(function () {
@@ -115,9 +124,9 @@ sap.ui.define([
 
         const oBinding = oContext.getBinding();
         if (oBinding) {
-          oBinding.refresh();
+            oBinding.refresh();
         } else {
-          oModel.refresh();
+            oModel.refresh();
         }
       }.bind(this)).catch(function (oError) {
         MessageToast.show("Duplicate failed: " + oError.message);

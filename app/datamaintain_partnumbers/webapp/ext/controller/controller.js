@@ -36,55 +36,58 @@ sap.ui.define([
 
           const oReader = new FileReader();
           oReader.onload = async (e) => {
+            // Strip off the "data:...;base64," prefix
             const base64 = e.target.result.split(",")[1];
+
+            // Get Model
             const oModel = this.getModel();
 
-            const oOperation = oModel.bindContext("/MassUploadPartNumbers(...)");
-            oOperation.setParameter("file", base64);
-
             try {
-              await oOperation.execute();
-              MessageToast.show("Upload successful.");
-              oModel.refresh();
-              oDialog.close();
+              const response = await fetch("/odata/v4/price-list/MassUploadPartNumbers", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ file: base64 })
+              });
 
+              if (!response.ok) {
+                throw new Error(await response.text());
+              }
+
+              //Refresh model.
+              oModel.refresh();
+
+              MessageToast.show("Upload successful.");
+              if (this._oUploadDialog) {
+                this._oUploadDialog.close();
+              }
             } catch (err) {
               MessageToast.show("Upload failed: " + err.message);
-            } finally {
-              sap.ui.core.BusyIndicator.hide();
             }
           };
-
           oReader.readAsDataURL(this._file);
           oDialog.close();
         }
       });
 
       const oDownloadButton = new Button({
-        text: "Download Price Product Maintenance Template",
+        text: "Download Part Numbers Template",
         press: () => {
           const aColumns = [
-              { label: "Pricelist Type", property: "PricelistType" },
-              { label: "Region", property: "MarketScopeRegion" },
-              { label: "Country", property: "MarketScopeCountry" },
-              { label: "Sales Organization", property: "SalesOrg" },
-              { label: "Distribution Channel", property: "DistChannel" },
-              { label: "Product ID", property: "ProductID" },
-              { label: "ERP Status", property: "ErpStatus" },
-              { label: "Material Classification", property: "MaterialClassification1" },
-              { label: "Translation Material Classification", property: "MaterialClassification2" },
-              { label: "Pricelist Product Description", property: "ProductDescription2" },
-              { label: "Product Description", property: "ProductDescription1" },
-              { label: "Pricelist Material Classification", property: "PricelistMaterialClassification" },
-              { label: "Product Status", property: "ProductStatus" },
-              { label: "Status Validity", property: "StatusValidity" },
-              { label: "3rd Party Supplier", property: "ThirdPartySupplier" },
-              { label: "3rd Party Supplier SKU", property: "ThirdPartySupplierSKU" }
+            { label: "MainCategory", property: "MainCategory" },
+            { label: "Subcategory1", property: "Subcategory1" },
+            { label: "Subcategory2", property: "Subcategory2" },
+            { label: "Subcategory3", property: "Subcategory3" },
+            { label: "Subcategory4", property: "Subcategory4" },
+            { label: "Subcategory5", property: "Subcategory5" },
+            { label: "PricelistPartNumber", property: "PricelistPartNumber" },
+            { label: "ProductHierarchy3", property: "ProductHierarchy3" },
+            { label: "ProductHierarchy2", property: "ProductHierarchy2" },
+            { label: "ProductHierarchy1", property: "ProductHierarchy1" }
           ];
           const oSettings = {
             workbook: { columns: aColumns },
             dataSource: [{}],
-            fileName: "PriceProductMaintenance Template.xlsx"
+            fileName: "PartNumbersTemplate.xlsx"
           };
           const oSpreadsheet = new Spreadsheet(oSettings);
           oSpreadsheet.build()

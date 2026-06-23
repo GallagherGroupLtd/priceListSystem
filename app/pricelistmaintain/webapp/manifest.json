@@ -63,12 +63,8 @@
         "sap.m": {},
         "sap.ui.core": {},
         "sap.fe.templates": {},
-        "sap.ui.table": {},
-        "sap.fe.macros": {}
+        "sap.ui.table": {}
       }
-    },
-    "cache": {
-      "mode": "off"
     },
     "contentDensities": {
       "compact": true,
@@ -131,7 +127,7 @@
               "controlConfiguration": {
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
-                    "type": "ResponsiveTable",
+                    "type": "GridTable",
                     "enableMassEdit": false,
                     "creationMode": "Inline"
                   },
@@ -163,90 +159,14 @@
                     "ProductsTree": {
                       "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductsTree",
                       "position": {
-                        "placement": "Before",
-                        "anchor": "ProductPricelistFacet"
+                        "placement": "After",
+                        "anchor": "PricelistInfoFacet"
                       },
                       "title": "Gallagher Products"
                     },
-                    "ProductPricelistFacet": {
-                      "subSections": {
-                        "PricelistMainCategory": {
-                          "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistMainCategory",
-                          "position": {
-                            "placement": "After",
-                            "anchor": "ProductsTree"
-                          },
-                          "title": "Main Category Details"
-                        },
-                        "PricelistSubCategory1": {
-                          "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
-                          "position": {
-                            "placement": "After",
-                            "anchor": "PricelistMainCategory"
-                          },
-                          "title": "Sub Category 1 Details"
-                        },
-                        "PricelistSubCategory2": {
-                          "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
-                          "position": {
-                            "placement": "After",
-                            "anchor": "PricelistSubCategory1"
-                          },
-                          "title": "Sub Category 2 Details"
-                        },
-                        "PricelistSubCategory3": {
-                          "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
-                          "position": {
-                            "placement": "After",
-                            "anchor": "PricelistSubCategory2"
-                          },
-                          "title": "Sub Category 3 Details"
-                        },
-                        "PricelistSubCategory4": {
-                          "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
-                          "position": {
-                            "placement": "After",
-                            "anchor": "PricelistSubCategory3"
-                          },
-                          "title": "Sub Category 4 Details"
-                        },
-                        "PricelistSubCategory5": {
-                          "template": "pricelistapp.pricelistmaintain.ext.fragment.PricelistSubCategory",
-                          "position": {
-                            "placement": "After",
-                            "anchor": "PricelistSubCategory4"
-                          },
-                          "title": "Sub Category 5 Details"
-                        },
-                        "ProductDetails": {
-                          "template": "pricelistapp.pricelistmaintain.ext.fragment.ProductDetails",
-                          "title": "Product Details",
-                          "position": {
-                            "placement": "After",
-                            "anchor": "PricelistSubCategory5"
-                          }
-                        }
-                      }
-                    },
-                    "PricelistInfoFacet": {
-                      "subSections": {
-                        "TermsAndConditions": {
-                          "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsAndConditions",
-                          "position": {
-                            "placement": "After",
-                            "anchor": "GeneralInfo"
-                          },
-                          "title": "General Terms and Conditions"
-                        },
-                        "GeneralNotes": {
-                          "title": "General Notes",
-                          "template": "pricelistapp.pricelistmaintain.ext.fragment.GeneralNotes",
-                          "position": {
-                            "placement": "After",
-                            "anchor": "TermsAndConditions"
-                          }
-                        }
-                      }
+                    "TermsandConditions": {
+                      "template": "pricelistapp.pricelistmaintain.ext.fragment.TermsandConditions",
+                      "title": "Terms and Conditions"
                     }
                   }
                 }

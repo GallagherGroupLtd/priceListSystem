@@ -2,53 +2,31 @@ using PriceListService as service from '../../srv/service';
 
 annotate PriceListService.TradeScenarios with @(
     UI.SelectionFields: [
-        PricelistType,
+        TradeScenario,
         MarketScopeRegion,
         MarketScopeCountry
     ],
+    UI.FieldGroup #GeneratedGroup : {
+        $Type : 'UI.FieldGroupType',
+        Data : [
+            {
+                $Type : 'UI.DataField',
+                Value: TradeScenario,
+                Label: 'Trade Scenario'
+            },
+            {
+                $Type : 'UI.DataField',
+                Value: MarketScopeRegion,
+                Label: 'Region'
+            },
+            {
+                $Type : 'UI.DataField',
+                Value: MarketScopeCountry,
+                Label: 'Country'
+            }
+        ],
+    },
     
-UI.HeaderInfo                 : {
-        ImageUrl      : 'sap-icon://sales-order-item'
-    },     
-
-    UI.HeaderFacets               : [
-        {
-            $Type : 'UI.ReferenceFacet',
-            ID    : 'CreateFacet',
-            Target: '@UI.FieldGroup#CreateGroup'
-        },
-        {
-            $Type : 'UI.ReferenceFacet',
-            ID    : 'UpdateFacet',
-            Target: '@UI.FieldGroup#UpdateGroup'
-        }
-    ],
-    UI.FieldGroup #CreateGroup     : {
-        Data: [
-            {
-                Value: createdAt,
-                Label: 'Created On'
-            },
-            {
-                Value: createdBy,
-                Label: 'Created By'
-            },            
-        ]
-    },
- 
-    UI.FieldGroup #UpdateGroup     : {
-        Data: [
-            {
-                Value: modifiedAt,
-                Label: 'Updated On'
-            },            
-            {
-                Value: modifiedBy,
-                Label: 'Updated By'
-            },
-        ]
-    },
-
     UI.PresentationVariant : {
         SortOrder      : [
             {
@@ -64,12 +42,23 @@ UI.HeaderInfo                 : {
         ],
         Visualizations : ['@UI.LineItem']
     },
-
+    UI.Facets : [
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID : 'GeneratedFacet1',
+            Label : 'General Information',
+            Target : '@UI.FieldGroup#GeneratedGroup',
+        },
+    ],
+    UI.HeaderInfo: {
+        TypeName      : 'Data Maintenance: Trade Scenario',
+        TypeNamePlural: 'Data Maintenance: Trade Scenario',
+    },
     UI.LineItem: [
         {
             $Type : 'UI.DataField',
-            Value: PricelistType,
-            Label: 'Pricelist Type'
+            Value: TradeScenario,
+            Label: 'Trade Scenario'
         },
         {
             $Type : 'UI.DataField',
@@ -80,76 +69,110 @@ UI.HeaderInfo                 : {
             $Type : 'UI.DataField',
             Value: MarketScopeCountry,
             Label: 'Country'
-        }
-    ], 
-
-    UI.Facets : [
-        {
-            $Type : 'UI.ReferenceFacet',
-            ID : 'Facet1',
-            Label : 'General Information',
-            Target : '@UI.FieldGroup#GeneratedGroup'
         },
         {
-            $Type : 'UI.ReferenceFacet',
-            ID : 'Facet2',
-            Label : 'Email Content',
-            Target : '@UI.FieldGroup#EmailSubject'
-        },
+            $Type : 'UI.DataFieldForAction',
+            Action : 'MyService.uploadData',
+            Label : 'Upload Files',
+            InvocationGrouping : #ChangeSet
+        },   
         {
-            $Type : 'UI.ReferenceFacet',
-            ID : 'Facet3',
-            Target : '@UI.FieldGroup#EmailBody'
-        }
+            $Type : 'UI.DataFieldForAction',
+            Action : 'MyService.duplicateRecord',
+            Label : 'Duplicate Record',
+            InvocationGrouping : #ChangeSet
+        },         
+        {
+            $Type : 'UI.DataFieldForAction',
+            Action : 'MyService.copy',
+            Label : 'Copy',
+            InvocationGrouping : #ChangeSet
+        },       
+        {
+            $Type : 'UI.DataFieldForAction',
+            Action : 'MyService.exportExcel',
+            Label : 'Export as Excel',
+            InvocationGrouping : #ChangeSet,
+            criticality: #CRITICAL
+        }         
     ],
 
-    UI.FieldGroup #GeneratedGroup : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            {
-                $Type : 'UI.DataField',
-                Value: PricelistType,
-                Label: 'Pricelist Type'
-            },
-            {
-                $Type : 'UI.DataField',
-                Value: MarketScopeRegion,
-                Label: 'Region'
-            },
-            {
-                $Type : 'UI.DataField',
-                Value: MarketScopeCountry,
-                Label: 'Country'
-            }
-        ],
-    },
-
-    UI.FieldGroup #EmailSubject : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            {
-                $Type : 'UI.DataField',
-                Value: EmailSubject,
-                Label: 'Email Subject'
-            }
-        ]
+    // Header Section at the top
+    UI.HeaderInfo                 : {
+        ImageUrl      : 'sap-icon://sales-order-item'
     },    
-
-    UI.FieldGroup #EmailBody : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
+    UI.HeaderFacets               : [
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'DatesFacet',
+            Target: '@UI.FieldGroup#DatesGroup'
+        },
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'UsersFacet',
+            Target: '@UI.FieldGroup#UsersGroup'
+        }
+    ],
+    UI.FieldGroup #DatesGroup     : {
+        Data: [
             {
-                $Type : 'UI.DataField',
-                Value: EmailBody,
-                Label: 'Email Body'
+                Value: createdAt,
+                Label: 'Created On'
+            },
+            {
+                Value: modifiedAt,
+                Label: 'Updated On'
             }
         ]
-    }    
+    },
+ 
+    UI.FieldGroup #UsersGroup     : {
+        Data: [
+            {
+                Value: createdBy,
+                Label: 'Created By'
+            },
+            {
+                Value: modifiedBy,
+                Label: 'Updated By'
+            }
+        ]
+    }       
 );
 
 annotate PriceListService.TradeScenarios with {
 
-    EmailSubject @UI.MultiLineText;
-    EmailBody @UI.MultiLineText;
+    TradeScenario @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'TradeScenarioVH',
+            Parameters: [
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'TradeScenario', ValueListProperty: 'TradeScenario' }
+            ]
+        }
+    );
+
+    MarketScopeRegion @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'MarketRegionVH',
+            Parameters: [
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeRegion', ValueListProperty: 'MarketScopeRegion' }
+            ]
+        }
+    );
+
+    MarketScopeCountry @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'MarketCountryVH',
+            Parameters: [
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeCountry', ValueListProperty: 'MarketScopeCountry' }
+            ]
+        }
+    );
 
 };

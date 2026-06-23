@@ -36,25 +36,34 @@ sap.ui.define([
 
           const oReader = new FileReader();
           oReader.onload = async (e) => {
+            // Strip off the "data:...;base64," prefix
             const base64 = e.target.result.split(",")[1];
+
+            // Get Model
             const oModel = this.getModel();
 
-            const oOperation = oModel.bindContext("/MassUploadItemStructure(...)");
-            oOperation.setParameter("file", base64);
-
             try {
-              await oOperation.execute();
-              MessageToast.show("Upload successful.");
-              oModel.refresh();
-              oDialog.close();
+              const response = await fetch("/odata/v4/price-list/MassUploadItemStructure", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ file: base64 })
+              });
 
+              if (!response.ok) {
+                throw new Error(await response.text());
+              }
+
+              //Refresh model.
+              oModel.refresh();
+
+              MessageToast.show("Upload successful.");
+              if (this._oUploadDialog) {
+                this._oUploadDialog.close();
+              }
             } catch (err) {
               MessageToast.show("Upload failed: " + err.message);
-            } finally {
-              sap.ui.core.BusyIndicator.hide();
             }
           };
-
           oReader.readAsDataURL(this._file);
           oDialog.close();
         }
@@ -64,28 +73,27 @@ sap.ui.define([
         text: "Download Item Structure Template",
         press: () => {
           const aColumns = [
-              { label: "Pricelist Type", property: "PricelistType" },
-              { label: "Region", property: "MarketScopeRegion" },
-              { label: "Country", property: "MarketScopeCountry" },
-              { label: "Sequence", property: "Sequence" },
-              { label: "Sales Organization", property: "SalesOrg" },
-              { label: "Distribution Channel", property: "DistChannel" },
-              { label: "Customer Pricelist", property: "CustPriceList" },
-              { label: "Customer Group 1", property: "CustGroup1" },
-              { label: "ERP Customer", property: "ErpCustomer" },
-              { label: "Plant", property: "DeliveringPlant" },
-              { label: "Main Category", property: "MainCategory" },
-              { label: "SubCategory 1", property: "SubCategory1" },
-              { label: "SubCategory 2", property: "SubCategory2" },
-              { label: "SubCategory 3", property: "SubCategory3" },
-              { label: "SubCategory 4", property: "SubCategory4" },
-              { label: "SubCategory 5", property: "SubCategory5" },
-              { label: "Main Category Local Description", property: "MainCategoryLocal" },
-              { label: "SubCategory 1 Local Description", property: "SubCategory1Local" },
-              { label: "SubCategory 2 Local Description", property: "SubCategory2Local" },
-              { label: "SubCategory 3 Local Description", property: "SubCategory3Local" },
-              { label: "SubCategory 4 Local Description", property: "SubCategory4Local" },
-              { label: "SubCategory 5 Local Description", property: "SubCategory5Local" }
+            { label: "TradeScenario", property: "TradeScenario" },
+            { label: "MarketScopeRegion", property: "MarketScopeRegion" },
+            { label: "MarketScopeCountry", property: "MarketScopeCountry" },
+            { label: "SalesOrg", property: "SalesOrg" },
+            { label: "DistChannel", property: "DistChannel" },
+            { label: "CustPriceList", property: "CustPriceList" },
+            { label: "CustGroup1", property: "CustGroup1" },
+            { label: "ErpCustomer", property: "ErpCustomer" },
+            { label: "DeliveringPlant", property: "DeliveringPlant" },
+            { label: "MainCategory", property: "MainCategory" },
+            { label: "MainCategoryLocal", property: "MainCategoryLocal" },
+            { label: "Subcategory1", property: "Subcategory1" },
+            { label: "Subcategory1Local", property: "Subcategory1Local" },
+            { label: "Subcategory2", property: "Subcategory2" },
+            { label: "Subcategory2Local", property: "Subcategory2Local" },
+            { label: "Subcategory3", property: "Subcategory3" },
+            { label: "Subcategory3Local", property: "Subcategory3Local" },
+            { label: "Subcategory4", property: "Subcategory4" },
+            { label: "Subcategory4Local", property: "Subcategory4Local" },
+            { label: "Subcategory5", property: "Subcategory5" },            
+            { label: "Subcategory5Local", property: "Subcategory5Local" }
           ];
           const oSettings = {
             workbook: { columns: aColumns },

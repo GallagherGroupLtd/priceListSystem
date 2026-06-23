@@ -92,11 +92,7 @@
       }
     },
     "resources": {
-      "css": [
-      {
-        "uri": "css/style.css"
-      }
-    ]
+      "css": []
     },
     "routing": {
       "config": {
@@ -142,7 +138,7 @@
               "controlConfiguration": {
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
-                    "type": "ResponsiveTable",
+                    "type": "GridTable",
                     "creationMode": "Inline",
                     "selectionMode": "Multi",
                     "useExportToExcel": true
@@ -164,8 +160,7 @@
                     }
                   }
                 }
-              },
-              "initialLoad": "Enabled"
+              }
             }
           },
           "controlAggregation": "beginColumnPages",

@@ -1,10 +1,10 @@
 {
   "name": "priceListSystem",
   "version": "1.0.0",
-  "description": "Pricelist Application",
+  "description": "Pricelist Systemization Application",
   "dependencies": {
     "@cap-js/hana": "^2",
-    "@sap/cds": "^9.9.1",
+    "@sap/cds": "^9.6.4",
     "@sap/xssec": "^4.12.2",
     "express": "^4",
     "pdfkit": "^0.18.0",
@@ -14,7 +14,6 @@
   "devDependencies": {
     "@cap-js/sqlite": "^2",
     "@sap/cds-dk": "^9",
-    "@sap/ux-ui5-tooling": "^1.24.0",
     "cds-plugin-ui5": "^0.13.0",
     "mbt": "^1.2.29",
     "npm-run-all": "4.1.5",
@@ -22,10 +21,11 @@
   },
   "scripts": {
     "start": "cds-serve",
-    "start-hybrid": "cds watch --profile hybrid-new",
+    "start-hybrid": "cds watch --profile hybrid",
+    "start-hanadev": "cds watch --profile hanadev",
+    "all-hanadev": "npm-run-all --parallel start-approuter start-hanadev ",
     "start-approuter": "cds bind --exec -- npm start --prefix app/router",
-    "clean": "rimraf gen/ .cds-services.json node_modules/.cache",
-    "all-wz": "npm-run-all --parallel start-hybrid start-approuter",
+    "all": "npm-run-all --parallel start-hybrid start-approuter",
     "watch-main": "cds watch --open pricelistapp.main/index.html?sap-ui-xx-viewCache=false --livereload false",
     "undeploy": "cf undeploy priceListSystem --delete-services --delete-service-keys --delete-service-brokers",
     "build": "rimraf resources mta_archives && mbt build --mtar archive",
@@ -41,8 +41,7 @@
     "watch-pricelistmaintain": "cds watch --open pricelistapp.pricelistmaintain/index.html?sap-ui-xx-viewCache=false --livereload false",
     "watch-pricelistdisplay": "cds watch --open pricelistapp.pricelistdisplay/index.html?sap-ui-xx-viewCache=false --livereload false",
     "watch-datamaintain_acctassign": "cds watch --open pricelistapp.datamaintainacctassign/index.html?sap-ui-xx-viewCache=false --livereload false",
-    "watch-myrequest": "cds watch --open pricelistapp.myrequest/index.html?sap-ui-xx-viewCache=false --livereload false",
-    "watch-applicationlog": "cds watch --open pricelistapp.applicationlog/index.html?sap-ui-xx-viewCache=false --livereload false"
+    "watch-myrequest": "cds watch --open pricelistapp.myrequest.myrequest/index.html?sap-ui-xx-viewCache=false --livereload false"
   },
   "private": true,
   "cds": {
@@ -56,15 +55,34 @@
       "destinations": true,
       "html5-repo": true,
       "db": {
-        "kind": "hana"
+        "kind": "sql",
+        "model": "db",
+        "[hybrid]": {
+          "kind": "hana"
+        },
+        "[hanadev]": {
+          "kind": "hana"
+        }        
       },
       "extdb": {
         "kind": "hana",
         "vcap": {
-          "label": "user-provided"
+          "name": "ups-sapecc"
         }
       },
-      "data": false
+      "[production]": {
+        "auth": "xsuaa",
+        "db": {
+          "kind": "hana"
+        },
+        "extdb": {
+          "kind": "hana",
+          "credentials": {
+            "service": "ups-sapecc"
+          }
+        },
+        "data": false
+      }
     },
     "features": {
       "fiori_filter_ignore_case": true
@@ -85,7 +103,6 @@
     "app/pricelistmaintain",
     "app/pricelistdisplay",
     "app/datamaintain_acctassign",
-    "app/myrequest",
-    "app/applicationlog"
+    "app/myrequest"
   ]
 }

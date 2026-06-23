@@ -140,7 +140,7 @@
                   "tableSettings": {
                     "type": "ResponsiveTable",
                     "creationMode": "Inline",
-                    "selectionMode": "Multi",
+                    "selectionMode": "Single",
                     "useExportToExcel": true
                   },
                   "actions": {
@@ -160,8 +160,7 @@
                     }
                   }
                 }
-              },
-              "initialLoad": "Enabled"
+              }
             }
           },
           "controlAggregation": "beginColumnPages",
