@@ -206,7 +206,7 @@ sap.ui.define([
 					const aPendingDeletedIds = oJsonModel.getProperty("/pendingDeletedIds") || [];
 
 					if (!aTree.length && !aPendingDeletedIds.length) {
-						MessageToast.show("Nothing to save.");
+						// MessageToast.show("Nothing to save.");
 						return Promise.resolve();
 					}
 
