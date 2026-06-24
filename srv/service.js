@@ -4,7 +4,10 @@ const { log } = require("@sap/cds");
 
 const { SELECT, INSERT, UPDATE, DELETE } = cds.ql;
 
-const saveProductPriceList = require('./code/save-product-price-list');
+const { HEADER_TRACKED_FIELDS } = require('./pricelist_maintain_srv-code/constants');
+
+const saveProductPriceList = require('./pricelist_maintain_srv-code/save-product-price-list');
+// const logHeaderChanges = require('./code/log-header-changes');
 
 /**
  * Generic Mass Upload Handler
@@ -1223,23 +1226,128 @@ module.exports = cds.service.impl(async function () {
 
     this.before('DELETE', PricelistData, async (req) => {
         const ID = req.params?.[0]?.ID;
+        const IsActiveEntity = req.params?.[0]?.IsActiveEntity;
+
         if (!ID) return;
 
         await DELETE.from(ProductPriceList).where({ pricelist_ID: ID });
+
+        // Only log when deleting the active (non-draft) record
+        if (!IsActiveEntity) return;
+
+        try {
+            const record = await SELECT.one(PricelistData)
+                .where({ ID })
+                .columns('PricelistTitle');
+
+            req._headerLog = { id: ID, title: record?.PricelistTitle };
+        } catch (e) {
+            console.error('[logHeaderDelete] failed to stash log data:', e.message);
+        }
+    });
+
+    this.after('DELETE', PricelistData, async (result, req) => {
+        if (!req._headerLog) return;
+
+        try {
+            const { id, title } = req._headerLog;
+
+            await cds.run(
+                INSERT.into('com.sap.pricelistsystem.PricelistChangeLog').entries({
+                    ID: cds.utils.uuid(),
+                    changedAt: new Date(),
+                    changedBy: req.user?.id || 'unknown',
+                    source: 'Header',
+                    refId: id,
+                    changeType: 'DELETE',
+                    field: '*',
+                    oldValue: title ?? id,
+                    newValue: undefined
+                })
+            );
+
+            console.log('[logHeaderDelete] log written for', id);
+        } catch (e) {
+            console.error('[logHeaderDelete] INSERT failed:', JSON.stringify(e, null, 2));
+            console.error('[logHeaderDelete] stack:', e.stack);
+        }
     });
 
     this.before('SAVE', PricelistData, async (req) => {
         const ID = req.data?.ID;
         if (!ID) return;
 
+        // const active = await SELECT.one(PricelistData)
+        //     .where({ ID }).columns('Status', 'Version');
+
+        // Extend columns to include tracked fields for diff comparison
         const active = await SELECT.one(PricelistData)
             .where({ ID })
-            .columns('Status', 'Version', 'EffectiveDate');
+            .columns(...HEADER_TRACKED_FIELDS);
 
         const oldStatus = active?.Status;
         const newStatus = req.data.Status;
         const effectiveDate = req.data.EffectiveDate || active?.EffectiveDate;
         const baseVersion = active?.Version ?? req.data.Version ?? '0.1';
+        req.data.Version = computeVersion(baseVersion, active?.Status, req.data.Status);
+
+        // Stash for after('SAVE') to update changelog
+        req._headerSaveLog = {
+            id: ID,
+            isCreate: !active,
+            oldData: active ?? {},
+            newData: req.data
+        };
+    });
+
+    this.after('SAVE', PricelistData, async (result, req) => {
+        if (!req._headerSaveLog) return;
+
+        const { id, isCreate, oldData, newData } = req._headerSaveLog;
+        const changeType = isCreate ? 'CREATE' : 'UPDATE';
+
+        try {
+            const entries = [];
+            const now = new Date();
+            const changedBy = req.user?.id || 'unknown';
+
+            for (const field of HEADER_TRACKED_FIELDS) {
+                const oldVal = oldData[field];
+                const newVal = newData[field];
+
+                // For UPDATE: skip unchanged fields
+                if (!isCreate && String(oldVal ?? '') === String(newVal ?? '')) continue;
+
+                // For CREATE: skip fields that were never set
+                if (isCreate && newVal === undefined) continue;
+
+                entries.push({
+                    ID: cds.utils.uuid(),
+                    changedAt: now,
+                    changedBy,
+                    source: 'Header',
+                    refId: id,
+                    changeType,
+                    field,
+                    oldValue: isCreate ? undefined : String(oldVal ?? ''),
+                    newValue: String(newVal ?? '')
+                });
+            }
+
+            if (entries.length === 0) {
+                console.log('[logHeaderSave] no changes detected, skipping log');
+                return;
+            }
+
+            // Batch insert all changed fields in one query
+            await cds.run(
+                INSERT.into('com.sap.pricelistsystem.PricelistChangeLog').entries(entries)
+            );
+
+            console.log(`[logHeaderSave] ${entries.length} ${changeType} change(s) logged for ${id}`);
+        } catch (e) {
+            console.error('[logHeaderSave] INSERT failed:', JSON.stringify(e, null, 2));
+            console.error('[logHeaderSave] stack:', e.stack);
 
         req.data.Version = computeVersion(
             baseVersion,
@@ -1820,7 +1928,7 @@ module.exports = cds.service.impl(async function () {
         const extdb = await cds.connect.to('extdb');
 
         // ── shared helpers ─────────────────────────────────────
-        const escapeSql = (val) => String(val).replace(/'/g, "''");        
+        const escapeSql = (val) => String(val).replace(/'/g, "''");
         const parseRecordDate = (sDate) => {
             if (!sDate) return null;
             const d = new Date(sDate);
