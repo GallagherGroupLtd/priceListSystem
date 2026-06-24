@@ -4,9 +4,9 @@ const { log } = require("@sap/cds");
 
 const { SELECT, INSERT, UPDATE, DELETE } = cds.ql;
 
-const { HEADER_TRACKED_FIELDS } = require('./code/constants');
+const { HEADER_TRACKED_FIELDS } = require('./pricelist_maintain_srv-code/constants');
 
-const saveProductPriceList = require('./code/save-product-price-list');
+const saveProductPriceList = require('./pricelist_maintain_srv-code/save-product-price-list');
 // const logHeaderChanges = require('./code/log-header-changes');
 
 /**

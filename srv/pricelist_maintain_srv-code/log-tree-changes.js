@@ -1,4 +1,4 @@
-const { STORED_FIELDS } = require('./constants');
+const { TREE_TRACKED_FIELDS } = require('./constants');
 
 module.exports = async function logTreeChanges(srv, tx, req, originalRows, newRows, deletedIds) {
     const { PricelistChangeLog } = srv.entities;
@@ -21,7 +21,7 @@ module.exports = async function logTreeChanges(srv, tx, req, originalRows, newRo
     // UPDATED rows — diff field by field
     for (const row of newRows.filter(r => originalById[r.ID])) {
         const orig = originalById[row.ID];
-        for (const field of STORED_FIELDS) {
+        for (const field of TREE_TRACKED_FIELDS) {
             const oldVal = String(orig[field] ?? '');
             const newVal = String(row[field]  ?? '');
             if (oldVal === newVal) continue;
