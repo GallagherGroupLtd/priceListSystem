@@ -1277,9 +1277,6 @@ module.exports = cds.service.impl(async function () {
         const ID = req.data?.ID;
         if (!ID) return;
 
-        // const active = await SELECT.one(PricelistData)
-        //     .where({ ID }).columns('Status', 'Version');
-
         // Extend columns to include tracked fields for diff comparison
         const active = await SELECT.one(PricelistData)
             .where({ ID })
@@ -1289,7 +1286,17 @@ module.exports = cds.service.impl(async function () {
         const newStatus = req.data.Status;
         const effectiveDate = req.data.EffectiveDate || active?.EffectiveDate;
         const baseVersion = active?.Version ?? req.data.Version ?? '0.1';
-        req.data.Version = computeVersion(baseVersion, active?.Status, req.data.Status);
+        req.data.Version = computeVersion(
+            baseVersion,
+            oldStatus,
+            newStatus,
+            effectiveDate
+        );
+
+        if (newStatus === PUBLISHED && oldStatus !== PUBLISHED) {
+            req.data.PublishedDate = new Date();
+            req.data.PublishedBy = req.user?.id || req.user?.email || "system";
+        }
 
         // Stash for after('SAVE') to update changelog
         req._headerSaveLog = {
@@ -1348,17 +1355,6 @@ module.exports = cds.service.impl(async function () {
         } catch (e) {
             console.error('[logHeaderSave] INSERT failed:', JSON.stringify(e, null, 2));
             console.error('[logHeaderSave] stack:', e.stack);
-
-        req.data.Version = computeVersion(
-            baseVersion,
-            oldStatus,
-            newStatus,
-            effectiveDate
-        );
-
-        if (newStatus === PUBLISHED && oldStatus !== PUBLISHED) {
-            req.data.PublishedDate = new Date();
-            req.data.PublishedBy = req.user?.id || req.user?.email || "system";
         }
     });
 
