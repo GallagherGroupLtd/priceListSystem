@@ -322,18 +322,47 @@ function buildPdfBuffer({ headerCriteria, headerTerms, detailTerms }) {
 }
 
 // ─── Version Helpers ──────────────────────────────────────────────────────────
-const PUBLISHED = 'Published';
-const computeVersion = (current, oldStatus, newStatus) => {
-    const version = Math.floor(parseFloat(current) || 0);
+const PUBLISHED = "Published";
+
+const getVersionNumber = (versionText) => {
+    if (!versionText) return 0.1;
+
+    const valuePart = String(versionText).includes(":")
+        ? String(versionText).split(":").pop().trim()
+        : String(versionText).trim();
+
+    return parseFloat(valuePart) || 0.1;
+};
+
+const formatEffectiveDate = (effectiveDate) => {
+    const d = new Date(effectiveDate);
+    if (isNaN(d.getTime())) return "";
+
+    const yyyy = d.getFullYear();
+    const mmm = d.toLocaleString("en-US", { month: "short" });
+    const dd = String(d.getDate()).padStart(2, "0");
+
+    return `${yyyy}-${mmm}-${dd}`;
+};
+
+const formatVersion = (effectiveDate, versionNumber) => {
+    const prefix = formatEffectiveDate(effectiveDate);
+    return prefix ? `${prefix}:${versionNumber}` : String(versionNumber);
+};
+
+const computeVersion = (current, oldStatus, newStatus, effectiveDate) => {
+    const currentNumber = getVersionNumber(current);
+    const baseInteger = Math.floor(currentNumber);
+
+    let nextNumber = currentNumber;
 
     if (newStatus === PUBLISHED && oldStatus !== PUBLISHED) {
-        return String(version + 1);          // 0.1→1, 1.1→2
+        nextNumber = baseInteger + 1;
+    } else if (oldStatus === PUBLISHED && newStatus !== PUBLISHED) {
+        nextNumber = baseInteger + 0.1;
     }
 
-    if (newStatus !== PUBLISHED && oldStatus === PUBLISHED) {
-        return `${version}.1`;               // 1→1.1
-    }
-    return current;
+    return formatVersion(effectiveDate, nextNumber);
 };
 
 
@@ -1256,6 +1285,9 @@ module.exports = cds.service.impl(async function () {
             .where({ ID })
             .columns(...HEADER_TRACKED_FIELDS);
 
+        const oldStatus = active?.Status;
+        const newStatus = req.data.Status;
+        const effectiveDate = req.data.EffectiveDate || active?.EffectiveDate;
         const baseVersion = active?.Version ?? req.data.Version ?? '0.1';
         req.data.Version = computeVersion(baseVersion, active?.Status, req.data.Status);
 
@@ -1316,6 +1348,17 @@ module.exports = cds.service.impl(async function () {
         } catch (e) {
             console.error('[logHeaderSave] INSERT failed:', JSON.stringify(e, null, 2));
             console.error('[logHeaderSave] stack:', e.stack);
+
+        req.data.Version = computeVersion(
+            baseVersion,
+            oldStatus,
+            newStatus,
+            effectiveDate
+        );
+
+        if (newStatus === PUBLISHED && oldStatus !== PUBLISHED) {
+            req.data.PublishedDate = new Date();
+            req.data.PublishedBy = req.user?.id || req.user?.email || "system";
         }
     });
 
