@@ -311,13 +311,16 @@ sap.ui.define([
 					if (!aFlatData || !aFlatData.length) {
 						return;
 					}
-					this._refreshPricesOnly(aFlatData);
+					//Commenting this line, as the function only refreshes price, but doesn't take into account, new products/categories/sub-categories, added since the initial load of the product tree.
+					// this._refreshPricesOnly(aFlatData);
+					//Replaced refreshPriceOnly with mergeRefreshProductTree, which will refresh the prices and also take into account new products/categories/sub-categories, added since the initial load of the product tree.
+					this._mergeRefreshProductTree(aFlatData);
 					// this._setTreeTableData(aFlatData);
 					MessageToast.show("Prices refreshed successfully.");
 				})
 				.catch((oErr) => {
-					console.error("Error refreshing prices:", oErr);
-					sap.m.MessageBox.error("Cannot refresh prices. Please try again.");
+					console.error("Error refreshing product list:", oErr);
+					sap.m.MessageBox.error("Cannot refresh product list. Please try again.");
 				});
 		},
 
@@ -370,6 +373,112 @@ sap.ui.define([
 			const aOrigPricelistTree = oJsonModel.getProperty("/originalProductPriceList") || [];
 			this._originalSnapshot = JSON.parse(JSON.stringify(aOrigPricelistTree));
 
+		},
+
+		//Merge refresh product tree, will bring in data as per the latest saved data in DB, while still keeping the ordered + deleted items as is in the UI.
+		_mergeRefreshProductTree: function (aFreshFlatData) {
+			const oJsonModel = this._getJsonModel();
+			if(!oJsonModel) return;
+			
+			if (oJsonModel.getProperty("/isReorderMode")) {
+				MessageBox.error("Please finish re-order mode before refreshing the pricelist.");
+				return;
+			}
+
+			if (oJsonModel.getProperty("/isDeleteMode")) {
+				MessageBox.error("Please finish delete mode before refreshing the pricelist.");
+				return;
+			}
+			//using the tree frm productPriceListFull doesn't work with state, as the details are not yet saved in this model, they are only in state (draft)
+			// const aFullTree = oJsonModel.getProperty("/productPriceListFull") || [];
+			const iFilterCount = oJsonModel.getProperty("/productFilterCount") || 0;
+
+			if (iFilterCount > 0 && oJsonModel.getProperty("/isReorderMode")) {
+				MessageBox.error("Please clear the filter and finish re-order mode before refreshing the pricelist.");
+				return;
+			}
+
+			const aBaseTree = iFilterCount > 0
+				? (oJsonModel.getProperty("/productPriceListFull") || [])
+				: (oJsonModel.getProperty("/productPriceList") || []);
+
+			const aFullTree = this._clone(aBaseTree);
+
+			const aFreshTree = this._buildTreeFromFlatData(aFreshFlatData) || [];
+
+			const getNodeKey = function (oNode, sParentPath) {
+				const sType = oNode.Kind || "";
+				const sTitle = oNode.Title || "";
+				return sParentPath ? `${sParentPath}/${sType}:${sTitle}` : `${sType}:${sTitle}`;
+			};
+
+			const updateExistingNode = function (oExistingNode, oFreshNode) {
+				PRODUCT_PRICE_UPDATE_FIELDS.forEach(function (sField) {
+					if (oFreshNode[sField] !== undefined) {
+						oExistingNode[sField] = oFreshNode[sField] ?? null;
+					}
+				});
+
+				[
+					"Description",
+					"TermsAndConditions",
+					"Notes",
+					"PublishedName",
+					"IsTACDisableExt",
+					"IsTACDisableInt",
+					"IsNotesDisableExt",
+					"IsNotesDisableInt"
+				].forEach(function (sField) {
+					if (oFreshNode[sField] !== undefined) {
+						oExistingNode[sField] = oFreshNode[sField];
+					}
+				});
+			};
+
+			const mergeChildren = function (aExistingChildren, aFreshChildren, sParentPath) {
+				const mExistingByPath = new Map();
+
+				(aExistingChildren || []).forEach(function (oExistingChild) {
+					mExistingByPath.set(getNodeKey(oExistingChild, sParentPath), oExistingChild);
+				});
+
+				(aFreshChildren || []).forEach(function (oFreshChild) {
+					const sFreshKey = getNodeKey(oFreshChild, sParentPath);
+					const oExistingChild = mExistingByPath.get(sFreshKey);
+
+					if (oExistingChild) {
+						updateExistingNode(oExistingChild, oFreshChild);
+
+						if (!Array.isArray(oExistingChild.children)) {
+							oExistingChild.children = [];
+						}
+
+						mergeChildren(
+							oExistingChild.children,
+							oFreshChild.children || [],
+							sFreshKey
+						);
+					} else {
+						// New category/subcategory/product: append under parent.
+						aExistingChildren.push(oFreshChild);
+					}
+				});
+			};
+
+			mergeChildren(aFullTree, aFreshTree, "");
+
+			oJsonModel.setProperty("/productPriceListFull", this._clone(aFullTree));
+
+			// const iFilterCount = oJsonModel.getProperty("/productFilterCount") || 0;
+			if (iFilterCount > 0) {
+				const oFilter = oJsonModel.getProperty("/productFilter") || this._getEmptyProductFilter();
+				oJsonModel.setProperty("/productPriceList", this._filterProductTree(aFullTree, oFilter));
+			} else {
+				oJsonModel.setProperty("/productPriceList", this._clone(aFullTree));
+			}
+
+			oJsonModel.updateBindings(true);
+			this._refreshTreeTableBinding();
 		},
 
 		/**
@@ -850,7 +959,10 @@ sap.ui.define([
 			const sHeaderId = oContext.getProperty("ID");
 			if (!sHeaderId) return Promise.resolve([]);
 
-			const aFilters = [new Filter("pricelist_ID", FilterOperator.EQ, sHeaderId)];
+			const aFilters = [
+				new Filter("pricelist_ID", FilterOperator.EQ, sHeaderId),
+			    new Filter("IsDeleted", FilterOperator.NE, true)
+			];
 
 			const oListBinding = oODataModel.bindList("/ProductPriceList", null, [], aFilters, {
 				$select: PRODUCT_PRICE_LIST_ENTITY_FIELDS.join(","),

@@ -2313,7 +2313,8 @@ module.exports = cds.service.impl(async function () {
             const pricingIndex = await loadPricingIndex(materials);
             if (pricingIndex) applyPricing(rows, pricingIndex, include);
 
-            if (include.price) rows = rows.filter(row => row.Price != null);
+            //Commenting the below line, as reuirement is to fetch products even if the price is not defined for them.
+            // if (include.price) rows = rows.filter(row => row.Price != null);
         }
 
         return sortResults(rows);
