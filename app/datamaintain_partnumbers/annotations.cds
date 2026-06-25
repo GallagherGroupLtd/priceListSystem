@@ -127,11 +127,7 @@ annotate service.PriceProductMaintenance with @(
             },
             {
                 $Type : 'UI.DataField',
-                Value : MaterialClassification,
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : PricelistMaterialClassification,
+                Value : MaterialClassification2,
             },
             {
                 $Type : 'UI.DataField',

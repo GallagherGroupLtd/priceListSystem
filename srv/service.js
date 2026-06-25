@@ -1218,10 +1218,20 @@ module.exports = cds.service.impl(async function () {
             req.data.ProductDescription1 = data1.MATERIAL_DESCRIPTION;
         }
 
+        console.log("Before set req.data:", JSON.stringify(req.data, null, 2));
+
         if (data2) {
             req.data.MaterialClassification1 = data2.MATERIAL_GROUP_2;
             req.data.ErpStatus = data2.MATERIAL_GROUP_5;
+
+            console.log('MATERIAL_GROUP_2.2:', data2?.MATERIAL_GROUP_2);
+            console.log('MATERIAL_GROUP_5.2:', data2?.MATERIAL_GROUP_5);            
         }
+
+        console.log("After set req.data:", JSON.stringify(req.data, null, 2));
+
+        console.log('MATERIAL_GROUP_2.3:', req.data.MaterialClassification1);
+        console.log('MATERIAL_GROUP_5.3:', req.data.ErpStatus);  
     });
 
     // Handler for PricelistData Status Assignment
