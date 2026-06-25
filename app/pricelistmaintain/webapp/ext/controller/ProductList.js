@@ -37,6 +37,8 @@ sap.ui.define([
 
         const iInsertIdx = sDropPosition === "Before" ? iNewDropIdx : iNewDropIdx + 1;
         aChildren.splice(iInsertIdx, 0, oDraggedNode);
+
+        aChildren.forEach((oNode, i) => { oNode.OrderIndex = i; });
     }
 
     return {
@@ -265,48 +267,12 @@ sap.ui.define([
             ExtController.getInstance().onClearHierarchyFilter();
         },
 
-        onRefresh: function (oEvent) {
-            MessageToast.show("Refresh triggered.");
-            ExtController._getProductPriceList.apply(this);
-        },
-
-        // onRefreshPrice: function (oEvent) {
-        //     MessageToast.show("Refresh Pricelist by appending new node from item structure table.");
-        //     ExtController.getInstance()._getProductPriceList()
-        //         .then((newProductList) => {
-        //             ExtController.getInstance()._updateModeToggleEnabled();
-        //             // const result = ExtController.getInstance()._addUpdateProductList(newProductList);
-        //             // if (result && result.hasChanges) {
-        //             //     debugger;
-        //             //     ExtController.getInstance()._setTreeTableData(result.productList);
-        //             //     // clear any selection after refresh
-        //             //     try {
-        //             //         const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-        //             //         if (oTable && typeof oTable.clearSelection === 'function') oTable.clearSelection();
-        //             //         ExtController.getInstance()._setDeleteBtnState(false);
-        //             //         ExtController.getInstance()._updateModeToggleEnabled();
-        //             //     } catch (e) { /* ignore */ }
-        //             // }
-        //         });
-        // },
-
         onRefreshPrice: function () {
-            const oController = ExtController.getInstance();
-
-            MessageToast.show("Refreshing pricelist...");
-
-            oController._getProductPriceList()
-                .then((aFlatData) => {
-                    oController._setTreeTableData(aFlatData || []);
-                })
-                .catch((oErr) => {
-                    console.error("Error refreshing pricelist:", oErr);
-                    sap.m.MessageBox.error("Cannot refresh pricelist.");
-                });
+            MessageToast.show("Refreshing Price.");
+            ExtController.getInstance().onRefreshPrice();
         },
 
         onResetPrice: function (oEvent) {
-
             MessageBox.confirm("Table will be completely reset. Proceed?", {
                 title: "Confirm Reset Pricelist",
                 actions: [MessageBox.Action.YES, MessageBox.Action.NO],
@@ -314,10 +280,9 @@ sap.ui.define([
                 onClose: function (oAction) {
                     if (oAction === MessageBox.Action.YES) {
                         // delegate reset to extension controller which restores original snapshot if available
-                        // ExtController.getInstance().onResetPrice();
-                        ExtController.getInstance()._openCustomerNumberDialog();
+                        ExtController.getInstance().onResetPrice();
                     }
-                }.bind(this)
+                }
             });
         },
 
@@ -331,71 +296,14 @@ sap.ui.define([
             ExtController.getInstance().onUndoDelete(oEvent);
         },
 
-        // onDrop: function (oEvent) {
-        //     const oDraggedControl = oEvent.getParameter("draggedControl");
-        //     const oDroppedControl = oEvent.getParameter("droppedControl");
-        //     const sDropPosition = oEvent.getParameter("dropPosition");
+        onExportExcel: function () {
+            ExtController.getInstance().onExportExcel(false);
+        },
 
-        //     const oDragCtx = oDraggedControl.getBindingContext("jsonModel");
-        //     const oDropCtx = oDroppedControl.getBindingContext("jsonModel");
-
-        //     const oDroppedData = oDropCtx.getModel().getProperty(oDropCtx.getPath());
-        //     const oDraggedData = oDragCtx.getModel().getProperty(oDragCtx.getPath());
-
-        //     if (!oDraggedData || oDraggedData.Kind !== "Product" || !oDraggedData.MaterialKey) {
-        //         // MessageBox.error("Only product rows can be moved. Category rows are not allowed.");
-        //         return;
-        //     }
-
-        //     if (!oDroppedData) return;
-
-        //     let oTargetCategory;
-        //     if (oDroppedData.Kind === "Category") {
-        //         // oTargetCategory = oDroppedData;
-        //     } else if (oDroppedData.Kind === "Product") {
-        //         // Find the parent category of the dropped-on product
-        //         oTargetCategory = findParentCategory(
-        //             ExtController.getInstance().base.getView().getModel("jsonModel").getProperty("/productPriceList"),
-        //             oDroppedData.MaterialKey
-        //         );
-        //     }
-
-        //     if (!oTargetCategory) {
-        //         // sap.m.MessageToast.show("Cannot determine target category.");
-        //         return;
-        //     }
-
-        //     const aCatParts = oTargetCategory.key.split(" / ");
-        //     const oNewCategoryFields = {
-        //         MainCategory: aCatParts[0] || null,
-        //         SubCategory1: aCatParts[1] || null,
-        //         SubCategory2: aCatParts[2] || null,
-        //         SubCategory3: aCatParts[3] || null,
-        //         SubCategory4: aCatParts[4] || null,
-        //         SubCategory5: aCatParts[5] || null
-        //     };
-
-        //     const oJsonModel = ExtController.getInstance().base.getView().getModel("jsonModel");
-        //     const aTree = oJsonModel.getProperty("/productPriceList");
-
-        //     removeNodeFromTree(aTree, oDraggedData.MaterialKey);
-
-        //     // Apply new category fields to the dragged node
-        //     Object.assign(oDraggedData, oNewCategoryFields);
-
-        //     // oTargetCategory.children.push(oDraggedData);
-        //     insertNodeIntoCategory(oTargetCategory, oDraggedData, oDroppedData, sDropPosition);
-
-        //     // No save. just update the model and let user decide when to save by pressing Save button. If want to save immediately, can call submitChanges here.
-        //     // const oODataModel = ExtController.getInstance().base.getView().getModel();
-        //     // const oContext = oODataModel.bindContext("/PricelistItemData(" + oDraggedData.ID + ")");
-        //     // oODataModel.setProperty("MainCategory", oNewCategoryFields.MainCategory, oContext);
-        //     // // ... repeat for SubCategory1-5
-        //     // oODataModel.submitBatch("myGroup");
-
-        //     oJsonModel.setProperty("/productPriceList", [...aTree]);
-        // },
-
+        onExportExcelAs: function () {
+            ExtController.getInstance().onExportExcel(true);
+        },
+        
         onDrop: function (oEvent) {
             const oDragCtx = oEvent.getParameter("draggedControl").getBindingContext("jsonModel");
             const oDropCtx = oEvent.getParameter("droppedControl").getBindingContext("jsonModel");
@@ -458,113 +366,38 @@ sap.ui.define([
             }
 
             oJsonModel.setProperty("/productPriceList", [...aTree]);
-            // oJsonModel.refresh(true);
+        },
+
+        onOpenColumnSettings: function (oEvent) {
+            ExtController.getInstance()._onOpenColumnSettings(oEvent);
+        },
+
+        onOpenLayoutSettings: function (oEvent) {
+            ExtController.getInstance().onOpenLayoutSettings(oEvent);
         },
 
         onRowClick: function (oEvent) {
-            // I want to use this but not work yet
-
-            // const oClickedItem = oEvent.getParameter("rowContext");
-            // const sPath = oClickedItem.getPath();
-            // const oModel = oClickedItem.getModel();
-            // const oData = oModel.getProperty(sPath);
-            // MessageToast.show("Row clicked: " + JSON.stringify(oData));
+            // Reserved for future row-click behaviour (e.g. quick preview). Not wired
+            // to any control yet.
         },
 
+        /**
+         * Toggles the tree's "Delete" interaction mode.
+         * All decision logic (Display-mode guard, active-filter guard, table
+         * selection-mode switching, toolbar sync) lives centrally in the extension
+         * controller's _handleProductTreeModeToggle — this is a thin delegate so the
+         * fragment's `press` handler always reflects the single source of truth.
+         */
         onToggleDeleteMode: function (oEvent) {
-            const oToggleButton = oEvent.getSource();
-            const bDeleteMode = oToggleButton.getPressed();
-            const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-            const oDeleteButton = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
-
-            if (bDeleteMode) {
-                this.bDeleteMode = true;
-                oTable.setSelectionMode('Multi');
-                ExtController.getInstance()._setDeleteBtnState(undefined, true);
-                // change toggle appearance to 'Finish'
-                try {
-                    oToggleButton.setIcon('sap-icon://complete');
-                    oToggleButton.setText('Finish');
-                    oToggleButton.setTooltip('Finish delete mode');
-                } catch (e) { /* ignore if control API differs */ }
-                // reflect mode in jsonModel so UI updates and clear reorder mode
-                try {
-                    const oExt = ExtController.getInstance();
-                    if (oExt && oExt.base && oExt.base.getView) {
-                        const oJson = oExt.base.getView().getModel('jsonModel');
-                        if (oJson) {
-                            oJson.setProperty('/isDeleteMode', true);
-                            oJson.setProperty('/isReorderMode', false);
-                            oJson.setProperty('/showReset', false);
-                        }
-                    }
-                } catch (e) { /* ignore */ }
-            } else {
-                this.bDeleteMode = false;
-                oTable.setSelectionMode('Single');
-                ExtController.getInstance()._setDeleteBtnState(undefined, false);
-                oTable.clearSelection();
-                // revert toggle appearance to default
-                try {
-                    oToggleButton.setIcon('sap-icon://delete');
-                    oToggleButton.setText('Delete');
-                    oToggleButton.setTooltip('Toggle delete mode');
-                } catch (e) { /* ignore */ }
-                // clear delete mode flag in model and update Reset visibility
-                try {
-                    const oExt = ExtController.getInstance();
-                    if (oExt && oExt.base && oExt.base.getView) {
-                        const oView = oExt.base.getView();
-                        const oJson = oView.getModel('jsonModel');
-                        if (oJson) {
-                            oJson.setProperty('/isDeleteMode', false);
-                            const isReorder = !!oJson.getProperty('/isReorderMode');
-                            oJson.setProperty('/showReset', !isReorder);
-                        }
-                    }
-                } catch (e) {
-                    // ignore
-                }
-            }
+            ExtController.getInstance().onToggleDeleteMode(oEvent);
         },
 
+        /**
+         * Toggles the tree's "Re-order" interaction mode.
+         * See onToggleDeleteMode — same centralized delegation pattern.
+         */
         onToggleReorderMode: function (oEvent) {
-            const oToggleButton = oEvent.getSource();
-            const bReorderMode = oToggleButton.getPressed();
-            const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-
-            if (bReorderMode) {
-                this.bReorderMode = true;
-                // oTable.setDragDropConfig(new sap.ui.table.TreeTableDragDropConfig({
-                //     dragStart: this.onDragStart.bind(this),
-                //     drop: this.onDrop.bind(this)
-                // }));
-                try {
-                    const oExt = ExtController.getInstance();
-                    if (oExt && oExt.base && oExt.base.getView) {
-                        const oJson = oExt.base.getView().getModel('jsonModel');
-                        if (oJson) {
-                            oJson.setProperty('/isReorderMode', true);
-                            oJson.setProperty('/isDeleteMode', false);
-                            oJson.setProperty('/showReset', false);
-                        }
-                    }
-                } catch (e) { /* ignore */ }
-            } else {
-                this.bReorderMode = false;
-                // oTable.setDragDropConfig(null);
-                try {
-                    const oExt = ExtController.getInstance();
-                    if (oExt && oExt.base && oExt.base.getView) {
-                        const oJson = oExt.base.getView().getModel('jsonModel');
-                        if (oJson) {
-                            oJson.setProperty('/isReorderMode', false);
-                            const isDelete = !!oJson.getProperty('/isDeleteMode');
-                            oJson.setProperty('/showReset', !isDelete);
-                        }
-                    }
-                } catch (e) { /* ignore */ }
-            }
+            ExtController.getInstance().onToggleReorderMode(oEvent);
         },
 
         onSelectionChange: function (oEvent) {
@@ -579,83 +412,7 @@ sap.ui.define([
             } else {
                 oExt._onSelectionChangeDisplayMode(oEvent);
             }
-        },
-
-        onOpenHierarchyFilter: function () {
-            ExtController.getInstance().onOpenHierarchyFilter();
-        },
-
-        onClearHierarchyFilter: function () {
-            ExtController.getInstance().onClearHierarchyFilter();
-        },
-
-        // onSelectionChange: function (oEvent) {
-        //     if (this.bDeleteMode) {
-        //         ExtController._onSelectionChangeDeleteMode(oEvent);
-        //     } else {
-        //         ExtController._onSelectionChangeDisplayMode(oEvent);
-        //     }
-        // },
-
-        // onSelectionChangeDisplayMode: function (oEvent) {
-        //     //Demo code
-        //     MessageToast.show("Row Selection Change:");
-        //     const oTable = oEvent.getSource();
-        //     const aSelectedIndices = oTable.getSelectedIndices();
-        //     const oDeleteButton = sap.ui.getCore().byId(idPrefix + "ProductListDeleteBtn");
-        //     const oResetButton = sap.ui.getCore().byId(idPrefix + "ProductListResetBtn");
-        //     const oRefreshButton = sap.ui.getCore().byId(idPrefix + "ProductListRefreshBtn");
-
-        //     const iSelectedIndex = aSelectedIndices[0];
-        //     const oRowContext = oTable.getContextByIndex(iSelectedIndex);
-
-        //     if (!oRowContext) {
-        //         MessageToast.show("No row selected.");
-        //         return;
-        //     }
-
-        //     const oSelectedData = oRowContext.getObject();
-
-        //     if (oSelectedData) {
-
-        //         let sSubSectionId = null;
-        //         let oObjectPageLayout = null;
-        //         let oControl = oTable;
-
-        //         while (oControl) {
-        //             if (oControl.isA && oControl.isA("sap.uxap.ObjectPageLayout")) {
-        //                 oObjectPageLayout = oControl;
-        //                 break;
-        //             }
-        //             oControl = oControl.getParent && oControl.getParent();
-        //         }
-
-        //         switch (oSelectedData.Kind) {
-        //             case "Product":
-        //                 sSubSectionId = "pricelistapp.pricelistmaintain::PricelistDataObjectPage--fe::CustomSubSection::ProductDetails";
-        //         }
-
-        //         if (oObjectPageLayout) {
-        //             oObjectPageLayout.scrollToSection(sSubSectionId);
-        //         } else {
-        //             const oSubSection = sap.ui.getCore().byId(sSubSectionId);
-        //             if (oSubSection && oSubSection.getDomRef()) {
-        //                 oSubSection.getDomRef().scrollIntoView({ behavior: "smooth" });
-        //             }
-        //         }
-        //     }
-
-        //     if (aSelectedIndices.length > 0) {
-        //         ExtController.getInstance()._setDeleteBtnState(true);
-        //         // oRefreshButton.setEnabled(true);
-        //         // oResetButton.setEnabled(true);
-        //     } else {
-        //         ExtController.getInstance()._setDeleteBtnState(false);
-        //         // oRefreshButton.setEnabled(false);
-        //         // oResetButton.setEnabled(false);
-        //     }
-        //     // oTable.clearSelection();
-        // }
+        }
 
     }
 });

@@ -270,12 +270,12 @@ entity PricelistData : managed, cuid {
     MarketDisplay      : String       @title: 'Market Region'  @cds.persistence.skip; //Virtual Field
 
     TermsAndConditions : String(1000) @title: 'Header Terms and Conditions';
-    // TACDisableExtUser   : Boolean     @title: 'Terms and Conditions Disable Flag for External User';
-    // TACDisableIntUser   : Boolean     @title: 'Terms and Conditions Disable Flag for Internal User';
+    TACDisableExtUser   : Boolean     @title: 'Terms and Conditions Disable Flag for External User';
+    TACDisableIntUser   : Boolean     @title: 'Terms and Conditions Disable Flag for Internal User';
 
     Notes              : String(5000) @title: 'Notes';
-    // NotesDisableExtUser : Boolean     @title: 'Notes Disable Flag for External User';
-    // NotesDisableIntUser : Boolean     @title: 'Notes Disable Flag for Internal User';
+    NotesDisableExtUser : Boolean     @title: 'Notes Disable Flag for External User';
+    NotesDisableIntUser : Boolean     @title: 'Notes Disable Flag for Internal User';
 
     // Composition: Pricelist owns its items
     items              : Composition of many PricelistItemData
@@ -322,6 +322,7 @@ entity PricelistItemData : managed, cuid {
 entity ProductPriceList : managed, cuid {
 
     // mapping fields
+    pricelist                 : Association to PricelistData;
     PricelistType             : String(255) @title: 'Pricelist Type';
     MarketScopeRegion         : String(255) @title: 'Region';
     MarketScopeCountry        : String(255) @title: 'Country';
@@ -373,10 +374,24 @@ entity ProductPriceList : managed, cuid {
                                     on children.parent = $self;
 }
 
-entity ProductPriceListTreeLayout : managed {
-    key userId  : String(255);
-    key tableId : String(50);
-        config  : LargeString; 
+entity PriceListTreeLayout : managed, cuid {
+    tableId       : String(50)  @title: 'Table ID';
+    userId        : String(255) @title: 'User ID';
+    defaultLayout : Boolean     @title: 'Default Layout';
+    masterDefault : Boolean     @title: 'Master Layout';
+    layoutName    : String(100) @title: 'Layout Name';
+    config        : LargeString @title: 'Configuration';
+}
+
+entity PricelistChangeLog : cuid {
+    changedAt  : DateTime;
+    changedBy  : String(255);
+    source     : String(10);    // 'Header' | 'Tree'
+    refId      : String(100);   // bound entity ID (header) or ProductPriceList row ID (tree)
+    changeType : String(10);    // 'CREATE' | 'UPDATE' | 'DELETE'
+    field      : String(100);   // '*' for CREATE/DELETE, field name for UPDATE
+    oldValue   : String(1000);
+    newValue   : String(1000);
 }
 
 /* -------------------------------------- Value Help -------------------------------------- */

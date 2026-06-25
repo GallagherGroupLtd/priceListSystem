@@ -2,7 +2,12 @@ const XLSX = require("xlsx");
 const PDFDocument = require("pdfkit");
 const { log } = require("@sap/cds");
 
-const { SELECT, INSERT } = cds.ql;
+const { SELECT, INSERT, UPDATE, DELETE } = cds.ql;
+
+const { HEADER_TRACKED_FIELDS } = require('./pricelist_maintain_srv-code/constants');
+
+const saveProductPriceList = require('./pricelist_maintain_srv-code/save-product-price-list');
+// const logHeaderChanges = require('./code/log-header-changes');
 
 /**
  * Generic Mass Upload Handler
@@ -317,22 +322,54 @@ function buildPdfBuffer({ headerCriteria, headerTerms, detailTerms }) {
 }
 
 // ─── Version Helpers ──────────────────────────────────────────────────────────
-const incrementDraftVersion = (current) => {
-    const num = parseFloat(current) || 0;
-    return (Math.round((num + 0.1) * 10) / 10).toFixed(1);
+const PUBLISHED = "Published";
+
+const getVersionNumber = (versionText) => {
+    if (!versionText) return 0.1;
+
+    const valuePart = String(versionText).includes(":")
+        ? String(versionText).split(":").pop().trim()
+        : String(versionText).trim();
+
+    return parseFloat(valuePart) || 0.1;
 };
 
-const publishVersion = (current) => {
-    const num = parseFloat(current) || 0;
-    return Math.ceil(num).toFixed(1);
+const formatEffectiveDate = (effectiveDate) => {
+    const d = new Date(effectiveDate);
+    if (isNaN(d.getTime())) return "";
+
+    const yyyy = d.getFullYear();
+    const mmm = d.toLocaleString("en-US", { month: "short" });
+    const dd = String(d.getDate()).padStart(2, "0");
+
+    return `${yyyy}-${mmm}-${dd}`;
 };
 
+const formatVersion = (effectiveDate, versionNumber) => {
+    const prefix = formatEffectiveDate(effectiveDate);
+    return prefix ? `${prefix}:${versionNumber}` : String(versionNumber);
+};
+
+const computeVersion = (current, oldStatus, newStatus, effectiveDate) => {
+    const currentNumber = getVersionNumber(current);
+    const baseInteger = Math.floor(currentNumber);
+
+    let nextNumber = currentNumber;
+
+    if (newStatus === PUBLISHED && oldStatus !== PUBLISHED) {
+        nextNumber = baseInteger + 1;
+    } else if (oldStatus === PUBLISHED && newStatus !== PUBLISHED) {
+        nextNumber = baseInteger + 0.1;
+    }
+
+    return formatVersion(effectiveDate, nextNumber);
+};
 
 
 module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
     const { User, TradeScenarios, ItemStructure, PriceProductMaintenance, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, PricingCondType,
-        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest } = this.entities;
+        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest, PriceListTreeLayout, ProductPriceList } = this.entities;
 
     //Selection of Materials
     async function resolveItems(filters, db, extdb) {
@@ -1239,39 +1276,137 @@ module.exports = cds.service.impl(async function () {
         req.data.Status = 'Drafted';
     });
 
-
-    this.before('draftEdit', PricelistData, async (req) => {
+    this.before('DELETE', PricelistData, async (req) => {
         const ID = req.params?.[0]?.ID;
+        const IsActiveEntity = req.params?.[0]?.IsActiveEntity;
+
         if (!ID) return;
 
-        const active = await SELECT.one(PricelistData)
-            .where({ ID })
-            .columns('Version', 'Status');
+        await DELETE.from(ProductPriceList).where({ pricelist_ID: ID });
 
-        if (active) {
-            req._newVersion = incrementDraftVersion(active.Version);
+        // Only log when deleting the active (non-draft) record
+        if (!IsActiveEntity) return;
+
+        try {
+            const record = await SELECT.one(PricelistData)
+                .where({ ID })
+                .columns('PricelistTitle');
+
+            req._headerLog = { id: ID, title: record?.PricelistTitle };
+        } catch (e) {
+            console.error('[logHeaderDelete] failed to stash log data:', e.message);
         }
     });
 
-    // ─── Version: increment on edit Draft ───────────────────────────────
-    this.after('draftEdit', PricelistData, async (req) => {
-        const ID = req.params?.[0]?.ID;
-        if (!ID || !req._newVersion) return;
+    this.after('DELETE', PricelistData, async (result, req) => {
+        if (!req._headerLog) return;
 
-        await UPDATE(PricelistData.drafts)
-            .set({ Version: req._newVersion })
-            .where({ ID });
+        try {
+            const { id, title } = req._headerLog;
+
+            await cds.run(
+                INSERT.into('com.sap.pricelistsystem.PricelistChangeLog').entries({
+                    ID: cds.utils.uuid(),
+                    changedAt: new Date(),
+                    changedBy: req.user?.id || 'unknown',
+                    source: 'Header',
+                    refId: id,
+                    changeType: 'DELETE',
+                    field: '*',
+                    oldValue: title ?? id,
+                    newValue: undefined
+                })
+            );
+
+            console.log('[logHeaderDelete] log written for', id);
+        } catch (e) {
+            console.error('[logHeaderDelete] INSERT failed:', JSON.stringify(e, null, 2));
+            console.error('[logHeaderDelete] stack:', e.stack);
+        }
     });
 
-    // ─── Version: round to x.0 on Publish (draftActivate) ────────────────────
-    this.before('draftActivate', PricelistData, async (req) => {
-        const ID = req.params?.[0]?.ID;
+    this.before('SAVE', PricelistData, async (req) => {
+        const ID = req.data?.ID;
         if (!ID) return;
-        const draft = await SELECT.one(PricelistData.drafts).where({ ID });
-        if (draft) {
-            req.data ??= {};
-            req.data.Version = publishVersion(draft.Version);
-            req.data.Status = 'Published';
+
+        // Extend columns to include tracked fields for diff comparison
+        const active = await SELECT.one(PricelistData)
+            .where({ ID })
+            .columns(...HEADER_TRACKED_FIELDS);
+
+        const oldStatus = active?.Status;
+        const newStatus = req.data.Status;
+        const effectiveDate = req.data.EffectiveDate || active?.EffectiveDate;
+        const baseVersion = active?.Version ?? req.data.Version ?? '0.1';
+        req.data.Version = computeVersion(
+            baseVersion,
+            oldStatus,
+            newStatus,
+            effectiveDate
+        );
+
+        if (newStatus === PUBLISHED && oldStatus !== PUBLISHED) {
+            req.data.PublishedDate = new Date();
+            req.data.PublishedBy = req.user?.id || req.user?.email || "system";
+        }
+
+        // Stash for after('SAVE') to update changelog
+        req._headerSaveLog = {
+            id: ID,
+            isCreate: !active,
+            oldData: active ?? {},
+            newData: req.data
+        };
+    });
+
+    this.after('SAVE', PricelistData, async (result, req) => {
+        if (!req._headerSaveLog) return;
+
+        const { id, isCreate, oldData, newData } = req._headerSaveLog;
+        const changeType = isCreate ? 'CREATE' : 'UPDATE';
+
+        try {
+            const entries = [];
+            const now = new Date();
+            const changedBy = req.user?.id || 'unknown';
+
+            for (const field of HEADER_TRACKED_FIELDS) {
+                const oldVal = oldData[field];
+                const newVal = newData[field];
+
+                // For UPDATE: skip unchanged fields
+                if (!isCreate && String(oldVal ?? '') === String(newVal ?? '')) continue;
+
+                // For CREATE: skip fields that were never set
+                if (isCreate && newVal === undefined) continue;
+
+                entries.push({
+                    ID: cds.utils.uuid(),
+                    changedAt: now,
+                    changedBy,
+                    source: 'Header',
+                    refId: id,
+                    changeType,
+                    field,
+                    oldValue: isCreate ? undefined : String(oldVal ?? ''),
+                    newValue: String(newVal ?? '')
+                });
+            }
+
+            if (entries.length === 0) {
+                console.log('[logHeaderSave] no changes detected, skipping log');
+                return;
+            }
+
+            // Batch insert all changed fields in one query
+            await cds.run(
+                INSERT.into('com.sap.pricelistsystem.PricelistChangeLog').entries(entries)
+            );
+
+            console.log(`[logHeaderSave] ${entries.length} ${changeType} change(s) logged for ${id}`);
+        } catch (e) {
+            console.error('[logHeaderSave] INSERT failed:', JSON.stringify(e, null, 2));
+            console.error('[logHeaderSave] stack:', e.stack);
         }
     });
 
@@ -1813,410 +1948,356 @@ module.exports = cds.service.impl(async function () {
 
     this.on('getProductTreeData', async (req) => {
 
-        const accessSequenceFilters = {
-            'A020': (rec, mat, cust) => rec.DIVISION === mat.DIVISION && rec.CUSTOMER_PRICE_GROUP === cust.PRICE_GROUP,
-            'A932': (rec, mat, cust) => rec.DIVISION === mat.DIVISION && rec.MATERIAL_CLASS === mat.MATERIAL_GROUP_2 && rec.SOLD_TO === CustomerNumber,
-            'A030': (rec, mat, cust) => rec.SOLDTO === CustomerNumber && rec.MATERIAL_PRICE_GROUP === mat.MATERIAL_PRICE_GROUP,
-            'A031': (rec, mat, cust) =>  rec.CUSTOMER_PRICE_GROUP === cust.PRICE_GROUP && rec.MATERIAL_PRICE_GROUP === mat.MATERIAL_PRICING_GROUP,
-            'A917': (rec, mat, cust) => rec.CUSTOMER_GROUP_1 === cust.CUSTOMER_GROUP_1 && rec.PRICELIST === CustPriceList,
-            // 'A916': (rec, mat, cust) => rec.PRICELIST_TYPE === cust.PRICE_LIST_TYPE,
-            'A916': (rec, mat, cust) => rec.PRICELIST_TYPE === CustPriceList,
-            'A305': (rec, mat, cust) => rec.SOLDTO === CustomerNumber,
-            'A937': (rec, mat, cust) => rec.MATERIAL_TYPE === mat.MATERIAL_TYPE && rec.DIVISION === mat.DIVISION
-        };
-
         let headerData;
         try {
             headerData = JSON.parse(req.data.headerData);
         } catch (e) {
-            req.error(400, "Invalid headerData format");
+            return req.error(400, "Invalid headerData format");
         }
 
-        function parseRecordDate(sDate) {
+        const {
+            EffectiveDate, PricelistType, MarketScopeRegion, MarketScopeCountry,
+            SalesOrg, DistChannel, CustPriceList, CustGroup1, ErpCustomer,
+            DeliveringPlant, PublishedDate, CustomerNumber, ExistingProduct
+        } = headerData;
+
+
+        // Only material
+        // headerData.include = { price: false, future: false, discount: false };
+
+        // material + price + future
+        // headerData.include = { price: true, future: true, discount: false };
+
+        // material + price + discount + future (= default)
+        // headerData.include = { price: true, future: true, discount: true };
+        const include = { price: true, future: true, discount: true, ...(headerData.include || {}) };
+
+        const db = cds.transaction(req);
+        const extdb = await cds.connect.to('extdb');
+
+        // ── shared helpers ─────────────────────────────────────
+        const escapeSql = (val) => String(val).replace(/'/g, "''");
+        const parseRecordDate = (sDate) => {
             if (!sDate) return null;
             const d = new Date(sDate);
             return isNaN(d.getTime()) ? null : d;
-        }
-
-        function getCandidateRecords(materialId, materialContext) {
-            const customerContext = customerDivisionMap.get(materialContext.DIVISION) || {};
-            const passesFilter = (rec) => {
-                const predicate = accessSequenceFilters[rec.ACCESS_SEQUENCE];
-                return !predicate || predicate(rec, materialContext, customerContext);
-            };
-            const directMatches = (recordsByMaterial.get(materialId) || []).filter(passesFilter);
-            const broadcastMatches = broadcastRecords.filter(passesFilter);
-
-            return [...directMatches, ...broadcastMatches];
-        }
-
-        function pickBestByDate(records, targetDate) {
+        };
+        const pickBestByDate = (records, targetDate) => {
             if (!records.length) return null;
             const sorted = [...records].sort((a, b) => a.PRIORITY - b.PRIORITY);
             if (!targetDate) return sorted[0];
-
             return sorted.find(rec => {
                 const from = parseRecordDate(rec.VALID_FROM);
                 const to = parseRecordDate(rec.VALID_TO);
                 return from && to && targetDate >= from && targetDate <= to;
             }) || null;
-        }
+        };
 
-        const escapeSql = (val) => String(val).replace(/'/g, "''");
+        const CATEGORY_PATH_FIELDS = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
+        const CATEGORY_FIELDS = [
+            ['MAIN_CATEGORY', 'MainCategory'], ['SUBCATEGORY_1', 'SubCategory1'],
+            ['SUBCATEGORY_2', 'SubCategory2'], ['SUBCATEGORY_3', 'SubCategory3'],
+            ['SUBCATEGORY_4', 'SubCategory4'], ['SUBCATEGORY_5', 'SubCategory5']
+        ];
+        const getCategoryKey = (obj, fieldMap) =>
+            fieldMap.map(([matField, rowField]) => obj[matField] ?? obj[rowField] ?? '').join('|');
 
-        const { EffectiveDate, PricelistType, MarketScopeRegion, MarketScopeCountry, SalesOrg, DistChannel, CustPriceList, CustGroup1, ErpCustomer, DeliveringPlant, PublishedDate, CustomerNumber, ExistingProduct } = headerData;
+        // ── step 1 / 1.1: item structure + terms ───────────────
+        const mergeCategoryTerms = async (itemStructureDatas) => {
+            const MAP = [
+                { source: "MainCategoryTermsandConditions", target: "MainCategoryTermsandCond" },
+                { source: "SubCategory1TermsandConditions", target: "SubCategory1TermsandCond" },
+                { source: "SubCategory2TermsandConditions", target: "SubCategory2TermsandCond" },
+                { source: "SubCategory3TermsandConditions", target: "SubCategory3TermsandCond" },
+                { source: "SubCategory4TermsandConditions", target: "SubCategory4TermsandCond" },
+                { source: "SubCategory5TermsandConditions", target: "SubCategory5TermsandCond" },
+            ];
+            const pathKey = (r) => CATEGORY_PATH_FIELDS.map((f) => r[f] || "").join("|");
+            const termsRows = await db.run(SELECT.from(TermsAndConditions).where({
+                PricelistType, MarketScopeRegion, MarketScopeCountry, SalesOrg, DistChannel,
+                CustPriceList, ErpCustomer, CustGroup1, DeliveringPlant
+            }));
+            const termsByPath = new Map(termsRows.map((r) => [pathKey(r), r]));
+            itemStructureDatas.forEach((row) => {
+                const m = termsByPath.get(pathKey(row));
+                if (!m) return;
+                MAP.forEach(({ source, target }) => { row[target] = m[source] || null; });
+            });
+        };
 
-        const db = cds.transaction(req);
-        const extdb = await cds.connect.to('extdb');
+        const loadItemStructure = async () => {
+            const rows = await db.run(SELECT.from('PricelistItemStructureComponents')
+                .where({ PricelistType, MarketScopeRegion, MarketScopeCountry, SalesOrg, DistChannel, CustPriceList, ErpCustomer, CustGroup1, DeliveringPlant })
+                .orderBy({ Sequence: 'asc' }));
+            if (!rows || rows.length === 0) return [];
+            await mergeCategoryTerms(rows);
+            return rows;
+        };
 
-        // 1. Get active item structure components based on header filters (PricelistType, MarketScopeRegion, MarketScopeCountry, SalesOrg, DistChannel)
-        const itemStructureDatas = await db.run(SELECT.from('PricelistItemStructureComponents')
-            .where({
-                PricelistType: PricelistType,
-                MarketScopeRegion: MarketScopeRegion,
-                MarketScopeCountry: MarketScopeCountry,
-                SalesOrg: SalesOrg,
-                DistChannel: DistChannel
-            })
-            .orderBy({ Sequence: 'asc' }));
-        // console.table(itemStructureDatas, ["Sequence", "MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5", "DeliveringPlant"]);
+        // ── step 2 / 3 / 3.1: material master + status ─────────
+        const buildMaterialWhere = (itemStructureDatas) => {
+            const common = [];
+            SalesOrg && common.push(`"SALES_ORGANIZATION" = '${escapeSql(SalesOrg)}'`);
+            DistChannel && common.push(`"DISTRIBUTION_CHANNEL" = '${escapeSql(DistChannel)}'`);
+            common.push(DeliveringPlant ? `"PLANT" = '${escapeSql(DeliveringPlant)}'` : `"PLANT" = '*'`);
 
-        if (!itemStructureDatas || itemStructureDatas.length === 0) return [];
+            const catOr = itemStructureDatas.map(row => {
+                const c = [];
+                const add = (f, v) => c.push(v ? `"${f}" = '${escapeSql(v)}'` : `COALESCE("${f}", '') = ''`);
+                add('MAIN_CATEGORY', row.MainCategory);
+                add('SUBCATEGORY_1', row.SubCategory1); add('SUBCATEGORY_2', row.SubCategory2);
+                add('SUBCATEGORY_3', row.SubCategory3); add('SUBCATEGORY_4', row.SubCategory4);
+                add('SUBCATEGORY_5', row.SubCategory5);
+                return `(${c.join(' AND ')})`;
+            });
 
+            if (common.length && catOr.length) return `(${common.join(' AND ')}) AND (${catOr.join(' OR ')})`;
+            if (common.length) return common.join(' AND ');
+            if (catOr.length) return catOr.join(' OR ');
+            return '';
+        };
 
-        // 2. Build Dynamic WHERE clause for external DB query based on item structure components and header filters
-        let finalQueryString = '';
-        let commonConditions = [];
-        let categoryOrConditions = [];
+        const mergeMaterialStatus = async (materialsMaster) => {
+            const materialIds = materialsMaster.map(m => m.MATERIAL);
+            const partNumberResults = await db.run(SELECT.from('PricelistPartNumberDetermination').where({
+                ...(SalesOrg && { SalesOrg }), ...(DistChannel && { DistChannel }),
+                ...(materialIds.length > 0 && { ProductID: { in: materialIds } })
+            }));
+            const lookup = partNumberResults.reduce((a, i) => { a[i.ProductID] = i; return a; }, {});
+            materialsMaster.forEach(row => {
+                const m = lookup[row.MATERIAL];
+                row.ProductStatus = m?.ProductStatus || null;
+                row.StatusValidity = m?.StatusValidity || null;
+                row.MaterialClassification1 = m?.MaterialClassification1 || null;
+                row.MaterialClassification2 = m?.MaterialClassification2 || null;
+                row.ThirdPartySupplier = m?.ThirdPartySupplier || null;
+                row.ThirdPartySupplierSKU = m?.ThirdPartySupplierSKU || null;
+            });
+        };
 
-        SalesOrg && commonConditions.push(`"SALES_ORGANIZATION" = '${escapeSql(SalesOrg)}'`);
-        DistChannel && commonConditions.push(`"DISTRIBUTION_CHANNEL" = '${escapeSql(DistChannel)}'`);
-        commonConditions.push(DeliveringPlant ? `"PLANT" = '${escapeSql(DeliveringPlant)}'` : `"PLANT" = '*'`);
-
-        itemStructureDatas.forEach(row => {
-            let catConditions = [];
-            const addCondition = (dbField, val) => {
-                if (val) {
-                    catConditions.push(`"${dbField}" = '${escapeSql(val)}'`);
-                } else {
-                    catConditions.push(`COALESCE("${dbField}", '') = ''`);
-                }
-            };
-            addCondition('MAIN_CATEGORY', row.MainCategory);
-            addCondition('SUBCATEGORY_1', row.SubCategory1);
-            addCondition('SUBCATEGORY_2', row.SubCategory2);
-            addCondition('SUBCATEGORY_3', row.SubCategory3);
-            addCondition('SUBCATEGORY_4', row.SubCategory4);
-            addCondition('SUBCATEGORY_5', row.SubCategory5);
-            categoryOrConditions.push(`(${catConditions.join(' AND ')})`);
-        });
-
-        if (commonConditions.length > 0 && categoryOrConditions.length > 0) {
-            finalQueryString = `(${commonConditions.join(' AND ')}) AND (${categoryOrConditions.join(' OR ')})`;
-        } else if (commonConditions.length > 0) {
-            finalQueryString = commonConditions.join(' AND ');
-        } else if (categoryOrConditions.length > 0) {
-            finalQueryString = categoryOrConditions.join(' OR ');
-        }
-        // console.log(">>> Dynamic WHERE for External DB:", finalQueryString);
-
-
-        // 3. Get material master from external DB based on dynamic WHERE clause and use ROW_NUMBER to get the latest entry per material + sales org + dist channel combination
-        const extQuery = `WITH ranked AS (SELECT *, ROW_NUMBER() OVER ( PARTITION BY "MATERIAL_KEY", "SALES_ORGANIZATION", "DISTRIBUTION_CHANNEL"
-                ORDER BY SUBSTRING("CREATED_AT", 1, 19) DESC) AS rn FROM "SAPECC"."T_MATERIAL_MASTER_DATA" WHERE ${finalQueryString})
+        const loadMaterials = async (itemStructureDatas) => {
+            const where = buildMaterialWhere(itemStructureDatas);
+            const extQuery = `WITH ranked AS (SELECT *, ROW_NUMBER() OVER ( PARTITION BY "MATERIAL_KEY", "SALES_ORGANIZATION", "DISTRIBUTION_CHANNEL"
+                ORDER BY SUBSTRING("CREATED_AT", 1, 19) DESC) AS rn FROM "SAPECC"."T_MATERIAL_MASTER_DATA" WHERE ${where})
                 SELECT * FROM ranked WHERE rn = 1`;
-        const materialsMaster = await extdb.run(extQuery);
-        // console.table(materialsMaster, ["MAIN_CATEGORY", "SUBCATEGORY_1", "SUBCATEGORY_2", "SUBCATEGORY_3", "SUBCATEGORY_4", "SUBCATEGORY_5", "MATERIAL_KEY", "MATERIAL_GROUP_1", "MATERIAL_GROUP", "DIVISION"]);
-
-
-        // 3.1 Get part number determination data from external DB based on material master results and header filters (SalesOrg, DistChannel)
-        // const targetFields = ['SalesOrg', 'DistChannel', 'PricelistType', 'MarketScopeRegion', 'MarketScopeCountry'];    
-        const materialIds = materialsMaster.map(m => m.MATERIAL);
-        const partNumberDeterminationWhere = {
-            // ...(MarketScopeRegion && { MarketScopeRegion }),
-            // ...(MarketScopeCountry && { MarketScopeCountry }),
-            ...(SalesOrg && { SalesOrg }),
-            ...(DistChannel && { DistChannel }),
-            ...(materialIds.length > 0 && { ProductID: { in: materialIds } })
+            const materialsMaster = await extdb.run(extQuery);
+            await mergeMaterialStatus(materialsMaster);
+            return materialsMaster;
         };
 
-        const partNumberResults = await db.run(
-            SELECT.from('PricelistPartNumberDetermination').where(partNumberDeterminationWhere)
-        );
-
-
-        const partNumberLookup = partNumberResults.reduce((acc, item) => {
-            acc[item.ProductID] = item;
-            return acc;
-        }, {});
-
-        materialsMaster.forEach(row => {
-            const match = partNumberLookup[row.MATERIAL];
-            row.ProductStatus = match?.ProductStatus || null;
-            row.StatusValidity = match?.StatusValidity || null;
-            row.MaterialClassification1 = match?.MaterialClassification1 || null;
-            row.MaterialClassification2 = match?.MaterialClassification2 || null;
-            row.ThirdPartySupplier = match?.ThirdPartySupplier || null;
-            row.ThirdPartySupplierSKU = match?.ThirdPartySupplierSKU || null;
-        });
-        // console.table(materialsMaster, ["MATERIAL", "ProductStatus", "StatusValidity", "MaterialClassification1", "MaterialClassification2", "ThirdPartySupplier", "ThirdPartySupplierSKU"]);
-
-        // 4. Get pricing parameters
-        const pricingParamsWhere = {
-            ...(PricelistType && { PricelistType }),
-            ...(MarketScopeRegion && { MarketScopeRegion }),
-            ...(MarketScopeCountry && { MarketScopeCountry }),
-            // ...(SalesOrg && { SalesOrg }),
-            // ...(DistChannel && { DistChannel }),
-            // ...(CustPriceList && { CustPriceList }),
-            // ...(CustGroup1 && { CustGroup1 }),
-            // ...(ErpCustomer && { ErpCustomer }),
-            // ...(DeliveringPlant && { DeliveringPlant })
+        // ── step 8: material-only flat rows ────────────────────
+        const buildMaterialRows = (itemStructureDatas, materialsMaster) => {
+            const byCategory = new Map();
+            materialsMaster.forEach(mat => {
+                const k = getCategoryKey(mat, CATEGORY_FIELDS);
+                if (!byCategory.has(k)) byCategory.set(k, []);
+                byCategory.get(k).push(mat);
+            });
+            return itemStructureDatas.flatMap(row => {
+                const matches = byCategory.get(getCategoryKey(row, CATEGORY_FIELDS)) || [];
+                return matches.map(mat => ({
+                    ...row,
+                    MaterialKey: mat.MATERIAL_KEY, Material: mat.MATERIAL,
+                    MaterialDescription: mat.MATERIAL_DESCRIPTION,
+                    Status: mat.ProductStatus, StatusValidFromDate: mat.StatusValidity
+                }));
+            });
         };
 
-        const pricingParameters = await db.run(
-            SELECT.from('PricingParameterDetermination')
-                .where(pricingParamsWhere)
-                .orderBy({ createdAt: 'desc' })
-        );
-        // console.table(pricingParameters, ["AccessSequence1", "DiscountAccessSequence1", "AccessSequence2", "DiscountAccessSequence2", "AccessSequence3", "DiscountAccessSequence3", "AccessSequence4", "DiscountAccessSequence4", "AccessSequence5", "DiscountAccessSequence5", "AccessSequence6", "DiscountAccessSequence6"]);
-
-
-        // 5. Collect all unique (AccessSequence + ConditionType + DiscountConditionType)  from resultsPricing
-        const uniquePricingRules = [];
-        const duplicateCheckSet = new Set();
-
-        if (pricingParameters && pricingParameters.length > 0) {
-            for (const pricingRecord of pricingParameters) {
-                const pricingSchemaSlots = [
-                    { seqFieldName: 'AccessSequence', condFieldName: 'ConditionType', priorityFieldName: 'Priority', isDiscountType: false },
-                    { seqFieldName: 'DiscountAccessSequence', condFieldName: 'DiscountConditionType', priorityFieldName: 'DiscountPriority', isDiscountType: true }
+        // ── step 4-7: pricing index ────────────────────────────
+        const buildUniquePricingRules = (pricingParameters) => {
+            const rules = [], seen = new Set();
+            for (const rec of (pricingParameters || [])) {
+                const slots = [
+                    { seq: 'AccessSequence', cond: 'ConditionType', prio: 'Priority', isDiscount: false },
+                    { seq: 'DiscountAccessSequence', cond: 'DiscountConditionType', prio: 'DiscountPriority', isDiscount: true }
                 ];
-                for (const { seqFieldName, condFieldName, priorityFieldName, isDiscountType } of pricingSchemaSlots) {
-                    for (let slotIndex = 1; slotIndex <= 10; slotIndex++) {
-                        const accessSequenceValue = pricingRecord[`${seqFieldName}${slotIndex}`];
-                        const conditionTypeValue = pricingRecord[`${condFieldName}${slotIndex}`];
-                        const uniqueCompositeKey = `${accessSequenceValue}::${conditionTypeValue}`;
-
-                        if (!accessSequenceValue || !conditionTypeValue) continue;
-
-                        if (duplicateCheckSet.has(uniqueCompositeKey)) continue;
-                        duplicateCheckSet.add(uniqueCompositeKey);
-
-                        uniquePricingRules.push({
-                            accessSequence: accessSequenceValue,
-                            conditionType: conditionTypeValue,
-                            priority: parseInt(pricingRecord[`${priorityFieldName}${slotIndex}`] || slotIndex),
-                            salesOrg: pricingRecord.SalesOrg || null,
-                            distChannel: pricingRecord.DistChannel || null,
-                            isDiscount: isDiscountType
+                for (const { seq, cond, prio, isDiscount } of slots) {
+                    for (let i = 1; i <= 10; i++) {
+                        const seqV = rec[`${seq}${i}`], condV = rec[`${cond}${i}`];
+                        if (!seqV || !condV) continue;
+                        const key = `${seqV}::${condV}`;
+                        if (seen.has(key)) continue;
+                        seen.add(key);
+                        rules.push({
+                            accessSequence: seqV, conditionType: condV,
+                            priority: parseInt(rec[`${prio}${i}`] || i),
+                            salesOrg: rec.SalesOrg || null, distChannel: rec.DistChannel || null,
+                            isDiscount
                         });
                     }
                 }
             }
-        }
-        console.table(uniquePricingRules, ["accessSequence", "conditionType", "priority", "salesOrg", "distChannel", "isDiscount"]);
+            return rules;
+        };
 
-        // Get Customers from external DB based on header ErpCustomer filter (if exists) to use in access sequence specific filtering later
-        let Customers = [];
-        if (CustomerNumber) {
-            Customers = await extdb.run(`SELECT * FROM SAPECC.T_CUSTOMER_MASTER_DATA WHERE SALES_ORGANIZATION = '${escapeSql(SalesOrg)}' 
-                                        AND DISTRIBUTION_CHANNEL = '${escapeSql(DistChannel)}' AND CUSTOMER = '${escapeSql(CustomerNumber)}'`);
-            console.table(Customers, ["CUSTOMER", "REGION", "COUNTRY", "DIVISION", "PRICE_GROUP", "CUSTOMER_GROUP_1", "CUSTOMER_CLASSIFICATION"]);
-        }
-
-        // 6. Get available columns in T_PRICELIST_MASTER_DATA to ensure we only query existing ones in dynamic SQL
-        // Fetch Price Records with common required columns + dynamic extra columns based on active access sequences in one go
-        const colRows = await extdb.run(`SELECT COLUMN_NAME FROM SYS.TABLE_COLUMNS WHERE SCHEMA_NAME = 'SAPECC' AND TABLE_NAME = 'T_PRICELIST_MASTER_DATA' ORDER BY POSITION`);
-        const availableCols = new Set(colRows.map(r => r.COLUMN_NAME));
-        const colsAlreadyMapped = new Set(['CONDITION_RECORD_NUMBER', 'APPLICATION', 'CONDITION_TYPE', 'VALID_FROM_DATE', 'VALID_TO_DATE', 'MATERIAL']);
-
-        // Extract only the active access sequence codes (e.g., 'A305', 'A917') into a Set 
-        const activePrefixes = new Set(uniquePricingRules.map(r => r.accessSequence));
-        const allExtraSuffixes = new Set();
-
-        for (const col of availableCols) {
-            // Split the column name by '_'. For example: "A305_CUSTOMER_PRICE_GROUP"
-            // prefix = "A305", suffixParts = ["CUSTOMER", "PRICE", "GROUP"]
-            const [prefix, ...suffixParts] = col.split('_');
-
-            // Rejoin the remaining parts with '_' to reconstruct the full field suffix -> "CUSTOMER_PRICE_GROUP"
-            const suffix = suffixParts.join('_');
-
-            // - Is the column prefix associated with a currently active access sequence?
-            // - Is the suffix not part of the baseline columns (already mapped)?
-            if (activePrefixes.has(prefix) && !colsAlreadyMapped.has(suffix)) {
-                allExtraSuffixes.add(suffix);
+        const fetchPriceRecords = async (materialsMaster, uniquePricingRules) => {
+            const colRows = await extdb.run(`SELECT COLUMN_NAME FROM SYS.TABLE_COLUMNS WHERE SCHEMA_NAME = 'SAPECC' AND TABLE_NAME = 'T_PRICELIST_MASTER_DATA' ORDER BY POSITION`);
+            const availableCols = new Set(colRows.map(r => r.COLUMN_NAME));
+            const colsAlreadyMapped = new Set(['CONDITION_RECORD_NUMBER', 'APPLICATION', 'CONDITION_TYPE', 'VALID_FROM_DATE', 'VALID_TO_DATE', 'MATERIAL']);
+            const activePrefixes = new Set(uniquePricingRules.map(r => r.accessSequence));
+            const allExtraSuffixes = new Set();
+            for (const col of availableCols) {
+                const [prefix, ...suffixParts] = col.split('_');
+                const suffix = suffixParts.join('_');
+                if (activePrefixes.has(prefix) && !colsAlreadyMapped.has(suffix)) allExtraSuffixes.add(suffix);
             }
-        }
-        const extraSuffixList = [...allExtraSuffixes];
-        const materialKeys = [...new Set(materialsMaster.map(mat => mat.MATERIAL).filter(Boolean))];
-        if (!materialKeys.length || !uniquePricingRules.length) return [];
+            const extraSuffixList = [...allExtraSuffixes];
+            const materialKeys = [...new Set(materialsMaster.map(mat => mat.MATERIAL).filter(Boolean))];
+            if (!materialKeys.length) return [];
+            const matListSql = materialKeys.map(m => `'${escapeSql(m)}'`).join(', ');
 
-        const matListSql = materialKeys.map(m => `'${escapeSql(m)}'`).join(', ');
-
-        // 7. Iterate through each active pricing rule to construct individual SQL SELECT statements
-        const sqlQuery = uniquePricingRules.map(pricingRule => {
-            const sequencePrefix = pricingRule.accessSequence;
-
-            const hasColumn = suffix => availableCols.has(`${sequencePrefix}_${suffix}`);
-            const getQuotedColumn = suffix => `"${sequencePrefix}_${suffix}"`;
-
-            if (!hasColumn('CONDITION_TYPE')) return null;
-
-            const hasMaterialCol = hasColumn('MATERIAL');
-
-            // Dynamically build the WHERE conditions array
-            const whereClauses = [
-                hasMaterialCol && `${getQuotedColumn('MATERIAL')} IN (${matListSql})`,
-                `${getQuotedColumn('CONDITION_TYPE')} = '${escapeSql(pricingRule.conditionType)}'`,
-                hasColumn('SALES_ORGANIZATION') && pricingRule.salesOrg && `${getQuotedColumn('SALES_ORGANIZATION')} = '${escapeSql(pricingRule.salesOrg)}'`,
-                hasColumn('DISTRIBUTION_CHANNEL') && pricingRule.distChannel && `${getQuotedColumn('DISTRIBUTION_CHANNEL')} = '${escapeSql(pricingRule.distChannel)}'`
-            ].filter(Boolean);
-
-            // Dynamic date handling
-            const validFromColumnSql = hasColumn('VALID_FROM_DATE') ? getQuotedColumn('VALID_FROM_DATE') : 'CAST(NULL AS NVARCHAR(50))';
-            const validToColumnSql = hasColumn('VALID_TO_DATE') ? getQuotedColumn('VALID_TO_DATE') : 'CAST(NULL AS NVARCHAR(50))';
-
-            const materialColumnSql = hasMaterialCol ? getQuotedColumn('MATERIAL') : 'CAST(NULL AS NVARCHAR(40))';
-
-            // If this sequence contains the extra column, select it; otherwise, inject a "NULL AS [ColumnName]".
-            const dynamicExtraColumnsSql = extraSuffixList.map(suffix => hasColumn(suffix) ? `${getQuotedColumn(suffix)} AS "${suffix}"` : `NULL AS "${suffix}"`).join(', ');
-
-            // Return the completed dynamic SELECT statement segment for this sequence
-            return `
-                SELECT '${escapeSql(sequencePrefix)}' AS "ACCESS_SEQUENCE", ${Number(pricingRule.priority || 999)} AS "PRIORITY",
-                    ${materialColumnSql} AS "MATERIAL", ${getQuotedColumn('CONDITION_TYPE')} AS "CONDITION_TYPE",
+            const sqlQuery = uniquePricingRules.map(rule => {
+                const p = rule.accessSequence;
+                const has = s => availableCols.has(`${p}_${s}`);
+                const col = s => `"${p}_${s}"`;
+                if (!has('CONDITION_TYPE')) return null;
+                const hasMat = has('MATERIAL');
+                const where = [
+                    hasMat && `${col('MATERIAL')} IN (${matListSql})`,
+                    `${col('CONDITION_TYPE')} = '${escapeSql(rule.conditionType)}'`,
+                    has('SALES_ORGANIZATION') && rule.salesOrg && `${col('SALES_ORGANIZATION')} = '${escapeSql(rule.salesOrg)}'`,
+                    has('DISTRIBUTION_CHANNEL') && rule.distChannel && `${col('DISTRIBUTION_CHANNEL')} = '${escapeSql(rule.distChannel)}'`
+                ].filter(Boolean);
+                const vFrom = has('VALID_FROM_DATE') ? col('VALID_FROM_DATE') : 'CAST(NULL AS NVARCHAR(50))';
+                const vTo = has('VALID_TO_DATE') ? col('VALID_TO_DATE') : 'CAST(NULL AS NVARCHAR(50))';
+                const matCol = hasMat ? col('MATERIAL') : 'CAST(NULL AS NVARCHAR(40))';
+                const extras = extraSuffixList.map(s => has(s) ? `${col(s)} AS "${s}"` : `NULL AS "${s}"`).join(', ');
+                return `
+                SELECT '${escapeSql(p)}' AS "ACCESS_SEQUENCE", ${Number(rule.priority || 999)} AS "PRIORITY",
+                    ${matCol} AS "MATERIAL", ${col('CONDITION_TYPE')} AS "CONDITION_TYPE",
                     "KONP_RATE" AS "PRICE", "KONP_RATE_UNIT" AS "PRICE_UNIT",
-                    ${validFromColumnSql} AS "VALID_FROM", ${validToColumnSql} AS "VALID_TO"
-                    ${dynamicExtraColumnsSql ? ', ' + dynamicExtraColumnsSql : ''}
+                    ${vFrom} AS "VALID_FROM", ${vTo} AS "VALID_TO"
+                    ${extras ? ', ' + extras : ''}
                 FROM "SAPECC"."T_PRICELIST_MASTER_DATA"
-                WHERE ${whereClauses.join(' AND ')}`;
-        }).filter(Boolean);
-        const fetchedPriceRecords = sqlQuery.length ? await extdb.run(sqlQuery.join(' UNION ALL ')) : [];
+                WHERE ${where.join(' AND ')}`;
+            }).filter(Boolean);
 
-        // console.table(fetchedPriceRecords, ["ACCESS_SEQUENCE", "PRIORITY", "MATERIAL", "CONDITION_TYPE", "PRICE", "PRICE_UNIT", "VALID_FROM", "VALID_TO", ...extraSuffixList]);
+            return sqlQuery.length ? await extdb.run(sqlQuery.join(' UNION ALL ')) : [];
+        };
 
+        const loadPricingIndex = async (materialsMaster) => {
+            const pricingParameters = await db.run(SELECT.from('PricingParameterDetermination')
+                .where({ ...(PricelistType && { PricelistType }), ...(MarketScopeRegion && { MarketScopeRegion }), ...(MarketScopeCountry && { MarketScopeCountry }) })
+                .orderBy({ createdAt: 'desc' }));
 
-        // 8. Populate Final output with price details based on material matches and access sequence priority
-        // Group materials by category key for fast lookup
-        const CATEGORY_FIELDS = [
-            ['MAIN_CATEGORY', 'MainCategory'],
-            ['SUBCATEGORY_1', 'SubCategory1'],
-            ['SUBCATEGORY_2', 'SubCategory2'],
-            ['SUBCATEGORY_3', 'SubCategory3'],
-            ['SUBCATEGORY_4', 'SubCategory4'],
-            ['SUBCATEGORY_5', 'SubCategory5']
-        ];
+            const uniquePricingRules = buildUniquePricingRules(pricingParameters);
+            if (!uniquePricingRules.length) return null;
 
-        const getCategoryKey = (obj, fieldMap) =>
-            fieldMap.map(([matField, rowField]) => obj[matField] ?? obj[rowField] ?? '').join('|');
+            const Customers = CustomerNumber
+                ? await extdb.run(`SELECT * FROM SAPECC.T_CUSTOMER_MASTER_DATA WHERE SALES_ORGANIZATION = '${escapeSql(SalesOrg)}' AND DISTRIBUTION_CHANNEL = '${escapeSql(DistChannel)}' AND CUSTOMER = '${escapeSql(CustomerNumber)}'`)
+                : [];
 
-        const materialsByCategory = new Map();
-        materialsMaster.forEach(mat => {
-            const key = getCategoryKey(mat, CATEGORY_FIELDS);
-            if (!materialsByCategory.has(key)) materialsByCategory.set(key, []);
-            materialsByCategory.get(key).push(mat);
-        });
+            const fetchedPriceRecords = await fetchPriceRecords(materialsMaster, uniquePricingRules);
 
-        // Flatten item structure rows into one row per matched material
-        const finalFlatResults = itemStructureDatas.flatMap(row => {
-            const key = getCategoryKey(row, CATEGORY_FIELDS);
-            const matchingProducts = materialsByCategory.get(key) || [];
-
-            return matchingProducts.map(mat => ({
-                ...row,
-                MaterialKey: mat.MATERIAL_KEY,
-                Material: mat.MATERIAL,
-                MaterialDescription: mat.MATERIAL_DESCRIPTION,
-                Status: mat.ProductStatus,
-                StatusValidFromDate: mat.StatusValidity
-            }));
-        });
-        // console.table(finalFlatResults, ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5", "MaterialKey", "Material", "MaterialDescription", "Status", "StatusValidFromDate", "MATERIAL_GROUP_1", "MATERIAL_PRICING_GROUP", "DIVISION"]);
-
-
-        // 9. Filter with explicit condition and separate price records into price vs discount maps based on condition type
-        // Create maps to hold price and discount records by material for easy lookup during final merging
-        const discountConditionTypes = new Set(
-            uniquePricingRules.filter(rule => rule.isDiscount === true).map(rule => rule.conditionType)
-        );
-
-        const materialMasterMap = new Map(materialsMaster.map(mat => [mat.MATERIAL, mat]));
-        const customerDivisionMap = new Map(Customers.map(cust => [cust.DIVISION, cust]));
-
-        const recordsByMaterial = new Map();
-        const broadcastRecords = [];
-
-        fetchedPriceRecords.forEach(rec => {
-            if (rec.MATERIAL) {
-                if (!recordsByMaterial.has(rec.MATERIAL)) recordsByMaterial.set(rec.MATERIAL, []);
-                recordsByMaterial.get(rec.MATERIAL).push(rec);
-            } else {
-                broadcastRecords.push(rec);
-            }
-        });
-
-
-        // 10. Populate Price + Discount for each row, one material at a time
-        const effectiveDate = EffectiveDate ? new Date(EffectiveDate) : null;
-        const publishedDate = PublishedDate ? new Date(PublishedDate) : new Date(EffectiveDate);
-        const publishedPlus30 = publishedDate ? new Date(publishedDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null;
-
-        finalFlatResults.forEach(row => {
-            const materialContext = materialMasterMap.get(row.Material);
-            if (!materialContext) return;
-
-            const candidates = getCandidateRecords(row.Material, materialContext);
-            const priceRecords = candidates.filter(rec => !discountConditionTypes.has(rec.CONDITION_TYPE));
-            const discountRecords = candidates.filter(rec => discountConditionTypes.has(rec.CONDITION_TYPE));
-
-            // --- Price (current + future) ---
-            const currentMatch = pickBestByDate(priceRecords, effectiveDate);
-            if (currentMatch) {
-                row.Price = currentMatch.PRICE || null;
-                row.PriceUnit = currentMatch.PRICE_UNIT || null;
-                row.PriceValidFrom = currentMatch.VALID_FROM || null;
-                row.PriceValidTo = currentMatch.VALID_TO || null;
-                row.AccessSequence = currentMatch.ACCESS_SEQUENCE || null;
-                row.ConditionType = currentMatch.CONDITION_TYPE || null;
-            }
-
-            const futureMatch = pickBestByDate(priceRecords, publishedPlus30);
-            if (futureMatch && futureMatch !== currentMatch) {
-                row.FuturePrice = futureMatch.PRICE || null;
-                row.FuturePriceValidFrom = futureMatch.VALID_FROM || null;
-                row.FuturePriceValidTo = futureMatch.VALID_TO || null;
-            }
-
-            // --- Discount ---
-            const discountMatch = pickBestByDate(discountRecords, effectiveDate);
-            if (discountMatch) {
-                row.DiscountRate = discountMatch.PRICE || null;
-                row.DiscountValidFrom = discountMatch.VALID_FROM || null;
-                row.DiscountValidTo = discountMatch.VALID_TO || null;
-                row.DiscountConditionType = discountMatch.CONDITION_TYPE || null;
-                row.DiscountAccessSequence = discountMatch.ACCESS_SEQUENCE || null;
-            }
-        });
-
-        // 12. Sort result by hierarchy levels (nulls first and then alphabetically)
-        // TODO: Need to be check because this will set alphabet always
-        const sortByFields = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
-        const sortedResults = finalFlatResults
-            .filter(row => row.Price != null)
-            .sort((a, b) => {
-                for (const field of sortByFields) {
-                    const valA = a[field];
-                    const valB = b[field];
-                    if (valA === null && valB !== null) return -1;
-                    if (valA !== null && valB === null) return 1;
-                    if (valA !== valB) return (valA || '').localeCompare(valB || '');
-                }
-                return 0;
+            const discountConditionTypes = new Set(uniquePricingRules.filter(r => r.isDiscount).map(r => r.conditionType));
+            const materialMasterMap = new Map(materialsMaster.map(mat => [mat.MATERIAL, mat]));
+            const customerDivisionMap = new Map(Customers.map(c => [c.DIVISION, c]));
+            const recordsByMaterial = new Map(), broadcastRecords = [];
+            fetchedPriceRecords.forEach(rec => {
+                if (rec.MATERIAL) {
+                    if (!recordsByMaterial.has(rec.MATERIAL)) recordsByMaterial.set(rec.MATERIAL, []);
+                    recordsByMaterial.get(rec.MATERIAL).push(rec);
+                } else broadcastRecords.push(rec);
             });
-        return sortedResults;
+
+            return { discountConditionTypes, materialMasterMap, customerDivisionMap, recordsByMaterial, broadcastRecords };
+        };
+
+        // ── step 10: apply price / future / discount ───────────
+        const accessSequenceFilters = {
+            'A020': (rec, mat, cust) => rec.DIVISION === mat.DIVISION && rec.CUSTOMER_PRICE_GROUP === cust.PRICE_GROUP,
+            'A932': (rec, mat, cust) => rec.DIVISION === mat.DIVISION && rec.MATERIAL_CLASS === mat.MATERIAL_GROUP_2 && rec.SOLD_TO === CustomerNumber,
+            'A030': (rec, mat, cust) => rec.SOLDTO === CustomerNumber && rec.MATERIAL_PRICE_GROUP === mat.MATERIAL_PRICE_GROUP,
+            'A031': (rec, mat, cust) => rec.CUSTOMER_PRICE_GROUP === cust.PRICE_GROUP && rec.MATERIAL_PRICE_GROUP === mat.MATERIAL_PRICING_GROUP,
+            'A917': (rec, mat, cust) => rec.CUSTOMER_GROUP_1 === cust.CUSTOMER_GROUP_1 && rec.PRICELIST === CustPriceList,
+            'A916': (rec, mat, cust) => rec.PRICELIST_TYPE === CustPriceList,
+            'A305': (rec, mat, cust) => rec.SOLDTO === CustomerNumber,
+            'A937': (rec, mat, cust) => rec.MATERIAL_TYPE === mat.MATERIAL_TYPE && rec.DIVISION === mat.DIVISION
+        };
+
+        const applyPricing = (rows, idx, opts) => {
+            const { discountConditionTypes, materialMasterMap, customerDivisionMap, recordsByMaterial, broadcastRecords } = idx;
+
+            const getCandidateRecords = (materialId, materialContext) => {
+                const customerContext = customerDivisionMap.get(materialContext.DIVISION) || {};
+                const passes = (rec) => {
+                    const predicate = accessSequenceFilters[rec.ACCESS_SEQUENCE];
+                    return !predicate || predicate(rec, materialContext, customerContext);
+                };
+                return [...(recordsByMaterial.get(materialId) || []).filter(passes), ...broadcastRecords.filter(passes)];
+            };
+
+            const effectiveDate = EffectiveDate ? new Date(EffectiveDate) : null;
+            const publishedDate = PublishedDate ? new Date(PublishedDate) : new Date(EffectiveDate);
+            const publishedPlus30 = publishedDate ? new Date(publishedDate.getTime() + 30 * 24 * 60 * 60 * 1000) : null;
+
+            rows.forEach(row => {
+                const materialContext = materialMasterMap.get(row.Material);
+                if (!materialContext) return;
+
+                const candidates = getCandidateRecords(row.Material, materialContext);
+                const priceRecords = candidates.filter(rec => !discountConditionTypes.has(rec.CONDITION_TYPE));
+                const discountRecords = candidates.filter(rec => discountConditionTypes.has(rec.CONDITION_TYPE));
+                const currentMatch = pickBestByDate(priceRecords, effectiveDate);
+
+                if (opts.price && currentMatch) {
+                    row.Price = currentMatch.PRICE || null;
+                    row.PriceUnit = currentMatch.PRICE_UNIT || null;
+                    row.PriceValidFrom = currentMatch.VALID_FROM || null;
+                    row.PriceValidTo = currentMatch.VALID_TO || null;
+                    row.AccessSequence = currentMatch.ACCESS_SEQUENCE || null;
+                    row.ConditionType = currentMatch.CONDITION_TYPE || null;
+                }
+
+                if (opts.future) {
+                    const futureMatch = pickBestByDate(priceRecords, publishedPlus30);
+                    if (futureMatch && futureMatch !== currentMatch) {
+                        row.FuturePrice = futureMatch.PRICE || null;
+                        row.FuturePriceValidFrom = futureMatch.VALID_FROM || null;
+                        row.FuturePriceValidTo = futureMatch.VALID_TO || null;
+                    }
+                }
+
+                if (opts.discount) {
+                    const discountMatch = pickBestByDate(discountRecords, effectiveDate);
+                    if (discountMatch) {
+                        row.DiscountRate = discountMatch.PRICE || null;
+                        row.DiscountValidFrom = discountMatch.VALID_FROM || null;
+                        row.DiscountValidTo = discountMatch.VALID_TO || null;
+                        row.DiscountConditionType = discountMatch.CONDITION_TYPE || null;
+                        row.DiscountAccessSequence = discountMatch.ACCESS_SEQUENCE || null;
+                    }
+                }
+            });
+        };
+
+        // ── step 12: sort  ─────────────────────────
+        const sortResults = (rows) => {
+            const groupKey = (r) => [r.MainCategory, r.SubCategory1, r.SubCategory2, r.SubCategory3, r.SubCategory4, r.SubCategory5].join('|');
+            return [...rows].sort((a, b) =>
+                groupKey(a) === groupKey(b) ? (a.Material || '').localeCompare(b.Material || '') : 0
+            );
+        };
+
+        // ── compose ────────────────────────────────────────────
+        const itemStructure = await loadItemStructure();
+        if (!itemStructure.length) return [];
+
+        const materials = await loadMaterials(itemStructure);
+        let rows = buildMaterialRows(itemStructure, materials);   // material only
+
+        if (include.price || include.future || include.discount) {
+            const pricingIndex = await loadPricingIndex(materials);
+            if (pricingIndex) applyPricing(rows, pricingIndex, include);
+
+            if (include.price) rows = rows.filter(row => row.Price != null);
+        }
+
+        return sortResults(rows);
     });
+
+    this.on('saveProductPriceList', saveProductPriceList(this));
 
     //PDF Export
     this.on("exportTermsPdf", async (req) => {
@@ -2289,6 +2370,89 @@ module.exports = cds.service.impl(async function () {
         res.status(200).end(pdfBuffer);
 
         return;
+    });
+
+    // Tree Table Column Layout (Save/Load/Delete)
+    this.on('getAvailableLayouts', async (req) => {
+        const { tableId } = req.data;
+        if (!tableId) return req.error(400, "Table Id is required");
+
+        const db = cds.transaction(req);
+        const sUserId = req.user?.id || req.user?.email || '';
+
+        const [aOwn, aMasterDefaults] = await Promise.all([
+            db.run(SELECT.from(PriceListTreeLayout).where({ tableId: tableId, userId: sUserId })),
+            db.run(SELECT.from(PriceListTreeLayout).where({ tableId: tableId, masterDefault: true }))
+        ]);
+
+        const oMerged = new Map();
+        aOwn.forEach(r => oMerged.set(r.ID, r));
+        aMasterDefaults.forEach(r => { if (!oMerged.has(r.ID)) oMerged.set(r.ID, r); });
+
+        return Array.from(oMerged.values())
+            .map(r => ({ ...r, isOwn: r.userId === sUserId }))
+            .sort((a, b) => String(a.layoutName || '').localeCompare(String(b.layoutName || '')));
+    });
+
+    this.on('saveTreeLayout', async (req) => {
+        const { ID, tableId, layoutName, defaultLayout, masterDefault, config } = req.data;
+
+        if (!tableId || !layoutName) return req.error(400, "Table Id and layout Name are required");
+
+        const db = cds.transaction(req);
+        const sUserId = req.user?.id || req.user?.email || '';
+
+        // only one personal default per user, only one master default per table
+        if (defaultLayout) {
+            await db.run(UPDATE(PriceListTreeLayout).set({ defaultLayout: false }).where({ tableId, userId: sUserId }));
+        }
+        if (masterDefault) {
+            await db.run(UPDATE(PriceListTreeLayout).set({ masterDefault: false }).where({ tableId }));
+        }
+
+        if (ID) {
+            const oExisting = await db.run(SELECT.one.from(PriceListTreeLayout).where({ ID }));
+            if (!oExisting) return req.error(404, "Layout not found");
+            if (oExisting.userId !== sUserId) return req.error(403, "You can only update your own layouts");
+
+            await db.run(
+                UPDATE(PriceListTreeLayout)
+                    .set({ layoutName, defaultLayout: !!defaultLayout, masterDefault: !!masterDefault, config })
+                    .where({ ID })
+            );
+            return await db.run(SELECT.one.from(PriceListTreeLayout).where({ ID }));
+        }
+
+        const sNewId = cds.utils.uuid();
+        await db.run(
+            INSERT.into(PriceListTreeLayout).entries({
+                ID: sNewId, userId: sUserId, tableId, layoutName,
+                defaultLayout: !!defaultLayout, masterDefault: !!masterDefault, config
+            })
+        );
+        return await db.run(SELECT.one.from(PriceListTreeLayout).where({ ID: sNewId }));
+    });
+
+    this.on('deleteTreeLayout', async (req) => {
+
+        const { ID, tableId, layoutName, defaultLayout, masterDefault, config } = req.data;
+
+        const db = cds.transaction(req);
+        const sUserId = req.user?.id || req.user?.email || '';
+
+        const oExisting = await db.run(SELECT.one.from(PriceListTreeLayout).where({ ID }));
+
+        if (!oExisting) {
+            return req.error(404, "Layout not found");
+        }
+
+        if (oExisting.userId !== sUserId) {
+            return req.error(403, "You can only delete your own layouts");
+        }
+
+        await db.run(DELETE.from(PriceListTreeLayout).where({ ID }));
+
+        return true;
     });
 
     // My request

@@ -45,7 +45,7 @@
                     icon="sap-icon://refresh"
                     type="Emphasized"
                     enabled="true"
-                        visible="true"                         
+                    visible="{ui>/isEditable}"                         
                     press="handler.onRefreshPrice" />
                 
                 <Button
@@ -54,7 +54,7 @@
                     icon="sap-icon://reset"
                     type="Emphasized"
                     enabled="true"
-                    visible="{jsonModel>/showReset}"
+                    visible="{ui>/isEditable}"
                     press="handler.onResetPrice" />
 
                 <ToggleButton
@@ -62,7 +62,6 @@
                     icon="sap-icon://delete"
                     text="Delete"
                     tooltip="Toggle delete mode"
-                    visible="{= !${jsonModel>/isReorderMode} }"
                     press="handler.onToggleDeleteMode" />
 
                 <Button
@@ -76,8 +75,8 @@
                 <Button
                     id="ProductListUndoDeleteBtn"
                     icon="sap-icon://undo"
-                    enabled="false"
-                    visible="{= ${jsonModel>/isDeleteMode} }"
+                    enabled="{jsonModel>/hasDeleteUndo}"
+                    visible="{= ${jsonModel>/isDeleteMode} &amp;&amp; ${jsonModel>/hasDeleteUndo} }"
                     press="handler.onUndoDelete" />
 
                 <ToggleButton
@@ -85,10 +84,9 @@
                     icon="sap-icon://sorting-ranking"
                     text="Re-order"
                     tooltip="Toggle re-order mode"
-                    visible="{= !${jsonModel>/isDeleteMode} }"
                     press="handler.onToggleReorderMode" />
 
-                <ToolbarSeparator id="ProductListToolbarSep_3" />
+                <ToolbarSeparator id="ProductListToolbarSep_3" visible="{ui>/isEditable}"/>
 
                 <Button
                     id="ProductListNavBtn"
@@ -146,7 +144,7 @@
                     text="{= ${jsonModel>/productFilterCount} > 0 ? 'Filter (' + ${jsonModel>/productFilterCount} + ')' : 'Filter' }"
                     type="{= ${jsonModel>/productFilterCount} > 0 ? 'Emphasized' : 'Default' }"
                     tooltip="Filter"
-                    enabled="{jsonModel>/hasTreeData}"
+                    enabled="{= ${jsonModel>/hasProductTreeData} &amp;&amp; !${jsonModel>/isDeleteMode} &amp;&amp; !${jsonModel>/isReorderMode} }"
                     press="handler.onOpenHierarchyFilter"/>
 
                 <Button
@@ -154,7 +152,7 @@
                     icon="sap-icon://clear-filter"
                     text="Clear Filter"
                     visible="{= ${jsonModel>/productFilterCount} > 0 }"
-                    enabled="{jsonModel>/hasTreeData}"
+                    enabled="{= ${jsonModel>/hasProductTreeData} &amp;&amp; !${jsonModel>/isDeleteMode} &amp;&amp; !${jsonModel>/isReorderMode} }"
                     press="handler.onClearHierarchyFilter"/>
 
                 <!-- <Button
@@ -192,11 +190,40 @@
                     type="Emphasized"
                     press="handler.onRefresh" /> -->
 
+                <ToolbarSeparator id="ProductListToolbarSep_4"/>
+
                 <Button 
                     id="ProductTreeColumnSettingsBtn"
                     icon="sap-icon://action-settings"
                     tooltip="Show/Hide Columns"
                     press="handler.onOpenColumnSettings" />
+
+                <Button 
+                    id="ProductTreeLayoutSettingsBtn"
+                    icon="sap-icon://table-column"
+                    tooltip="Manage Layouts"
+                    press="handler.onOpenLayoutSettings" />
+
+                <MenuButton
+                    id="ProductTreeExportMenuBtn"
+                    icon="sap-icon://excel-attachment"
+                    tooltip="Export Excel"
+                    buttonMode="Split"
+                    useDefaultActionOnly="true"
+                    defaultAction="handler.onExportExcel">
+                    <menu>                    
+                        <Menu id="ProductTreeExportMenu">
+                            <MenuItem
+                                id="ProductTreeExportMenuItem"
+                                text="Export"
+                                press="handler.onExportExcel" />                        
+                            <MenuItem
+                                id="ProductTreeExportAsMenuItem"
+                                text="Export As..."
+                                press="handler.onExportExcelAs" />
+                        </Menu>
+                    </menu>
+                </MenuButton>
 
         </OverflowToolbar>
 
@@ -222,6 +249,7 @@
                     id="ProductTreeDragDropInfo"
                     sourceAggregation="rows"
                     targetAggregation="rows"
+                    enabled="{= ${jsonModel>/isReorderMode} }"
                     dropPosition="OnOrBetween"
                     drop="handler.onDrop" />
             </t:dragDropConfig>            
