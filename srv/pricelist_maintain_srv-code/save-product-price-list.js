@@ -1,4 +1,5 @@
 const cds = require("@sap/cds");
+const { UPDATE } = cds.ql;
 const logHeaderChanges = require('./log-header-changes');
 
 const logTreeChanges = require('./log-tree-changes');
@@ -114,12 +115,14 @@ module.exports = (srv) => async function saveProductPriceList(req) {
 
             seenIds.add(sId);
 
+            //Added additional parameter: IsDeleted: false, to ensure that when refreshing the pricelist, already deleted items are not bought back.
             flatRows.push({
                 ...currentHeader,
                 ID: sId,
                 parent_ID: sParentId,
                 ...pick(oNode, STORED_FIELDS),
-                OrderIndex: iIndex
+                OrderIndex: iIndex,
+                IsDeleted: false
             });
 
             if (Array.isArray(oNode.children) && oNode.children.length > 0) {
@@ -139,10 +142,6 @@ module.exports = (srv) => async function saveProductPriceList(req) {
         return req.error(400, "No rows to save. Submitted tree is empty.");
     }
 
-    // console.log("[saveProductPriceList] rows to delete:", idsToDelete.length);
-
-    // At the bottom — replace the UPSERT/DELETE block with this:
-
     try {
 
         if (flatRows.length > 0) {
@@ -151,9 +150,15 @@ module.exports = (srv) => async function saveProductPriceList(req) {
 
         if (idsToDelete.length > 0) {
             await tx.run(
-                DELETE.from(ProductPriceList).where({
-                    ID: { in: idsToDelete }
-                })
+                // DELETE.from(ProductPriceList).where({
+                //     ID: { in: idsToDelete }
+                // })
+                //Added update instead of delete, so that when refreshing the pricelist, already deleted items are not bought back.
+                UPDATE(ProductPriceList)
+                    .set({ IsDeleted: true })
+                    .where({
+                        ID: { in: idsToDelete }
+                    })
             );
         }
 
