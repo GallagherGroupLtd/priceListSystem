@@ -235,12 +235,22 @@ annotate service.PriceProductMaintenance with {
                     $Type: 'Common.ValueListParameterInOut', 
                     LocalDataProperty: 'ProductID', 
                     ValueListProperty: 'Code' 
-                },
-                { 
-                    $Type: 'Common.ValueListParameterOut', 
-                    LocalDataProperty: 'ProductDescription1', 
-                    ValueListProperty: 'Description' 
                 }
+                // { 
+                //     $Type: 'Common.ValueListParameterOut', 
+                //     LocalDataProperty: 'ProductDescription1', 
+                //     ValueListProperty: 'Description' 
+                // }
+                // {
+                //     $Type: 'Common.ValueListParameterOut',
+                //     LocalDataProperty: 'MaterialClassification1',
+                //     ValueListProperty: 'MaterialGroup2'
+                // }
+                // {
+                //     $Type: 'Common.ValueListParameterOut',
+                //     LocalDataProperty: 'ErpStatus',
+                //     ValueListProperty: 'MaterialGroup5'
+                // }
             ]
         }
     );
@@ -250,5 +260,6 @@ annotate service.PriceProductMaintenance with {
     //     TargetProperties : [ProductDescription1]
     // };
 
-    ProductDescription1 @Common.FieldControl : #ReadOnly;
+    MaterialClassification1 @Common.FieldControl : #ReadOnly;
+    ProductDescription1     @Common.FieldControl : #ReadOnly;
 }

@@ -732,8 +732,10 @@ service PriceListService {
 
     @cds.persistence.skip
     entity MatMasVH {
-        key Code        : String(100);
-            Description : String(100);
+        key Code           : String(30);
+            Description    : String(255);
+            MaterialGroup2 : String(255);
+            MaterialGroup5 : String(255);
     }
 }
 

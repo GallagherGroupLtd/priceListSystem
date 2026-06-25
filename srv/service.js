@@ -1119,7 +1119,7 @@ module.exports = cds.service.impl(async function () {
         }));
     };
 
-    const readVH2 = async (req, table, { codeCol = 'Code', descCol = 'Description' } = {}) => {
+    const readVH2 = async (req, table, { codeCol = 'Code' } = {}) => {
         const extdb = await cds.connect.to('extdb');
 
         let q = SELECT.distinct.from(table)
@@ -1137,6 +1137,26 @@ module.exports = cds.service.impl(async function () {
         }));
     };
 
+    const readVH3 = async (req, table, { codeCol = 'Code', descCol = 'Description', matGroup2 = 'MATERIAL_GROUP_2', matGroup5 = 'MATERIAL_GROUP_5' } = {}) => {
+        const extdb = await cds.connect.to('extdb');
+
+        let q = SELECT.distinct.from(table)
+            .columns(codeCol,descCol,matGroup2,matGroup5)
+            .orderBy(codeCol);
+
+        if (req.query.SELECT.where) {
+            q.where(req.query.SELECT.where);
+        }
+
+        const result = await extdb.run(q);
+        return result.map(r => ({
+            Code: r[codeCol],
+            Description: r[descCol],
+            MaterialGroup2: r[matGroup2],
+            MaterialGroup5: r[matGroup5]
+        }));
+    };
+
     // ─── Value Help Handlers ──────────────────────────────────────────────────────
     this.on('READ', 'SalesOrgVH', req => readVH(req, 'ERP_SALES_ORG', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'DistributionChannelVH', req => readVH(req, 'ERP_DIST_CHANNEL', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
@@ -1148,7 +1168,7 @@ module.exports = cds.service.impl(async function () {
     this.on('READ', 'DiscountAccessSequenceVH', req => readVH(req, 'ERP_DISCOUNTACCESSSEQ', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'MatGruop2VH', req => readVH(req, 'ERP_MAT_GROUP2', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'RequestStatusVH', req => readVH2(req, 'ERP_REQUESTSTATUS', { codeCol: 'CODE' }));
-    this.on('READ', 'MatMasVH', req => readVH(req, 'T_MATERIAL_MASTER_DATA', { codeCol: 'MATERIAL', descCol: 'MATERIAL_DESCRIPTION' }));
+    this.on('READ', 'MatMasVH', req => readVH3(req, 'T_MATERIAL_MASTER_DATA', { codeCol: 'MATERIAL', descCol: 'MATERIAL_DESCRIPTION', matGroup2: 'MATERIAL_GROUP_2', matGroup5: 'MATERIAL_GROUP_5' }));
 
     //Pricing Parameters - Product Price Condition Type (Value Help)
     this.on('READ', 'PriceConditionTypeVH', (req) => {
@@ -1225,18 +1245,18 @@ module.exports = cds.service.impl(async function () {
         if (!productId) return;
         
         // Get Product Description
-        const data1 = await extdb.run(
-            SELECT.one
-                .from('T_MATERIAL_MASTER_DATA')
-                .columns( 'MATERIAL_DESCRIPTION' )       
-                .where({ MATERIAL: productId })
-        );
+        // const data1 = await extdb.run(
+        //     SELECT.one
+        //         .from('T_MATERIAL_MASTER_DATA')
+        //         .columns( 'MATERIAL_DESCRIPTION' )       
+        //         .where({ MATERIAL: productId })
+        // );
 
         // Get Product Description
         const data2 = await extdb.run(
             SELECT.one
                 .from('T_MATERIAL_MASTER_DATA')
-                .columns( 'MATERIAL_GROUP_2','MATERIAL_GROUP_5' )       
+                .columns( 'MATERIAL_DESCRIPTION','MATERIAL_GROUP_2','MATERIAL_GROUP_5' )       
                 .where({ 
                     MATERIAL: productId,
                     SALES_ORGANIZATION: salesOrg,
@@ -1244,29 +1264,31 @@ module.exports = cds.service.impl(async function () {
                 })
         );
 
-        console.log('ProductID:', productId);
-        console.log('SalesOrg:', salesOrg);
-        console.log('DistChannel:', distChannel);
-        console.log('MATERIAL_DESCRIPTION:', data1?.MATERIAL_DESCRIPTION);
-        console.log('MATERIAL_GROUP_2:', data2?.MATERIAL_GROUP_2);
-        console.log('MATERIAL_GROUP_5:', data2?.MATERIAL_GROUP_5);
+        // console.log('ProductID:', productId);
+        // console.log('SalesOrg:', salesOrg);
+        // console.log('DistChannel:', distChannel);
+        // console.log('MATERIAL_DESCRIPTION:', data1?.MATERIAL_DESCRIPTION);
+        // console.log('MATERIAL_GROUP_2:', data2?.MATERIAL_GROUP_2);
+        // console.log('MATERIAL_GROUP_5:', data2?.MATERIAL_GROUP_5);
 
-        if (data1) {
-            req.data.ProductDescription1 = data1.MATERIAL_DESCRIPTION;
-        }
+        // if (data1) {
+        //     req.data.ProductDescription1 = data2.MATERIAL_DESCRIPTION;
+        // }
 
         console.log("Before set req.data:", JSON.stringify(req.data, null, 2));
 
         if (data2) {
+            req.data.ProductDescription1 = data2.MATERIAL_DESCRIPTION;
             req.data.MaterialClassification1 = data2.MATERIAL_GROUP_2;
             req.data.ErpStatus = data2.MATERIAL_GROUP_5;
 
+            console.log('MATERIAL_DESC_2.2:', data2?.MATERIAL_DESCRIPTION);
             console.log('MATERIAL_GROUP_2.2:', data2?.MATERIAL_GROUP_2);
             console.log('MATERIAL_GROUP_5.2:', data2?.MATERIAL_GROUP_5);            
         }
 
         console.log("After set req.data:", JSON.stringify(req.data, null, 2));
-
+        console.log('MATERIAL_DESC_2.3:', req.data.ProductDescription1);
         console.log('MATERIAL_GROUP_2.3:', req.data.MaterialClassification1);
         console.log('MATERIAL_GROUP_5.3:', req.data.ErpStatus);  
     });
