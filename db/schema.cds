@@ -369,6 +369,9 @@ entity ProductPriceList : managed, cuid {
     Supplier                  : String(255);
     SupplierSKU               : String(255);
 
+    //to identify deleted rows
+    IsDeleted                 : Boolean default false;
+
     // heirachy
     parent                    : Association to one ProductPriceList;
     children                  : Composition of many ProductPriceList
