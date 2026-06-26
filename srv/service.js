@@ -1132,16 +1132,15 @@ module.exports = cds.service.impl(async function () {
 
         const result = await extdb.run(q);
         return result.map(r => ({
-            Code: r[codeCol],
-            Description: r[descCol]
+            Code: r[codeCol]
         }));
     };
 
-    const readVH3 = async (req, table, { codeCol = 'Code', descCol = 'Description', matGroup2 = 'MATERIAL_GROUP_2', matGroup5 = 'MATERIAL_GROUP_5' } = {}) => {
+    const readVH3 = async (req, table, { codeCol = 'Code', descCol = 'Description', matGroup2 = 'MATERIAL_GROUP_2' } = {}) => {
         const extdb = await cds.connect.to('extdb');
 
         let q = SELECT.distinct.from(table)
-            .columns(codeCol,descCol,matGroup2,matGroup5)
+            .columns(codeCol,descCol,matGroup2)
             .orderBy(codeCol);
 
         if (req.query.SELECT.where) {
@@ -1152,8 +1151,7 @@ module.exports = cds.service.impl(async function () {
         return result.map(r => ({
             Code: r[codeCol],
             Description: r[descCol],
-            MaterialGroup2: r[matGroup2],
-            MaterialGroup5: r[matGroup5]
+            MaterialGroup2: r[matGroup2]
         }));
     };
 
@@ -1168,7 +1166,8 @@ module.exports = cds.service.impl(async function () {
     this.on('READ', 'DiscountAccessSequenceVH', req => readVH(req, 'ERP_DISCOUNTACCESSSEQ', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'MatGruop2VH', req => readVH(req, 'ERP_MAT_GROUP2', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'RequestStatusVH', req => readVH2(req, 'ERP_REQUESTSTATUS', { codeCol: 'CODE' }));
-    this.on('READ', 'MatMasVH', req => readVH3(req, 'T_MATERIAL_MASTER_DATA', { codeCol: 'MATERIAL', descCol: 'MATERIAL_DESCRIPTION', matGroup2: 'MATERIAL_GROUP_2', matGroup5: 'MATERIAL_GROUP_5' }));
+    // this.on('READ', 'MatMasVH', req => readVH3(req, 'T_MATERIAL_MASTER_DATA', { codeCol: 'MATERIAL', descCol: 'MATERIAL_DESCRIPTION', matGroup2: 'MATERIAL_GROUP_2', matGroup5: 'MATERIAL_GROUP_5' }));
+    this.on('READ', 'MatMasVH', req => readVH(req, 'T_MATERIAL_MASTER_DATA', { codeCol: 'MATERIAL', descCol: 'MATERIAL_DESCRIPTION' }));
 
     //Pricing Parameters - Product Price Condition Type (Value Help)
     this.on('READ', 'PriceConditionTypeVH', (req) => {
