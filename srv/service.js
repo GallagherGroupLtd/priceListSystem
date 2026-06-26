@@ -8,6 +8,7 @@ const { HEADER_TRACKED_FIELDS } = require('./pricelist_maintain_srv-code/constan
 
 const saveProductPriceList = require('./pricelist_maintain_srv-code/save-product-price-list');
 // const logHeaderChanges = require('./code/log-header-changes');
+const versionService = require('./pricelist_maintain_srv-code/version-service');
 
 /**
  * Generic Mass Upload Handler
@@ -320,51 +321,6 @@ function buildPdfBuffer({ headerCriteria, headerTerms, detailTerms }) {
         doc.end();
     });
 }
-
-// ─── Version Helpers ──────────────────────────────────────────────────────────
-const PUBLISHED = "Published";
-
-const getVersionNumber = (versionText) => {
-    if (!versionText) return 0.1;
-
-    const valuePart = String(versionText).includes(":")
-        ? String(versionText).split(":").pop().trim()
-        : String(versionText).trim();
-
-    return parseFloat(valuePart) || 0.1;
-};
-
-const formatEffectiveDate = (effectiveDate) => {
-    const d = new Date(effectiveDate);
-    if (isNaN(d.getTime())) return "";
-
-    const yyyy = d.getFullYear();
-    const mmm = d.toLocaleString("en-US", { month: "short" });
-    const dd = String(d.getDate()).padStart(2, "0");
-
-    return `${yyyy}-${mmm}-${dd}`;
-};
-
-const formatVersion = (effectiveDate, versionNumber) => {
-    const prefix = formatEffectiveDate(effectiveDate);
-    return prefix ? `${prefix}:${versionNumber}` : String(versionNumber);
-};
-
-const computeVersion = (current, oldStatus, newStatus, effectiveDate) => {
-    const currentNumber = getVersionNumber(current);
-    const baseInteger = Math.floor(currentNumber);
-
-    let nextNumber = currentNumber;
-
-    if (newStatus === PUBLISHED && oldStatus !== PUBLISHED) {
-        nextNumber = baseInteger + 1;
-    } else if (oldStatus === PUBLISHED && newStatus !== PUBLISHED) {
-        nextNumber = baseInteger + 0.1;
-    }
-
-    return formatVersion(effectiveDate, nextNumber);
-};
-
 
 module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
@@ -1294,7 +1250,28 @@ module.exports = cds.service.impl(async function () {
 
     // Handler for PricelistData Status Assignment
     this.before('CREATE', PricelistData, async (req) => {
-        req.data.Status = 'Drafted';
+        await versionService.handlePricelistCreate(req);
+    });
+
+    // Inactive published versions are historical snapshots and must not be changed, based on current discussions.
+    this.before(['PATCH', 'UPDATE', 'DELETE', 'EDIT'], PricelistData, async (req) => {
+        return versionService.rejectInactivePublishedHeader(req, PricelistData);
+    });
+
+    this.before(['CREATE', 'PATCH', 'UPDATE', 'DELETE'], PricelistItemData, async (req) => {
+        return versionService.rejectInactivePublishedChild(
+            req,
+            { PricelistData },
+            PricelistItemData
+        );
+    });
+
+    this.before(['CREATE', 'PATCH', 'UPDATE', 'DELETE'], ProductPriceList, async (req) => {
+        return versionService.rejectInactivePublishedChild(
+            req,
+            { PricelistData },
+            ProductPriceList
+        );
     });
 
     this.before('DELETE', PricelistData, async (req) => {
@@ -1347,37 +1324,18 @@ module.exports = cds.service.impl(async function () {
     });
 
     this.before('SAVE', PricelistData, async (req) => {
-        const ID = req.data?.ID;
-        if (!ID) return;
-
-        // Extend columns to include tracked fields for diff comparison
-        const active = await SELECT.one(PricelistData)
-            .where({ ID })
-            .columns(...HEADER_TRACKED_FIELDS);
-
-        const oldStatus = active?.Status;
-        const newStatus = req.data.Status;
-        const effectiveDate = req.data.EffectiveDate || active?.EffectiveDate;
-        const baseVersion = active?.Version ?? req.data.Version ?? '0.1';
-        req.data.Version = computeVersion(
-            baseVersion,
-            oldStatus,
-            newStatus,
-            effectiveDate
+        const saveLog = await versionService.handlePricelistSave(
+            req,
+            {
+                PricelistData,
+                PricelistItemData,
+                ProductPriceList
+            }
         );
 
-        if (newStatus === PUBLISHED && oldStatus !== PUBLISHED) {
-            req.data.PublishedDate = new Date();
-            req.data.PublishedBy = req.user?.id || req.user?.email || "system";
+        if (saveLog) {
+            req._headerSaveLog = saveLog;
         }
-
-        // Stash for after('SAVE') to update changelog
-        req._headerSaveLog = {
-            id: ID,
-            isCreate: !active,
-            oldData: active ?? {},
-            newData: req.data
-        };
     });
 
     this.after('SAVE', PricelistData, async (result, req) => {

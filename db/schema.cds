@@ -266,6 +266,8 @@ entity PricelistData : managed, cuid {
     ExpiryDate          : Date         @title: 'Expiry Date';
     Currency            : String(100)  @title: 'Currency';
     Version             : String(20)   @title: 'Version' default '0.1';
+    PricelistGroupID    : UUID    @title: 'Pricelist Group ID';
+    IsVersionActive     : Boolean @title: 'Active Version' default true;
 
     MarketDisplay      : String       @title: 'Market Region'  @cds.persistence.skip; //Virtual Field
 

@@ -27,6 +27,7 @@ annotate service.PricelistData with {
     Version             @Common.Label    : 'Version';
     MarketDisplay       @Common.Label    : 'Market Display';
     TermsAndConditions  @Common.Label    : 'Terms and Conditions';
+    IsVersionActive     @Common.Label    : 'Active Version';
 
     // Value Help: Pricelist
     // PricelistTitle @(
@@ -215,7 +216,8 @@ annotate service.PricelistData with @(
         createdAt,
         PublishedDate,
         PublishedBy,
-        Version
+        Version,
+        IsVersionActive
     ],
 
     UI.LineItem                        : [
