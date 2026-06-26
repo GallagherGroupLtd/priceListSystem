@@ -56,10 +56,9 @@ entity PricelistPartNumberDetermination : managed, cuid {
     ProductID                       : String(30)  @title: 'Product ID';    
     ErpStatus                       : String(255) @title: 'ERP Status';
     MaterialClassification1         : String(255) @title: 'Material Classification';
-    MaterialClassification2         : String(255) @title: 'Translation Material Classification';
-    ProductDescription2             : String(255) @title: 'Pricelist Product Description';
+    MaterialClassification2         : String(255) @title: 'Pricelist Material Classification';
     ProductDescription1             : String(255) @title: 'Product Description';    
-    PricelistMaterialClassification : String(255) @title: 'Pricelist Material Classification';
+    ProductDescription2             : String(255) @title: 'Pricelist Product Description';    
     ProductStatus                   : String(255) @title: 'Product Status';
     StatusValidity                  : Date        @title: 'Status Validity';
     ThirdPartySupplier              : String(255) @title: '3rd Party Supplier';

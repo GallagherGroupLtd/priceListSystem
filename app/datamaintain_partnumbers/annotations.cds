@@ -127,11 +127,7 @@ annotate service.PriceProductMaintenance with @(
             },
             {
                 $Type : 'UI.DataField',
-                Value : MaterialClassification,
-            },
-            {
-                $Type : 'UI.DataField',
-                Value : PricelistMaterialClassification,
+                Value : MaterialClassification2,
             },
             {
                 $Type : 'UI.DataField',
@@ -248,11 +244,8 @@ annotate service.PriceProductMaintenance with {
             ]
         }
     );
-
-    // ProductID @Common.SideEffects : {
-    //     SourceProperties : [ProductID],
-    //     TargetProperties : [ProductDescription1]
-    // };
-
-    ProductDescription1 @Common.FieldControl : #ReadOnly;
+    
+    ProductDescription1     @Common.FieldControl : #ReadOnly;
+    MaterialClassification1 @Common.FieldControl : #ReadOnly;
+    ErpStatus               @Common.FieldControl : #ReadOnly;
 }
