@@ -2054,6 +2054,60 @@ module.exports = cds.service.impl(async function () {
             });
         };
 
+        const mergePOAFOCFallback = async (rows) => {
+            const materialIds = [...new Set(
+                rows
+                    .map(r => r.Material)
+                    .filter(Boolean)
+            )];
+
+            if (!materialIds.length) return;
+
+            const poaRows = await db.run(
+                SELECT.from('PricelistPartNumberPOAFOC')
+                    .where({ ProductID: { in: materialIds } })
+            );
+
+            if (!poaRows || poaRows.length === 0) return;
+
+            const exactMap = new Map();
+            const genericMap = new Map();
+
+            for (const r of poaRows) {
+                const productId = String(r.ProductID || '').trim();
+                const plType = String(r.PricelistType || '').trim();
+                const value = String(r.POAFOCValue || '').trim();
+
+                if (!productId || !value) continue;
+
+                if (plType) {
+                    exactMap.set(`${productId}|${plType}`, value);
+                } else {
+                    genericMap.set(productId, value);
+                }
+            }
+
+            for (const row of rows) {
+                const currentPrice = String(row.Price ?? '').trim();
+
+                // Apply only when real price is empty/null
+                if (currentPrice) continue;
+
+                const productId = String(row.Material || '').trim();
+                if (!productId) continue;
+
+                const exactValue = exactMap.get(`${productId}|${PricelistType}`);
+                const genericValue = genericMap.get(productId);
+
+                const fallbackValue = exactValue || genericValue;
+
+                if (fallbackValue) {
+                    row.Price = fallbackValue;
+                    row.PriceUnit = null;
+                }
+            }
+        };
+
         const loadMaterials = async (itemStructureDatas) => {
             const where = buildMaterialWhere(itemStructureDatas);
             const extQuery = `WITH ranked AS (SELECT *, ROW_NUMBER() OVER ( PARTITION BY "MATERIAL_KEY", "SALES_ORGANIZATION", "DISTRIBUTION_CHANNEL"
@@ -2273,6 +2327,8 @@ module.exports = cds.service.impl(async function () {
             //Commenting the below line, as reuirement is to fetch products even if the price is not defined for them.
             // if (include.price) rows = rows.filter(row => row.Price != null);
         }
+
+        await mergePOAFOCFallback(rows);
 
         return sortResults(rows);
     });

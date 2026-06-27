@@ -64,6 +64,15 @@ entity PricelistPartNumberDetermination : managed, cuid {
     ThirdPartySupplier              : String(255) @title: '3rd Party Supplier';
     ThirdPartySupplierSKU           : String(255) @title: '3rd Party Supplier SKU';
     StatusExpiry                    : Date        @title: 'Status Expiry';
+    poaFocValues                    : Composition of many PricelistPartNumberPOAFOC
+        on poaFocValues.parent = $self;
+}
+
+entity PricelistPartNumberPOAFOC : managed, cuid {
+    parent        : Association to one PricelistPartNumberDetermination;
+    ProductID     : String(30)  @title: 'Product ID';
+    PricelistType : String(255) @title: 'Pricelist Type';
+    POAFOCValue   : String(20)  @title: 'POA/FOC';
 }
 
 /** Terms and Condition Determination **/
