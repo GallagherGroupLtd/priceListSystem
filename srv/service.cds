@@ -36,10 +36,15 @@ service PriceListService {
 
     annotate ItemStructure with @odata.draft.enabled;
 
-    entity PriceProductMaintenance    as projection on my.PricelistPartNumberDetermination
-        actions {
-            action copyRow() returns PriceProductMaintenance;
-        };
+    entity PriceProductMaintenance    as projection on my.PricelistPartNumberDetermination{
+        *,
+        poaFocValues
+    }
+    actions {
+        action copyRow() returns PriceProductMaintenance;
+    };
+
+    entity PriceProductPOAFOC as projection on my.PricelistPartNumberPOAFOC;
 
     annotate PriceProductMaintenance with @odata.draft.enabled;
 

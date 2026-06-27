@@ -85,6 +85,12 @@ annotate service.PriceProductMaintenance with @(
             ID : 'GeneratedFacet2',
             Label : 'Product Detail Translation',
             Target : '@UI.FieldGroup#DetailTranslation',
+        },
+        {
+            $Type  : 'UI.ReferenceFacet',
+            ID     : 'POAFOCFacet',
+            Label  : 'POA/FOC',
+            Target : 'poaFocValues/@UI.LineItem'
         }
     ],
 
@@ -152,6 +158,43 @@ annotate service.PriceProductMaintenance with @(
         ],
     }    
 );
+
+annotate service.PriceProductPOAFOC with @(
+    UI.LineItem : [
+        {
+            $Type : 'UI.DataField',
+            Value : PricelistType,
+            Label : 'Pricelist Type'
+        },
+        {
+            $Type : 'UI.DataField',
+            Value : POAFOCValue,
+            Label : 'POA/FOC'
+        }
+    ]
+);
+
+annotate service.PriceProductPOAFOC with {
+    PricelistType @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList : {
+            $Type : 'Common.ValueListType',
+            CollectionPath : 'PricelistTypeVH',
+            Parameters : [
+                {
+                    $Type : 'Common.ValueListParameterInOut',
+                    LocalDataProperty : PricelistType,
+                    ValueListProperty : 'PricelistType'
+                }
+            ]
+        }
+    );
+
+    POAFOCValue @(
+        title : 'POA/FOC',
+        Common.FieldControl : #Mandatory
+    );
+};
 
 annotate service.PriceProductMaintenance with {
     PricelistType @(
