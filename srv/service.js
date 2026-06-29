@@ -1123,7 +1123,70 @@ module.exports = cds.service.impl(async function () {
     this.on('READ', 'MatGruop2VH', req => readVH(req, 'ERP_MAT_GROUP2', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'RequestStatusVH', req => readVH2(req, 'ERP_REQUESTSTATUS', { codeCol: 'CODE' }));
     // this.on('READ', 'MatMasVH', req => readVH3(req, 'T_MATERIAL_MASTER_DATA', { codeCol: 'MATERIAL', descCol: 'MATERIAL_DESCRIPTION', matGroup2: 'MATERIAL_GROUP_2', matGroup5: 'MATERIAL_GROUP_5' }));
-    this.on('READ', 'MatMasVH', req => readVH(req, 'T_MATERIAL_MASTER_DATA', { codeCol: 'MATERIAL', descCol: 'MATERIAL_DESCRIPTION' }));
+    // this.on('READ', 'MatMasVH', req => readVH(req, 'T_MATERIAL_MASTER_DATA', { codeCol: 'MATERIAL', descCol: 'MATERIAL_DESCRIPTION' }));
+    this.on('READ', 'MatMasVH', async (req) => {
+        const extdb = await cds.connect.to('extdb');
+
+        const select = req.query.SELECT || {};
+        const top = select.limit?.rows?.val || 50;
+        const skip = select.limit?.offset?.val || 0;
+
+        let searchTerm = "";
+
+        // Case 1: $search
+        if (select.search && select.search.length > 0) {
+            searchTerm = select.search
+                .map(s => s.val)
+                .filter(Boolean)
+                .join(" ")
+                .trim();
+        }
+
+        // Case 2: filter/search from value help field
+        if (!searchTerm && select.where) {
+            for (let i = 0; i < select.where.length; i++) {
+                const token = select.where[i];
+
+                if (
+                    token?.ref?.[0] &&
+                    ['Code', 'Description'].includes(token.ref[0])
+                ) {
+                    const nextVal = select.where[i + 2]?.val;
+                    if (nextVal) {
+                        searchTerm = String(nextVal).replace(/%/g, '').trim();
+                        break;
+                    }
+                }
+            }
+        }
+
+        const safeSearch = searchTerm.replace(/'/g, "''");
+
+        let sql = `
+            SELECT DISTINCT
+                "MATERIAL" AS "Code",
+                "MATERIAL_DESCRIPTION" AS "Description",
+                "MATERIAL_GROUP_2" AS "MaterialGroup2",
+                "MATERIAL_GROUP_5" AS "MaterialGroup5"
+            FROM "SAPECC"."T_MATERIAL_MASTER_DATA"
+        `;
+
+        if (safeSearch) {
+            sql += `
+                WHERE
+                    UPPER("MATERIAL") LIKE UPPER('%${safeSearch}%')
+                    OR UPPER("MATERIAL_DESCRIPTION") LIKE UPPER('%${safeSearch}%')
+            `;
+        }
+
+        sql += `
+            ORDER BY "MATERIAL"
+            LIMIT ${Number(top)}
+            OFFSET ${Number(skip)}
+        `;
+
+        return await extdb.run(sql);
+    });
 
     //Pricing Parameters - Product Price Condition Type (Value Help)
     this.on('READ', 'PriceConditionTypeVH', (req) => {
