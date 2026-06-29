@@ -4,7 +4,8 @@ const { log } = require("@sap/cds");
 
 const { SELECT, INSERT, UPDATE, DELETE } = cds.ql;
 
-const { HEADER_TRACKED_FIELDS } = require('./pricelist_maintain_srv-code/constants');
+const { HEADER_TRACKED_FIELDS, LARGE_TEXT_FIELDS, LARGE_TEXT_CHANGE_MARKER } = require('./pricelist_maintain_srv-code/constants');
+const LARGE_TEXT_FIELD_SET = new Set(LARGE_TEXT_FIELDS);
 
 const saveProductPriceList = require('./pricelist_maintain_srv-code/save-product-price-list');
 // const logHeaderChanges = require('./code/log-header-changes');
@@ -1133,7 +1134,6 @@ module.exports = cds.service.impl(async function () {
 
         let searchTerm = "";
 
-        // Case 1: $search
         if (select.search && select.search.length > 0) {
             searchTerm = select.search
                 .map(s => s.val)
@@ -1142,15 +1142,11 @@ module.exports = cds.service.impl(async function () {
                 .trim();
         }
 
-        // Case 2: filter/search from value help field
         if (!searchTerm && select.where) {
             for (let i = 0; i < select.where.length; i++) {
                 const token = select.where[i];
 
-                if (
-                    token?.ref?.[0] &&
-                    ['Code', 'Description'].includes(token.ref[0])
-                ) {
+                if (token?.ref?.[0] && ['Code', 'Description'].includes(token.ref[0])) {
                     const nextVal = select.where[i + 2]?.val;
                     if (nextVal) {
                         searchTerm = String(nextVal).replace(/%/g, '').trim();
@@ -1163,11 +1159,11 @@ module.exports = cds.service.impl(async function () {
         const safeSearch = searchTerm.replace(/'/g, "''");
 
         let sql = `
-            SELECT DISTINCT
+            SELECT
                 "MATERIAL" AS "Code",
-                "MATERIAL_DESCRIPTION" AS "Description",
-                "MATERIAL_GROUP_2" AS "MaterialGroup2",
-                "MATERIAL_GROUP_5" AS "MaterialGroup5"
+                MAX("MATERIAL_DESCRIPTION") AS "Description",
+                MAX("MATERIAL_GROUP_2") AS "MaterialGroup2",
+                MAX("MATERIAL_GROUP_5") AS "MaterialGroup5"
             FROM "SAPECC"."T_MATERIAL_MASTER_DATA"
         `;
 
@@ -1180,6 +1176,7 @@ module.exports = cds.service.impl(async function () {
         }
 
         sql += `
+            GROUP BY "MATERIAL"
             ORDER BY "MATERIAL"
             LIMIT ${Number(top)}
             OFFSET ${Number(skip)}
@@ -1311,6 +1308,26 @@ module.exports = cds.service.impl(async function () {
         console.log('MATERIAL_GROUP_5.3:', req.data.ErpStatus);  
     });
 
+    this.before(['CREATE', 'PATCH', 'UPDATE'], 'PriceProductPOAFOC.drafts', async (req) => {
+        const db = cds.transaction(req);
+
+        const parentId = req.params?.[0]?.ID || req.data.parent_ID;
+
+        if (!parentId) return;
+
+        const parent = await db.run(
+            SELECT.one
+                .from('PRICELISTSERVICE_PRICEPRODUCTMAINTENANCE.drafts')
+                .where({ ID: parentId })
+        );
+
+        const productId = parent?.PRODUCTID || parent?.ProductID;
+
+        if (!productId) return;
+
+        req.data.ProductID = productId;
+    });
+
     // Handler for PricelistData Status Assignment
     this.before('CREATE', PricelistData, async (req) => {
         await versionService.handlePricelistCreate(req);
@@ -1422,6 +1439,8 @@ module.exports = cds.service.impl(async function () {
                 // For CREATE: skip fields that were never set
                 if (isCreate && newVal === undefined) continue;
 
+                const isLargeTextField = LARGE_TEXT_FIELD_SET.has(field);
+
                 entries.push({
                     ID: cds.utils.uuid(),
                     changedAt: now,
@@ -1430,8 +1449,8 @@ module.exports = cds.service.impl(async function () {
                     refId: id,
                     changeType,
                     field,
-                    oldValue: isCreate ? undefined : String(oldVal ?? ''),
-                    newValue: String(newVal ?? '')
+                    oldValue: isLargeTextField ? LARGE_TEXT_CHANGE_MARKER : (isCreate ? undefined : String(oldVal ?? '')),
+                    newValue: isLargeTextField ? LARGE_TEXT_CHANGE_MARKER : String(newVal ?? '')
                 });
             }
 
@@ -2159,7 +2178,8 @@ module.exports = cds.service.impl(async function () {
                 const productId = String(row.Material || '').trim();
                 if (!productId) continue;
 
-                const exactValue = exactMap.get(`${productId}|${PricelistType}`);
+                const headerPricelistType = String(PricelistType || '').trim();
+                const exactValue = exactMap.get(`${productId}|${headerPricelistType}`);
                 const genericValue = genericMap.get(productId);
 
                 const fallbackValue = exactValue || genericValue;
