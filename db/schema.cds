@@ -280,11 +280,11 @@ entity PricelistData : managed, cuid {
 
     MarketDisplay      : String       @title: 'Market Region'  @cds.persistence.skip; //Virtual Field
 
-    TermsAndConditions : String(1000) @title: 'Header Terms and Conditions';
+    TermsAndConditions  : LargeString @title: 'Header Terms and Conditions';
     TACDisableExtUser   : Boolean     @title: 'Terms and Conditions Disable Flag for External User';
     TACDisableIntUser   : Boolean     @title: 'Terms and Conditions Disable Flag for Internal User';
 
-    Notes              : String(5000) @title: 'Notes';
+    Notes               : LargeString @title: 'Notes';
     NotesDisableExtUser : Boolean     @title: 'Notes Disable Flag for External User';
     NotesDisableIntUser : Boolean     @title: 'Notes Disable Flag for Internal User';
 

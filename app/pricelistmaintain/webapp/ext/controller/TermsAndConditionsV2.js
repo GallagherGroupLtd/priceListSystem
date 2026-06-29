@@ -3,6 +3,8 @@ sap.ui.define([
 ], function(MessageToast) {
     'use strict';
 
+    const ExtController = pricelistapp.pricelistmaintain.ext.controller.PricelistMaintainObjectPageExt.prototype;
+
     return {
         /**
          * Generated event handler.
@@ -11,6 +13,9 @@ sap.ui.define([
          */
         onPress: function(oEvent) {
             MessageToast.show("Custom handler invoked.");
+        },
+        onToggleTermsText: function(oEvent) {
+            ExtController.getInstance().onToggleTermsText();
         }
     };
 });

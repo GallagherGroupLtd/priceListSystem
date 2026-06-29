@@ -4,7 +4,8 @@ const { log } = require("@sap/cds");
 
 const { SELECT, INSERT, UPDATE, DELETE } = cds.ql;
 
-const { HEADER_TRACKED_FIELDS } = require('./pricelist_maintain_srv-code/constants');
+const { HEADER_TRACKED_FIELDS, LARGE_TEXT_FIELDS, LARGE_TEXT_CHANGE_MARKER } = require('./pricelist_maintain_srv-code/constants');
+const LARGE_TEXT_FIELD_SET = new Set(LARGE_TEXT_FIELDS);
 
 const saveProductPriceList = require('./pricelist_maintain_srv-code/save-product-price-list');
 // const logHeaderChanges = require('./code/log-header-changes');
@@ -1123,7 +1124,66 @@ module.exports = cds.service.impl(async function () {
     this.on('READ', 'MatGruop2VH', req => readVH(req, 'ERP_MAT_GROUP2', { codeCol: 'CODE', descCol: 'DESCRIPTION' }));
     this.on('READ', 'RequestStatusVH', req => readVH2(req, 'ERP_REQUESTSTATUS', { codeCol: 'CODE' }));
     // this.on('READ', 'MatMasVH', req => readVH3(req, 'T_MATERIAL_MASTER_DATA', { codeCol: 'MATERIAL', descCol: 'MATERIAL_DESCRIPTION', matGroup2: 'MATERIAL_GROUP_2', matGroup5: 'MATERIAL_GROUP_5' }));
-    this.on('READ', 'MatMasVH', req => readVH(req, 'T_MATERIAL_MASTER_DATA', { codeCol: 'MATERIAL', descCol: 'MATERIAL_DESCRIPTION' }));
+    // this.on('READ', 'MatMasVH', req => readVH(req, 'T_MATERIAL_MASTER_DATA', { codeCol: 'MATERIAL', descCol: 'MATERIAL_DESCRIPTION' }));
+    this.on('READ', 'MatMasVH', async (req) => {
+        const extdb = await cds.connect.to('extdb');
+
+        const select = req.query.SELECT || {};
+        const top = select.limit?.rows?.val || 50;
+        const skip = select.limit?.offset?.val || 0;
+
+        let searchTerm = "";
+
+        if (select.search && select.search.length > 0) {
+            searchTerm = select.search
+                .map(s => s.val)
+                .filter(Boolean)
+                .join(" ")
+                .trim();
+        }
+
+        if (!searchTerm && select.where) {
+            for (let i = 0; i < select.where.length; i++) {
+                const token = select.where[i];
+
+                if (token?.ref?.[0] && ['Code', 'Description'].includes(token.ref[0])) {
+                    const nextVal = select.where[i + 2]?.val;
+                    if (nextVal) {
+                        searchTerm = String(nextVal).replace(/%/g, '').trim();
+                        break;
+                    }
+                }
+            }
+        }
+
+        const safeSearch = searchTerm.replace(/'/g, "''");
+
+        let sql = `
+            SELECT
+                "MATERIAL" AS "Code",
+                MAX("MATERIAL_DESCRIPTION") AS "Description",
+                MAX("MATERIAL_GROUP_2") AS "MaterialGroup2",
+                MAX("MATERIAL_GROUP_5") AS "MaterialGroup5"
+            FROM "SAPECC"."T_MATERIAL_MASTER_DATA"
+        `;
+
+        if (safeSearch) {
+            sql += `
+                WHERE
+                    UPPER("MATERIAL") LIKE UPPER('%${safeSearch}%')
+                    OR UPPER("MATERIAL_DESCRIPTION") LIKE UPPER('%${safeSearch}%')
+            `;
+        }
+
+        sql += `
+            GROUP BY "MATERIAL"
+            ORDER BY "MATERIAL"
+            LIMIT ${Number(top)}
+            OFFSET ${Number(skip)}
+        `;
+
+        return await extdb.run(sql);
+    });
 
     //Pricing Parameters - Product Price Condition Type (Value Help)
     this.on('READ', 'PriceConditionTypeVH', (req) => {
@@ -1248,6 +1308,26 @@ module.exports = cds.service.impl(async function () {
         console.log('MATERIAL_GROUP_5.3:', req.data.ErpStatus);  
     });
 
+    this.before(['CREATE', 'PATCH', 'UPDATE'], 'PriceProductPOAFOC.drafts', async (req) => {
+        const db = cds.transaction(req);
+
+        const parentId = req.params?.[0]?.ID || req.data.parent_ID;
+
+        if (!parentId) return;
+
+        const parent = await db.run(
+            SELECT.one
+                .from('PRICELISTSERVICE_PRICEPRODUCTMAINTENANCE.drafts')
+                .where({ ID: parentId })
+        );
+
+        const productId = parent?.PRODUCTID || parent?.ProductID;
+
+        if (!productId) return;
+
+        req.data.ProductID = productId;
+    });
+
     // Handler for PricelistData Status Assignment
     this.before('CREATE', PricelistData, async (req) => {
         await versionService.handlePricelistCreate(req);
@@ -1359,6 +1439,8 @@ module.exports = cds.service.impl(async function () {
                 // For CREATE: skip fields that were never set
                 if (isCreate && newVal === undefined) continue;
 
+                const isLargeTextField = LARGE_TEXT_FIELD_SET.has(field);
+
                 entries.push({
                     ID: cds.utils.uuid(),
                     changedAt: now,
@@ -1367,8 +1449,8 @@ module.exports = cds.service.impl(async function () {
                     refId: id,
                     changeType,
                     field,
-                    oldValue: isCreate ? undefined : String(oldVal ?? ''),
-                    newValue: String(newVal ?? '')
+                    oldValue: isLargeTextField ? LARGE_TEXT_CHANGE_MARKER : (isCreate ? undefined : String(oldVal ?? '')),
+                    newValue: isLargeTextField ? LARGE_TEXT_CHANGE_MARKER : String(newVal ?? '')
                 });
             }
 
@@ -2096,7 +2178,8 @@ module.exports = cds.service.impl(async function () {
                 const productId = String(row.Material || '').trim();
                 if (!productId) continue;
 
-                const exactValue = exactMap.get(`${productId}|${PricelistType}`);
+                const headerPricelistType = String(PricelistType || '').trim();
+                const exactValue = exactMap.get(`${productId}|${headerPricelistType}`);
                 const genericValue = genericMap.get(productId);
 
                 const fallbackValue = exactValue || genericValue;

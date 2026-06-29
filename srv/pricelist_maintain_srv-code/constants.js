@@ -63,6 +63,13 @@ const HEADER_TRACKED_FIELDS = [
     'NotesDisableIntUser'
 ];
 
+const LARGE_TEXT_FIELDS = [
+    "TermsAndConditions",
+    "Notes"
+];
+
 const TREE_TRACKED_FIELDS = STORED_FIELDS;
 
-module.exports = { STORED_FIELDS, HEADER_TRACKED_FIELDS, TREE_TRACKED_FIELDS };
+const LARGE_TEXT_CHANGE_MARKER = "[Large text content changed]";
+
+module.exports = { STORED_FIELDS, HEADER_TRACKED_FIELDS, TREE_TRACKED_FIELDS, LARGE_TEXT_FIELDS, LARGE_TEXT_CHANGE_MARKER };

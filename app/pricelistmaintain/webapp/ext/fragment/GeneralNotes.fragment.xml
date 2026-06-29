@@ -10,15 +10,27 @@
                 <layoutData><FlexItemData id="NotesLabelLayoutData" growFactor="0" shrinkFactor="0" /></layoutData>
                 <Label id="NotesLabel" text="Notes:" class="sapUiSmallMarginEnd sapUiSmallMarginTop" />
             </HBox>
-            <TextArea 
+            <!-- <TextArea 
                 id="NotesContextText" 
                 value="{Notes}" 
-                maxLength="5000" 
                 rows="6"
                 width="75%"
                 editable="{ui>/isEditable}">
                 <layoutData><FlexItemData id="NotesContextTextLayoutData" growFactor="1" maxWidth="100%" shrinkFactor="1" minWidth="0" /></layoutData>
-            </TextArea>
+            </TextArea> -->
+            <VBox id="NotesInternalVBox" width="100%">
+                <TextArea
+                    id="NotesContextText"
+                    value="{Notes}"
+                    rows="{= ${longText>/notesExpanded} ? 20 : 6 }"
+                    width="75%"
+                    editable="{ui>/isEditable}" />
+
+                <Button id="NotesToggleButton"
+                    type="Transparent"
+                    text="{= ${longText>/notesExpanded} ? 'Show Less' : 'See More' }"
+                    press="handler.onToggleNotesText" />
+            </VBox>
         </HBox>
 
         <HBox id="NotesDisableHBox" alignItems="Center" width="100%" class="sapUiSmallMarginBottom">

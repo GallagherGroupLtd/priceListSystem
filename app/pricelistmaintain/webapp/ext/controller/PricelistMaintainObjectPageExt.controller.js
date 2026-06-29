@@ -151,6 +151,13 @@ sap.ui.define([
 			onInit: function () {
 				this.base.getView().setModel(new JSONModel(this._getInitialJsonData()), "jsonModel");
 
+				const oLongTextModel = new JSONModel({
+					termsExpanded: false,
+					notesExpanded: false
+				});
+
+				this.base.getView().setModel(oLongTextModel, "longText");
+
 				this._deletedSnapshots = [];
 				this._originalSnapshot = null;
 				this._lastObjectPageEditMode = null;
@@ -288,6 +295,16 @@ sap.ui.define([
 					console.error(oError);
 					MessageToast.show("Failed to reset pricelist.");
 				});
+		},
+
+		onToggleTermsText: function () {
+			const oModel = this.getView().getModel("longText");
+			oModel.setProperty("/termsExpanded", !oModel.getProperty("/termsExpanded"));
+		},
+
+		onToggleNotesText: function () {
+			const oModel = this.getView().getModel("longText");
+			oModel.setProperty("/notesExpanded", !oModel.getProperty("/notesExpanded"));
 		},
 
 		onRefreshPrice: async function () {

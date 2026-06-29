@@ -269,7 +269,6 @@ annotate service.PriceProductMaintenance with {
     );
 
     ProductID @(
-        Common.ValueListWithFixedValues : true,
         Common.ValueList: {
             $Type         : 'Common.ValueListType',
             CollectionPath: 'MatMasVH',
