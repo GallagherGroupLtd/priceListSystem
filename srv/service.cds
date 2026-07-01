@@ -742,6 +742,21 @@ service PriceListService {
             MaterialGroup2 : String(255);
             MaterialGroup5 : String(255);
     }
+
+    action getTileAuthorization(
+        Email : String
+    ) returns {
+        ControlPriceListView               : Boolean;
+        ControlPriceView                   : Boolean;
+        ControlDiscountIndicator           : Boolean;
+        ControlDiscountRate                : Boolean;
+        ControlWorkflowTile                : Boolean;
+        ControlPriceListReviewScheduleTile : Boolean;
+        ControlPricelistMaintenance        : Boolean;
+        ControlDataMaintenance             : Boolean;
+        ControlMyRequestTile               : Boolean;
+        ControlApplicationLogTile          : Boolean;
+    };
 }
 
 @cds.persistence.skip

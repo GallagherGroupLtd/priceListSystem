@@ -39,6 +39,9 @@ sap.ui.define([
 
             //Function to set models for view, to allow information on the Landing page to be user-specific and dynamic.
             this._setDataModelsForView();
+
+            //Function to control tile's visibility based on user authorization, fetched from the backend service.
+            this._loadTileAuthorization();
         },
 
         _setFormattedDate: function (oModel) {
@@ -216,6 +219,27 @@ sap.ui.define([
             }catch(ex){
                 console.log("Error in _setDataModelsForView: " + ex.message);
             }
+        },
+
+        _loadTileAuthorization: async function () {
+            const oModel = this.getOwnerComponent().getModel();
+            // const sEmail = "kiana.pham123@gallagher.com";
+            const sEmail = this.getView().getModel("home").getProperty("/userEmail");
+            console.log("Controller Email:", sEmail);
+
+            const oContext = oModel.bindContext("/getTileAuthorization(...)");
+            oContext.setParameter("Email", sEmail);
+            await oContext.execute();
+
+            const oAuth = oContext.getBoundContext().getObject();
+
+            console.log("Auth result:", oAuth);
+            console.log("ControlMyRequestTile:", oAuth.ControlMyRequestTile);
+
+            const oAuthModel = new sap.ui.model.json.JSONModel(oAuth);
+            this.getView().setModel(oAuthModel, "auth");
+
+            console.log("Tile authorization:", oAuth);
         },
 
         onNavigationAppPress: function (oEvent) {
