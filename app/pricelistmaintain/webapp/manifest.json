@@ -141,7 +141,14 @@
                       "visible": true,
                       "enabled": true,
                       "requiresSelection": true,
-                      "text": "Duplicate Record"
+                      "text": "Duplicate Pricelist(s)"
+                    },
+                    "massEditPricelist": {
+                      "press": "pricelistapp.pricelistmaintain.ext.controller.customActionController.onMassEditPricelist",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": true,
+                      "text": "Mass Edit"
                     }
                   }
                 }

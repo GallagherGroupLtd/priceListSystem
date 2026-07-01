@@ -185,6 +185,25 @@ service PriceListService {
             items                                                                   : redirected to PricelistItemData
         };
 
+    type MassDuplicateResult {
+        sourceId : UUID;
+        newId    : UUID;
+        title    : String;
+    }
+
+    action massDuplicatePricelists(ids: array of UUID) returns array of MassDuplicateResult;
+
+    type MassEditResult {
+        sourceId : UUID;
+        status   : String;
+        message  : String;
+    }
+
+    action massEditPricelists(
+        ids     : array of UUID,
+        changes : LargeString
+    ) returns array of MassEditResult;
+
     entity PricelistItemData          as
         projection on my.PricelistItemData {
             *
