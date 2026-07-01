@@ -602,18 +602,166 @@ module.exports = cds.service.impl(async function () {
                 SELECT.from(ProductPriceList).where({ pricelist_ID: sourceId })
             );
 
+            const oldProductToNewProduct = new Map();
+
             for (const product of products) {
-                const newProduct = clean(product, childSkip);
-                newProduct.ID = cds.utils.uuid();
-                newProduct.pricelist_ID = newId;
-                await tx.run(INSERT.into(ProductPriceList).entries(newProduct));
+                oldProductToNewProduct.set(product.ID, cds.utils.uuid());
             }
 
+            const productSkip = [
+                "ID", "createdAt", "createdBy", "modifiedAt", "modifiedBy",
+                "pricelist_ID", "parent_ID"
+            ];
+
+            for (const product of products) {
+                const newProduct = clean(product, productSkip);
+
+                newProduct.ID = oldProductToNewProduct.get(product.ID);
+                newProduct.pricelist_ID = newId;
+
+                if (product.parent_ID) {
+                    newProduct.parent_ID = oldProductToNewProduct.get(product.parent_ID) || null;
+                }
+
+                await tx.run(INSERT.into(ProductPriceList).entries(newProduct));
+            }
+            
             results.push({
                 sourceId,
                 newId,
                 title: newHeader.PricelistTitle
             });
+        }
+
+        return results;
+    });
+
+    this.on("massEditPricelists", async (req) => {
+        const { ids, changes } = req.data;
+
+        if (!ids || ids.length === 0) {
+            return req.error(400, "No pricelists selected.");
+        }
+
+        let patchData;
+        try {
+            patchData = typeof changes === "string" ? JSON.parse(changes) : changes;
+        } catch (e) {
+            return req.error(400, "Invalid changes payload.");
+        }
+
+        const allowedFields = [
+            "PricelistTitle",
+            "Status",
+            "PricelistType",
+            "MarketScopeRegion",
+            "MarketScopeCountry",
+            "Currency",
+            "EffectiveDate",
+            "SalesOrg",
+            "DistChannel",
+            "CustGroup1",
+            "CustPriceList",
+            "ErpCustomer",
+            "DeliveringPlant"
+        ];
+
+        const cleanPatch = {};
+        for (const field of allowedFields) {
+            if (Object.prototype.hasOwnProperty.call(patchData, field)) {
+                cleanPatch[field] = patchData[field];
+            }
+        }
+
+        if (Object.keys(cleanPatch).length === 0) {
+            return req.error(400, "No fields selected for update.");
+        }
+
+        const tx = cds.tx(req);
+        const results = [];
+
+        for (const id of ids) {
+            try {
+                const oldData = await tx.run(
+                    SELECT.one.from(PricelistData).where({ ID: id })
+                );
+
+                if (!oldData) {
+                    results.push({
+                        sourceId: id,
+                        status: "ERROR",
+                        message: "Pricelist not found."
+                    });
+                    continue;
+                }
+
+                const changedFields = {};
+                for (const [field, value] of Object.entries(cleanPatch)) {
+                    if (String(oldData[field] ?? "") !== String(value ?? "")) {
+                        changedFields[field] = value;
+                    }
+                }
+
+                if (Object.keys(changedFields).length === 0) {
+                    results.push({
+                        sourceId: id,
+                        status: "SUCCESS",
+                        message: "No changes required."
+                    });
+                    continue;
+                }
+
+                await tx.run(
+                    UPDATE(PricelistData)
+                        .set({
+                            ...changedFields,
+                            modifiedAt: new Date(),
+                            modifiedBy: req.user?.id || "unknown"
+                        })
+                        .where({ ID: id })
+                );
+
+                const entries = [];
+                const now = new Date();
+                const changedBy = req.user?.id || "unknown";
+
+                for (const [field, newValue] of Object.entries(changedFields)) {
+                    const oldValue = oldData[field];
+
+                    const isLargeTextField = LARGE_TEXT_FIELD_SET.has(field);
+
+                    entries.push({
+                        ID: cds.utils.uuid(),
+                        changedAt: now,
+                        changedBy,
+                        source: "Header",
+                        refId: id,
+                        changeType: "UPDATE",
+                        field,
+                        oldValue: isLargeTextField ? LARGE_TEXT_CHANGE_MARKER : String(oldValue ?? ""),
+                        newValue: isLargeTextField ? LARGE_TEXT_CHANGE_MARKER : String(newValue ?? "")
+                    });
+                }
+
+                if (entries.length > 0) {
+                    await tx.run(
+                        INSERT.into("com.sap.pricelistsystem.PricelistChangeLog").entries(entries)
+                    );
+                }
+
+                results.push({
+                    sourceId: id,
+                    status: "SUCCESS",
+                    message: "Updated successfully."
+                });
+
+            } catch (e) {
+                results.push({
+                    sourceId: id,
+                    status: "ERROR",
+                    message: e.message || String(e)
+                });
+            }
         }
 
         return results;

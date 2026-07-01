@@ -132,7 +132,7 @@
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
                     "type": "ResponsiveTable",
-                    "enableMassEdit": true,
+                    "enableMassEdit": false,
                     "creationMode": "Inline"
                   },
                   "actions": {
@@ -142,6 +142,13 @@
                       "enabled": true,
                       "requiresSelection": true,
                       "text": "Duplicate Pricelist(s)"
+                    },
+                    "massEditPricelist": {
+                      "press": "pricelistapp.pricelistmaintain.ext.controller.customActionController.onMassEditPricelist",
+                      "visible": true,
+                      "enabled": true,
+                      "requiresSelection": true,
+                      "text": "Mass Edit"
                     }
                   }
                 }
