@@ -36,6 +36,7 @@
  
                                 <HBox id="HBox1" wrap="Wrap">
                                     <items>
+                                        <!-- <GenericTile id="TilePricelist_All" header="Pricelist" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor" visible="{auth>/ControlPriceListView}"> -->
                                         <GenericTile id="TilePricelist_All" header="Pricelist" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                                             <tileContent>
                                                 <TileContent id="TileContentPricelist_All">
@@ -47,6 +48,7 @@
                                             </customData>
                                         </GenericTile>
 
+                                        <!-- <GenericTile id="TileMyRequest_All" header="My Request" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor" visible="{auth>/ControlMyRequestTile}"> -->
                                         <GenericTile id="TileMyRequest_All" header="My Request" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                                             <tileContent>
                                                 <TileContent id="TileContentMyRequest_All">
@@ -58,6 +60,7 @@
                                             </customData>
                                         </GenericTile>
 
+                                        <!-- <GenericTile id="TileWorkflow_All" header="Workflow" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor" visible="{auth>/ControlWorkflowTile}"> -->
                                         <GenericTile id="TileWorkflow_All" header="Workflow" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                                             <tileContent>
                                                 <TileContent id="TileContentWorkflow_All">
@@ -69,6 +72,7 @@
                                             </customData>
                                         </GenericTile>
 
+                                        <!-- <GenericTile id="TilePriceSchedRev_All" header="Pricelist Review Schedule" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor" visible="{auth>/ControlPriceListReviewScheduleTile}"> -->
                                         <GenericTile id="TilePriceSchedRev_All" header="Pricelist Review Schedule" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                                             <tileContent>
                                                 <TileContent id="TileContentPriceSchedRev_All">
@@ -85,6 +89,7 @@
                                 <Title id="TitleMaintain" text="Maintenance" level="H2" class="sapUiSmallMarginTop sapUiMediumMarginToprginTopBottom" />
                                 <HBox id="HBox3" wrap="Wrap">
                                     <items>
+                                        <!-- <GenericTile id="TileMaintain_All" header="Pricelist Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor" visible="{auth>/ControlPricelistMaintenance}"> -->
                                         <GenericTile id="TileMaintain_All" header="Pricelist Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
                                             <tileContent>
                                                 <TileContent id="TileContenctMaintain_All">
@@ -96,7 +101,8 @@
                                             </customData>
                                         </GenericTile>
 
-                                        <GenericTile id="TileMaintain2_All" header="Data Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
+                                        <!-- <GenericTile id="TileMaintain2_All" header="Data Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor " visible="{auth>/ControlDataMaintenance}"> -->
+                                        <GenericTile id="TileMaintain2_All" header="Data Maintenance" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor ">
                                             <tileContent>
                                                 <TileContent id="TileContenctMaintain2_All">
                                                     <ImageContent id="ImageMaintain2_All" src="sap-icon://provision" />
@@ -107,7 +113,8 @@
                                             </customData>
                                         </GenericTile>
 
-                                        <GenericTile id="TileMaintain3_All" header="Application Log" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor">
+                                        <!-- <GenericTile id="TileMaintain3_All" header="Application Log" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor " visible="{auth>/ControlAppLogTile}"> -->
+                                        <GenericTile id="TileMaintain3_All" header="Application Log" press=".onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor ">
                                             <tileContent>
                                                 <TileContent id="TileContenctMaintain3_All">
                                                     <ImageContent id="ImageMaintain3_All" src="sap-icon://provision" />
