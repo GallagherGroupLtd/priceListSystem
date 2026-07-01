@@ -20,11 +20,11 @@ annotate service.PricelistData with {
     CustPriceList       @Common.Label    : 'Customer Pricelist';
     ErpCustomer         @Common.Label    : 'Customer Account';
     DeliveringPlant     @Common.Label    : 'Delivering Plant';
-    createdBy           @Common.Label    : 'Created By' @UI.HiddenFilter: false;
-    createdAt           @Common.Label    : 'Created On' @UI.HiddenFilter: false;    
+    createdBy           @Common.Label    : 'Created By' @UI.HiddenFilter: false @Core.Computed;
+    createdAt           @Common.Label    : 'Created On' @UI.HiddenFilter: false @Core.Computed;    
     PublishedDate       @Common.Label    : 'Issue Date';
     PublishedBy         @Common.Label    : 'Issued By';
-    Version             @Common.Label    : 'Version';
+    Version             @Common.Label    : 'Version' @Core.Computed;
     MarketDisplay       @Common.Label    : 'Market Display';
     TermsAndConditions  @Common.Label    : 'Terms and Conditions';
     IsVersionActive     @Common.Label    : 'Active Version';

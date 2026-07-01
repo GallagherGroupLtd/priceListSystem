@@ -531,6 +531,94 @@ module.exports = cds.service.impl(async function () {
         return this.create(target).entries(dataToCopy);
     });
 
+    this.on("massDuplicatePricelists", async (req) => {
+        const { ids } = req.data;
+        if (!ids?.length) return req.error(400, "No pricelists selected.");
+
+        const tx = cds.tx(req);
+        const results = [];
+
+        const headerSkip = [
+            "ID", "createdAt", "createdBy", "modifiedAt", "modifiedBy",
+            "IsActiveEntity", "HasActiveEntity", "HasDraftEntity",
+            "DraftAdministrativeData_DraftUUID", "SiblingEntity"
+        ];
+
+        const childSkip = [
+            "ID", "createdAt", "createdBy", "modifiedAt", "modifiedBy",
+            "pricelist_ID", "parent_ID"
+        ];
+
+        const clean = (row, skip) => {
+            const out = { ...row };
+            skip.forEach(k => delete out[k]);
+            return out;
+        };
+
+        for (const sourceId of ids) {
+            const source = await tx.run(
+                SELECT.one.from(PricelistData).where({ ID: sourceId })
+            );
+
+            if (!source) continue;
+
+            const newId = cds.utils.uuid();
+
+            const newHeader = clean(source, headerSkip);
+            newHeader.ID = newId;
+            newHeader.PricelistTitle = `${source.PricelistTitle || ""} - copy`;
+            newHeader.Status = "Drafted";
+            newHeader.PublishedBy = null;
+            newHeader.PublishedDate = null;
+            newHeader.Version = "0.1";
+            newHeader.IsVersionActive = true;
+            newHeader.PricelistGroupID = cds.utils.uuid();
+
+            await tx.run(INSERT.into(PricelistData).entries(newHeader));
+
+            const items = await tx.run(
+                SELECT.from(PricelistItemData).where({ pricelist_ID: sourceId })
+            );
+
+            const oldToNew = new Map();
+
+            for (const item of items) {
+                oldToNew.set(item.ID, cds.utils.uuid());
+            }
+
+            for (const item of items) {
+                const newItem = clean(item, childSkip);
+                newItem.ID = oldToNew.get(item.ID);
+                newItem.pricelist_ID = newId;
+
+                if (item.parent_ID) {
+                    newItem.parent_ID = oldToNew.get(item.parent_ID) || null;
+                }
+
+                await tx.run(INSERT.into(PricelistItemData).entries(newItem));
+            }
+
+            const products = await tx.run(
+                SELECT.from(ProductPriceList).where({ pricelist_ID: sourceId })
+            );
+
+            for (const product of products) {
+                const newProduct = clean(product, childSkip);
+                newProduct.ID = cds.utils.uuid();
+                newProduct.pricelist_ID = newId;
+                await tx.run(INSERT.into(ProductPriceList).entries(newProduct));
+            }
+
+            results.push({
+                sourceId,
+                newId,
+                title: newHeader.PricelistTitle
+            });
+        }
+
+        return results;
+    });
+
     // Handler for Mass Upload - Data Maintenance App
     // 1. Trade Scenarios
     this.on('MassUploadTradeScenarios', req =>

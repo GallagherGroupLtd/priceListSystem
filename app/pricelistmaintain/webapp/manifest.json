@@ -132,7 +132,7 @@
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
                     "type": "ResponsiveTable",
-                    "enableMassEdit": false,
+                    "enableMassEdit": true,
                     "creationMode": "Inline"
                   },
                   "actions": {
@@ -141,7 +141,7 @@
                       "visible": true,
                       "enabled": true,
                       "requiresSelection": true,
-                      "text": "Duplicate Record"
+                      "text": "Duplicate Pricelist(s)"
                     }
                   }
                 }
