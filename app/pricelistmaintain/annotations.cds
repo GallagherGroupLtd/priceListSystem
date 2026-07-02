@@ -196,6 +196,9 @@ annotate service.PricelistData with {
     };
 };
 
+annotate service.PricelistData with @Capabilities.UpdateRestrictions : {
+    Updatable : IsObjectPageEditable
+};
 
 // ====================================================================
 // 2. UI ANNOTATIONS (Layout, List Page, Object Page)
@@ -230,6 +233,19 @@ annotate service.PricelistData with @(
             $Type             : 'UI.DataField',
             Value             : Status,
             @HTML5.CssDefaults: {width: '8rem'}
+        },
+        {
+            $Type  : 'UI.DataFieldForAction',
+            Action : 'PriceListService.moveToForRevision',
+            Label  : 'Move to "For Revision"',
+            ![@UI.Hidden] : {
+                $edmJson : {
+                    $Ne : [
+                        { $Path : 'Status' },
+                        'Published'
+                    ]
+                }
+            }
         },
         {
             $Type             : 'UI.DataField',
@@ -338,6 +354,21 @@ annotate service.PricelistData with @(
 
 
     // --- OBJECT PAGE HEADER ---
+    UI.Identification : [
+        {
+            $Type  : 'UI.DataFieldForAction',
+            Action : 'PriceListService.moveToForRevision',
+            Label  : 'Move to "For Revision"',
+            ![@UI.Hidden] : {
+                $edmJson : {
+                    $Ne : [
+                        { $Path : 'Status' },
+                        'Published'
+                    ]
+                }
+            }
+        }
+    ],
     UI.HeaderInfo                      : {
         TypeName      : 'Pricelist',
         TypeNamePlural: 'Pricelists',

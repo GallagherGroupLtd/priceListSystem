@@ -181,8 +181,13 @@ service PriceListService {
             *,
             MarketScopeRegion || ' (' || MarketScopeCountry || ')' as MarketDisplay : String,
             Status @(Common.FieldControl: #Mandatory),
+            virtual IsObjectPageEditable : Boolean,
 
-            items                                                                   : redirected to PricelistItemData
+            items : redirected to PricelistItemData
+        }
+    
+        actions {
+            action moveToForRevision() returns Boolean;
         };
 
     type MassDuplicateResult {

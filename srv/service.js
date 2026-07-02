@@ -702,6 +702,29 @@ module.exports = cds.service.impl(async function () {
                     }
                 }
 
+                if (oldData.Status === "Published") {
+                    const changedFieldNames = Object.keys(changedFields);
+                    const invalidFields = changedFieldNames.filter(field => field !== "Status");
+
+                    if (invalidFields.length > 0) {
+                        results.push({
+                            sourceId: id,
+                            status: "ERROR",
+                            message: "Published pricelists can only be moved to For Revision. Other fields cannot be changed."
+                        });
+                        continue;
+                    }
+
+                    if (changedFields.Status && changedFields.Status !== "For Revision") {
+                        results.push({
+                            sourceId: id,
+                            status: "ERROR",
+                            message: "Published pricelists can only be moved to For Revision."
+                        });
+                        continue;
+                    }
+                }
+
                 if (Object.keys(changedFields).length === 0) {
                     results.push({
                         sourceId: id,
@@ -765,6 +788,40 @@ module.exports = cds.service.impl(async function () {
         }
 
         return results;
+    });
+
+    this.on("moveToForRevision", PricelistData, async (req) => {
+        const ID = req.params?.[0]?.ID;
+
+        if (!ID) {
+            return req.error(400, "Missing Pricelist ID.");
+        }
+
+        const tx = cds.tx(req);
+
+        const row = await tx.run(
+            SELECT.one.from(PricelistData).where({ ID })
+        );
+
+        if (!row) {
+            return req.error(404, "Pricelist not found.");
+        }
+
+        if (row.Status !== "Published") {
+            return req.error(400, "Only Published pricelists can be moved to For Revision.");
+        }
+
+        await tx.run(
+            UPDATE(PricelistData)
+                .set({
+                    Status: "For Revision",
+                    modifiedAt: new Date(),
+                    modifiedBy: req.user?.id || "unknown"
+                })
+                .where({ ID })
+        );
+
+        return true;
     });
 
     // Handler for Mass Upload - Data Maintenance App
@@ -1564,6 +1621,15 @@ module.exports = cds.service.impl(async function () {
         req.data.ProductID = productId;
     });
 
+    this.after('READ', PricelistData, (data) => {
+        const rows = Array.isArray(data) ? data : [data];
+
+        for (const row of rows) {
+            if (!row) continue;
+            row.IsObjectPageEditable = row.Status !== "Published";
+        }
+    });
+
     // Handler for PricelistData Status Assignment
     this.before('CREATE', PricelistData, async (req) => {
         await versionService.handlePricelistCreate(req);
@@ -1572,6 +1638,26 @@ module.exports = cds.service.impl(async function () {
     // Inactive published versions are historical snapshots and must not be changed, based on current discussions.
     this.before(['PATCH', 'UPDATE', 'DELETE', 'EDIT'], PricelistData, async (req) => {
         return versionService.rejectInactivePublishedHeader(req, PricelistData);
+    });
+
+    // Active Published pricelists should not enter Object Page draft edit.
+    // User must first move the pricelist to For Revision using controlled action.
+    this.before('EDIT', PricelistData, async (req) => {
+        const ID = req.params?.[0]?.ID;
+        if (!ID) return;
+
+        const tx = cds.tx(req);
+
+        const row = await tx.run(
+            SELECT.one.from(PricelistData).where({ ID })
+        );
+
+        if (row?.Status === "Published") {
+            return req.error(
+                400,
+                "Published pricelists cannot be edited directly. Move the pricelist to For Revision first."
+            );
+        }
     });
 
     this.before(['CREATE', 'PATCH', 'UPDATE', 'DELETE'], PricelistItemData, async (req) => {
