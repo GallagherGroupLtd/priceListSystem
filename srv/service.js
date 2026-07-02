@@ -2888,7 +2888,6 @@ module.exports = cds.service.impl(async function () {
 
         console.log("========== getTileAuthorization ==========");
         console.log("Logged-in Email:", email);
-        console.log("req.user:", JSON.stringify(req.user, null, 2));
 
         // Temporary bypass for all users except Pom
         if (email !== "smanpoom.thiratanapan@gallagher.com") {

@@ -223,6 +223,7 @@ sap.ui.define([
 
         _loadTileAuthorization: async function () {
             const oModel = this.getOwnerComponent().getModel();
+            // const sEmail = "smanpoom.thiratanapan@gallagher.com";
             // const sEmail = "kiana.pham123@gallagher.com";
             const sEmail = this.getView().getModel("home").getProperty("/userEmail");
             console.log("Controller Email:", sEmail);
