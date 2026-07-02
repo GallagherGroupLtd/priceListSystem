@@ -2879,35 +2879,8 @@ module.exports = cds.service.impl(async function () {
     //     setMyRequestDefaults(req);
     // });
 
-    this.on('getTileAuthorization', async (req) => {
-        // return {
-        //     ControlMyRequestTile: true
-        // };
-        
+    this.on('getTileAuthorization', async (req) => {        
         const email = req.data.Email;
-
-        console.log("========== getTileAuthorization ==========");
-        console.log("Logged-in Email:", email);
-        console.log("req.user:", JSON.stringify(req.user, null, 2));
-
-        // Temporary bypass for all users except Pom
-        if (email !== "smanpoom.thiratanapan@gallagher.com") {
-            console.log("Non-Pom user detected. Granting full authorization.");
-
-            return {
-                ControlPriceListView: true,
-                ControlPriceView: true,
-                ControlDiscountIndicator: true,
-                ControlDiscountRate: true,
-                ControlWorkflowTile: true,
-                ControlPriceListReviewScheduleTile: true,
-                ControlPricelistMaintenance: true,
-                ControlDataMaintenance: true,
-                ControlMyRequestTile: true,
-                ControlApplicationLogTile: true
-            };
-        }
-
         const auth = await SELECT.one
             .from(cds.entities.AccountAssignment)
             .columns(
@@ -2926,12 +2899,8 @@ module.exports = cds.service.impl(async function () {
                 Email: email
             });
 
-        console.log("AccountAssignment record:");
-        console.log(JSON.stringify(auth, null, 2));
-
         // If user is not found, hide everything
         if (!auth) {
-            console.log("No AccountAssignment found for email:", email);
             return {
                 ControlPriceListView: false,
                 ControlPriceView: false,
@@ -2946,9 +2915,6 @@ module.exports = cds.service.impl(async function () {
             };
         }
 
-        console.log("Returning tile authorization1:");
-        console.log(JSON.stringify(auth, null, 2));
-
         // Convert null/undefined to false
         const result = {
             ControlPriceListView:               auth.ControlPriceListView ?? false,
@@ -2962,9 +2928,6 @@ module.exports = cds.service.impl(async function () {
             ControlMyRequestTile:               auth.ControlMyRequestTile ?? false,
             ControlApplicationLogTile:          auth.ControlApplicationLogTile ?? false
         };
-
-        console.log("Returning tile authorization2:");
-        console.log(JSON.stringify(result, null, 2));
 
         return result;        
     });    
