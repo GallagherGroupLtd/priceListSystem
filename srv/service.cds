@@ -181,13 +181,12 @@ service PriceListService {
             *,
             MarketScopeRegion || ' (' || MarketScopeCountry || ')' as MarketDisplay : String,
             Status @(Common.FieldControl: #Mandatory),
-            virtual IsObjectPageEditable : Boolean,
 
             items : redirected to PricelistItemData
         }
     
         actions {
-            action moveToForRevision() returns Boolean;
+            action moveToForRevision() returns PricelistData;
         };
 
     type MassDuplicateResult {
@@ -560,6 +559,11 @@ service PriceListService {
             DiscountRate             : String(100);
             DiscountValidFrom        : String(100);
             DiscountValidTo          : String(100);
+            Status                   : String(100);
+            StatusValidFromDate      : String(100);
+            StatusValidToDate        : String(100);
+            Supplier                 : String(255);
+            SupplierSKU              : String(255);
             PartNumberTermsandCond   : String;
             MainCategoryTermsandCond : String;
             SubCategory1TermsandCond : String;

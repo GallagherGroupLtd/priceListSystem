@@ -196,9 +196,15 @@ annotate service.PricelistData with {
     };
 };
 
-annotate service.PricelistData with @Capabilities.UpdateRestrictions : {
-    Updatable : IsObjectPageEditable
-};
+// annotate service.PricelistData actions {
+//     moveToForRevision @Common.SideEffects : {
+//         TargetProperties : [
+//             'Status',
+//             'modifiedAt',
+//             'modifiedBy'
+//         ]
+//     };
+// };
 
 // ====================================================================
 // 2. UI ANNOTATIONS (Layout, List Page, Object Page)

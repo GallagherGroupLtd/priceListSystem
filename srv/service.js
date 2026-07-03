@@ -821,7 +821,11 @@ module.exports = cds.service.impl(async function () {
                 .where({ ID })
         );
 
-        return true;
+        const updatedRow = await tx.run(
+            SELECT.one.from(PricelistData).where({ ID })
+        );
+
+        return updatedRow;
     });
 
     // Handler for Mass Upload - Data Maintenance App
@@ -1619,15 +1623,6 @@ module.exports = cds.service.impl(async function () {
         if (!productId) return;
 
         req.data.ProductID = productId;
-    });
-
-    this.after('READ', PricelistData, (data) => {
-        const rows = Array.isArray(data) ? data : [data];
-
-        for (const row of rows) {
-            if (!row) continue;
-            row.IsObjectPageEditable = row.Status !== "Published";
-        }
     });
 
     // Handler for PricelistData Status Assignment
@@ -2441,16 +2436,42 @@ module.exports = cds.service.impl(async function () {
         };
 
         const mergeMaterialStatus = async (materialsMaster) => {
-            const materialIds = materialsMaster.map(m => m.MATERIAL);
-            const partNumberResults = await db.run(SELECT.from('PricelistPartNumberDetermination').where({
-                ...(SalesOrg && { SalesOrg }), ...(DistChannel && { DistChannel }),
-                ...(materialIds.length > 0 && { ProductID: { in: materialIds } })
-            }));
-            const lookup = partNumberResults.reduce((a, i) => { a[i.ProductID] = i; return a; }, {});
+            const materialIds = [
+                ...new Set(
+                    materialsMaster
+                        .map(m => String(m.MATERIAL || "").trim())
+                        .filter(Boolean)
+                )
+            ];
+
+            if (materialIds.length === 0) return;
+
+            const partNumberResults = await db.run(
+                SELECT.from('PriceProductMaintenance')
+                    .where({
+                        ...(SalesOrg && { SalesOrg }),
+                        ...(DistChannel && { DistChannel }),
+                        ProductID: { in: materialIds },
+                        IsActiveEntity: true
+                    })
+            );
+
+            const lookup = new Map();
+
+            for (const item of partNumberResults || []) {
+                const productId = String(item.ProductID || "").trim();
+                if (!productId) continue;
+
+                lookup.set(productId, item);
+            }
+
             materialsMaster.forEach(row => {
-                const m = lookup[row.MATERIAL];
+                const productId = String(row.MATERIAL || "").trim();
+                const m = lookup.get(productId);
+
                 row.ProductStatus = m?.ProductStatus || null;
                 row.StatusValidity = m?.StatusValidity || null;
+                row.StatusExpiry = m?.StatusExpiry || null;
                 row.MaterialClassification1 = m?.MaterialClassification1 || null;
                 row.MaterialClassification2 = m?.MaterialClassification2 || null;
                 row.ThirdPartySupplier = m?.ThirdPartySupplier || null;
@@ -2535,9 +2556,14 @@ module.exports = cds.service.impl(async function () {
                 const matches = byCategory.get(getCategoryKey(row, CATEGORY_FIELDS)) || [];
                 return matches.map(mat => ({
                     ...row,
-                    MaterialKey: mat.MATERIAL_KEY, Material: mat.MATERIAL,
+                    MaterialKey: mat.MATERIAL_KEY,
+                    Material: mat.MATERIAL,
                     MaterialDescription: mat.MATERIAL_DESCRIPTION,
-                    Status: mat.ProductStatus, StatusValidFromDate: mat.StatusValidity
+                    Status: mat.ProductStatus || null,
+                    StatusValidFromDate: mat.StatusValidity || null,
+                    StatusValidToDate: mat.StatusExpiry  || null,
+                    Supplier: mat.ThirdPartySupplier || null,
+                    SupplierSKU: mat.ThirdPartySupplierSKU || null
                 }));
             });
         };
