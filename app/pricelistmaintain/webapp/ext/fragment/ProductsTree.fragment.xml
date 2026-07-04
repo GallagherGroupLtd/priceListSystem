@@ -269,6 +269,13 @@
                     </t:template>
                 </t:Column>
 
+                <t:Column id="ColCountryOfOrigin" width="7%" hAlign="Center">
+                    <Label id="LblCountryOfOrigin" text="Country of Origin" textAlign="Center" width="100%"/>
+                    <t:template>
+                        <Text id="TxtCountryOfOrigin" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>CountryOfOrigin} || '') : '' }" wrapping="false" />
+                    </t:template>
+                </t:Column>
+
                 <t:Column id="ColPriceCurrency" width="7%" hAlign="Center">
                     <Label id="LblPriceCurrency" text="Price (Currency)" textAlign="Center" width="100%"/>
                     <t:template>

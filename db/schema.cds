@@ -344,6 +344,7 @@ entity ProductPriceList : managed, cuid {
     ErpCustomer               : String(255) @title: 'ERP Customer';
     DeliveringPlant           : String(255) @title: 'Plant';
     MaterialKey               : String(100) @title: 'Material Key';
+    CountryOfOrigin           : String(100) @title: 'Country of Origin';
 
     // tree key fiels
     OrderIndex                : Integer;

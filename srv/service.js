@@ -2355,6 +2355,27 @@ module.exports = cds.service.impl(async function () {
 
         // ── shared helpers ─────────────────────────────────────
         const escapeSql = (val) => String(val).replace(/'/g, "''");
+        const resolvePlantFromHeader = async () => {
+            const directPlant = String(DeliveringPlant || "").trim();
+
+            if (directPlant && directPlant !== "*") {
+                return directPlant;
+            }
+
+            const salesOrg = String(SalesOrg || "").trim();
+            if (!salesOrg) return null;
+
+            const rows = await extdb.run(`
+                SELECT TOP 1 "PLANT"
+                FROM "SAPECC"."ERP_SALES_ORG"
+                WHERE "CODE" = '${escapeSql(salesOrg)}'
+                AND "PLANT" IS NOT NULL
+                AND "PLANT" <> ''
+                AND "PLANT" <> '*'
+            `);
+
+            return rows?.[0]?.PLANT || null;
+        };
         const parseRecordDate = (sDate) => {
             if (!sDate) return null;
             const d = new Date(sDate);
@@ -2412,12 +2433,19 @@ module.exports = cds.service.impl(async function () {
             return rows;
         };
 
+        const resolvedPlant = await resolvePlantFromHeader();
+
         // ── step 2 / 3 / 3.1: material master + status ─────────
         const buildMaterialWhere = (itemStructureDatas) => {
             const common = [];
             SalesOrg && common.push(`"SALES_ORGANIZATION" = '${escapeSql(SalesOrg)}'`);
             DistChannel && common.push(`"DISTRIBUTION_CHANNEL" = '${escapeSql(DistChannel)}'`);
-            common.push(DeliveringPlant ? `"PLANT" = '${escapeSql(DeliveringPlant)}'` : `"PLANT" = '*'`);
+            // common.push(DeliveringPlant ? `"PLANT" = '${escapeSql(DeliveringPlant)}'` : `"PLANT" = '*'`);
+            if (resolvedPlant) {
+                common.push(`("PLANT" = '${escapeSql(resolvedPlant)}' OR "PLANT" = '*')`);
+            } else {
+                common.push(`"PLANT" = '*'`);
+            }
 
             const catOr = itemStructureDatas.map(row => {
                 const c = [];
@@ -2559,6 +2587,7 @@ module.exports = cds.service.impl(async function () {
                     MaterialKey: mat.MATERIAL_KEY,
                     Material: mat.MATERIAL,
                     MaterialDescription: mat.MATERIAL_DESCRIPTION,
+                    CountryOfOrigin: mat.COUNTRY_OF_ORIGIN || null,
                     Status: mat.ProductStatus || null,
                     StatusValidFromDate: mat.StatusValidity || null,
                     StatusValidToDate: mat.StatusExpiry  || null,

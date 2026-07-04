@@ -4,6 +4,7 @@ const STORED_FIELDS = [
     "CategoryLevel",
     "Title",
     "Description",
+    "CountryOfOrigin",
     "MaterialKey",
 
     "PublishedName",

@@ -554,6 +554,7 @@ service PriceListService {
             SubCategory5             : String(255) @title: 'Subcategory 5';
             Material                 : String(100) @title: 'Material Number';
             MaterialDescription      : String(100) @title: 'Material Description';
+            CountryOfOrigin          : String(100) @title: 'Country of Origin';
             Price                    : String(100);
             PriceUnit                : String(100);
             DiscountRate             : String(100);

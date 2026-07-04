@@ -70,7 +70,7 @@ sap.ui.define([
 		"ID", "parent_ID", "pricelist_ID",
 		"PricelistType", "MarketScopeRegion", "MarketScopeCountry",
 		"SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey",
-		"OrderIndex", "Kind", "CategoryLevel", "Title", "Description",
+		"OrderIndex", "Kind", "CategoryLevel", "Title", "Description", "CountryOfOrigin",
 		"PublishedName", "TermsAndConditions", "IsTACDisableExt", "IsTACDisableInt",
 		"Notes", "IsNotesDisableExt", "IsNotesDisableInt",
 		"Price", "PriceUnit", "PriceValidFrom", "PriceValidTo",
@@ -119,6 +119,7 @@ sap.ui.define([
 	const EXPORT_COLUMN_FIELD_MAP = {
 		ColCategoriesAndProducts: "Title",
 		ColDescription: "Description",
+		ColCountryOfOrigin: "CountryOfOrigin",
 		ColPriceCurrency: "PriceDisplay",
 		ColValidity: "PriceValidFrom",
 		ColDiscountRate: "DiscountRate",
@@ -1133,6 +1134,7 @@ sap.ui.define([
 						CategoryLevel: 6,
 						Title: row.Material,
 						Description: row.MaterialDescription,
+						CountryOfOrigin: row.CountryOfOrigin || null,
 
 						AccessSequence: row.AccessSequence,
 						ConditionType: row.ConditionType,
@@ -2977,6 +2979,7 @@ sap.ui.define([
 				aOut.push({
 					Title: "    ".repeat(iLevel) + (oNode.Title || ""),
 					Description: bIsProduct ? (oNode.Description || "") : "",
+					CountryOfOrigin: bIsProduct ? (oNode.CountryOfOrigin || "") : "",
 					PriceDisplay: bIsProduct ? `${oNode.Price || ""} ${oNode.PriceUnit || ""}`.trim() : "",
 					PriceValidFrom: bIsProduct ? (oNode.PriceValidFrom || "") : "",
 					DiscountRate: bIsProduct ? (oNode.DiscountRate || "") : "",
