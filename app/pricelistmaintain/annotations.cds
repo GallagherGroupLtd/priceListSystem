@@ -211,6 +211,27 @@ annotate service.PricelistData with {
 // ====================================================================
 annotate service.PricelistData with @(
     // --- LIST PAGE ---
+    UI.SelectionVariant #PublishedActive : {
+        SelectOptions : [
+            {
+                PropertyName : Status,
+                Ranges : [{
+                    Sign : #I,
+                    Option : #EQ,
+                    Low : 'Published'
+                }]
+            },
+            {
+                PropertyName : IsVersionActive,
+                Ranges : [{
+                    Sign : #I,
+                    Option : #EQ,
+                    Low : true
+                }]
+            }
+        ]
+    },
+
     UI.SelectionFields                 : [
         PricelistTitle,
         PricelistType,

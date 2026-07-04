@@ -120,6 +120,9 @@
           "options": {
             "settings": {
               "contextPath": "/PricelistData",
+              "selectionPresentationVariant": {
+                "annotationPath": "com.sap.vocabularies.UI.v1.SelectionVariant#PublishedActive"
+              },
               "variantManagement": "Page",
               "navigation": {
                 "PricelistData": {
