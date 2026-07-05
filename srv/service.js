@@ -325,7 +325,7 @@ function buildPdfBuffer({ headerCriteria, headerTerms, detailTerms }) {
 
 module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
-    const { User, TradeScenarios, ItemStructure, PriceProductMaintenance, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, PricingCondType,
+    const { User, TradeScenarios, ItemStructure, PriceProductMaintenance, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, AccountAssignmentScope, PricingCondType,
         PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest, PriceListTreeLayout, ProductPriceList } = this.entities;
 
     //Selection of Materials
@@ -526,6 +526,31 @@ module.exports = cds.service.impl(async function () {
             'createdAt', 'createdBy', 'modifiedAt', 'modifiedBy'
         ];
         fieldsToRemove.forEach(f => delete dataToCopy[f]);
+
+        if (target === AccountAssignment || target.name === AccountAssignment.name) {
+            const scopes = await SELECT.from(AccountAssignmentScope).where({ parent_ID: id });
+
+            dataToCopy.scopes = scopes.map(scope => {
+                const scopeToCopy = { ...scope };
+
+                [
+                    'ID',
+                    'parent_ID',
+                    'HasActiveEntity',
+                    'HasDraftEntity',
+                    'IsActiveEntity',
+                    'DraftAdministrativeData',
+                    'DraftMessages',
+                    'SiblingEntity',
+                    'createdAt',
+                    'createdBy',
+                    'modifiedAt',
+                    'modifiedBy'
+                ].forEach(f => delete scopeToCopy[f]);
+
+                return scopeToCopy;
+            });
+        }
 
         // Create the new record as a DRAFT to allows the user to see the new row and edit it before saving.
         return this.create(target).entries(dataToCopy);
@@ -1058,11 +1083,11 @@ module.exports = cds.service.impl(async function () {
                 "Account Scope",
                 "Commercial Scope",
                 "Customer Code",
-                "Pricelist Type",
-                "Region",
-                "Country",
-                "Sales Organization",
-                "Distribution Channel",
+                // "Pricelist Type",
+                // "Region",
+                // "Country",
+                // "Sales Organization",
+                // "Distribution Channel",
                 "Customer Pricelist",
                 "Customer Group 1",
                 "Plant",
@@ -1085,11 +1110,11 @@ module.exports = cds.service.impl(async function () {
                 AccountScope: r["Account Scope"],
                 CommercialScope: r["Commercial Scope"],
                 CustomerNumber: r["Customer Code"],
-                PricelistType: r["Pricelist Type"],
-                MarketScopeRegion: r["Region"],
-                MarketScopeCountry: r["Country"],
-                SalesOrg: r["Sales Organization"],
-                DistChannel: r["Distribution Channel"],
+                // PricelistType: r["Pricelist Type"],
+                // MarketScopeRegion: r["Region"],
+                // MarketScopeCountry: r["Country"],
+                // SalesOrg: r["Sales Organization"],
+                // DistChannel: r["Distribution Channel"],
                 CustPriceList: r["Customer Pricelist"],
                 CustGroup1: r["Customer Group 1"],
                 DeliveringPlant: r["Plant"],

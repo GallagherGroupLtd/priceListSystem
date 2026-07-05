@@ -3,13 +3,10 @@ using PriceListService as service from '../../srv/service';
 annotate service.AccountAssignment with @(
     UI.HeaderInfo: {
         TypeName      : 'Data Maintenance: Account Assignment',
-        TypeNamePlural: 'Data Maintenance: Account Assignment'
+        TypeNamePlural: 'Data Maintenance: Account Assignment',
+        ImageUrl      : 'sap-icon://sales-order-item'
     },
 
-    // Header Section at the top
-    UI.HeaderInfo                 : {
-        ImageUrl      : 'sap-icon://sales-order-item'
-    },    
     UI.HeaderFacets               : [
         {
             $Type : 'UI.ReferenceFacet',
@@ -48,7 +45,7 @@ annotate service.AccountAssignment with @(
     },
 
     // Selection Fields for Filtering
-    UI.SelectionFields: [ FirstName,LastName,Email,AccountType,AccountScope,PricelistType, MarketScopeRegion, MarketScopeCountry ],
+    UI.SelectionFields: [ FirstName,LastName,Email,AccountType,AccountScope ],
 
     // Line Items for the List Report
     UI.LineItem: [
@@ -77,8 +74,8 @@ annotate service.AccountAssignment with @(
         {
             $Type : 'UI.ReferenceFacet',
             ID    : 'Facet2',
-            Label : 'Commercial Scope',
-            Target: '@UI.FieldGroup#CommercialScope'
+            Label : 'Display Scope Assignments',
+            Target: 'scopes/@UI.LineItem'
         },
         {
             $Type : 'UI.ReferenceFacet',
@@ -106,22 +103,10 @@ annotate service.AccountAssignment with @(
         ]
     },
 
-    //Commercial Scope Group
-    UI.FieldGroup #CommercialScope : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-            { $Type : 'UI.DataField', Value: PricelistType, Label: 'Pricelist Type' },
-            { $Type : 'UI.DataField', Value: MarketScopeRegion, Label: 'MarketScopeRegion' },
-            { $Type : 'UI.DataField', Value: MarketScopeCountry, Label: 'MarketScopeCountry' }
-        ]
-    },
-
     //ERPData Group
     UI.FieldGroup #ErpData : {
         $Type : 'UI.FieldGroupType',
         Data : [
-            { $Type : 'UI.DataField', Value: SalesOrg, Label: 'Sales Organization' },
-            { $Type : 'UI.DataField', Value: DistChannel, Label: 'Distribution Channel' },
             { $Type : 'UI.DataField', Value: CustPriceList, Label: 'Customer Pricelist' }, 
             { $Type : 'UI.DataField', Value: CustGroup1, Label: 'Customer Group 1' },
             { $Type : 'UI.DataField', Value: CustomerNumber, Label: 'Customer Code' },
@@ -137,6 +122,8 @@ annotate service.AccountAssignment with @(
             { $Type : 'UI.DataField', Value: ControlPriceView, Label: 'Price View' },
             { $Type : 'UI.DataField', Value: ControlDiscountIndicator, Label: 'Discount Indicator' },
             { $Type : 'UI.DataField', Value: ControlDiscountRate, Label: 'Discount Rate' },
+            { $Type : 'UI.DataField', Value: ControlWorkflowTile, Label: 'Workflow Tile' },
+            { $Type : 'UI.DataField', Value: ControlPriceListReviewScheduleTile, Label: 'Pricelist Review Schedule Tile' },
             { $Type : 'UI.DataField', Value: ControlPricelistMaintenance, Label: 'Pricelist Maintenance' },
             { $Type : 'UI.DataField', Value: ControlDataMaintenance, Label: 'Data Maintenance' },
             { $Type : 'UI.DataField', Value: ControlMyRequestTile, Label: 'My Request Tile' },
@@ -146,39 +133,6 @@ annotate service.AccountAssignment with @(
 );
 
 annotate service.AccountAssignment with {
-    PricelistType @(
-        Common.ValueListWithFixedValues : true,
-        Common.ValueList: {
-            $Type         : 'Common.ValueListType',
-            CollectionPath: 'PricelistTypeVH',
-            Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'PricelistType', ValueListProperty: 'PricelistType' }
-            ]
-        }
-    );
-
-    MarketScopeRegion @(
-        Common.ValueListWithFixedValues : true,
-        Common.ValueList: {
-            $Type         : 'Common.ValueListType',
-            CollectionPath: 'MarketRegionVH',
-            Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeRegion', ValueListProperty: 'MarketScopeRegion' }
-            ]
-        }
-    );
-
-    MarketScopeCountry @(
-        Common.ValueListWithFixedValues : true,
-        Common.ValueList: {
-            $Type         : 'Common.ValueListType',
-            CollectionPath: 'MarketCountryVH',
-            Parameters: [
-                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeCountry', ValueListProperty: 'MarketScopeCountry' }
-            ]
-        }
-    );
-
     AccountType @(
         Common.ValueListWithFixedValues : true,
         Common.ValueList: {
@@ -199,44 +153,6 @@ annotate service.AccountAssignment with {
                 { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'AccountScope', ValueListProperty: 'Code' }
             ]
         }
-    );
-
-    SalesOrg @(
-        Common.ValueListWithFixedValues : true,
-        Common.ValueList: {
-            $Type         : 'Common.ValueList',
-            CollectionPath: 'SalesOrgVH',
-            Parameters: [
-                { 
-                    $Type: 'Common.ValueListParameterInOut', 
-                    LocalDataProperty: 'SalesOrg', 
-                    ValueListProperty: 'Code' 
-                },
-                { 
-                    $Type: 'Common.ValueListParameterDisplayOnly',
-                    ValueListProperty: 'Description' 
-                }
-            ]            
-        }        
-    );
-
-    DistChannel @(
-        Common.ValueListWithFixedValues : true,
-        Common.ValueList: {
-            $Type         : 'Common.ValueList',
-            CollectionPath: 'DistributionChannelVH',
-            Parameters: [
-                { 
-                    $Type: 'Common.ValueListParameterInOut', 
-                    LocalDataProperty: 'DistChannel', 
-                    ValueListProperty: 'Code' 
-                },
-                { 
-                    $Type: 'Common.ValueListParameterDisplayOnly', 
-                    ValueListProperty: 'Description' 
-                }
-            ]              
-        }        
     );
 
     CustPriceList @(
@@ -300,8 +216,79 @@ annotate service.AccountAssignment with {
     ControlPriceView                   @Common.FieldControl : #Editable;
     ControlDiscountIndicator           @Common.FieldControl : #Editable;
     ControlDiscountRate                @Common.FieldControl : #Editable;
+    ControlWorkflowTile                @Common.FieldControl : #Editable;
+    ControlPriceListReviewScheduleTile @Common.FieldControl : #Editable;
     ControlPricelistMaintenance        @Common.FieldControl : #Editable;
     ControlDataMaintenance             @Common.FieldControl : #Editable;
     ControlMyRequestTile               @Common.FieldControl : #Editable;
     ControlApplicationLogTile          @Common.FieldControl : #Editable;
+};
+
+annotate service.AccountAssignmentScope with @(
+    UI.LineItem: [
+        { $Type : 'UI.DataField', Value: PricelistType, Label: 'Pricelist Type' },
+        { $Type : 'UI.DataField', Value: MarketScopeRegion, Label: 'Region' },
+        { $Type : 'UI.DataField', Value: MarketScopeCountry, Label: 'Country' },
+        { $Type : 'UI.DataField', Value: SalesOrg, Label: 'Sales Organization' },
+        { $Type : 'UI.DataField', Value: DistChannel, Label: 'Distribution Channel' }
+    ]
+);
+
+annotate service.AccountAssignmentScope with {
+    PricelistType @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'PricelistTypeVH',
+            Parameters: [
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'PricelistType', ValueListProperty: 'PricelistType' }
+            ]
+        }
+    );
+
+    MarketScopeRegion @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'MarketRegionVH',
+            Parameters: [
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeRegion', ValueListProperty: 'MarketScopeRegion' }
+            ]
+        }
+    );
+
+    MarketScopeCountry @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'MarketCountryVH',
+            Parameters: [
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'MarketScopeCountry', ValueListProperty: 'MarketScopeCountry' }
+            ]
+        }
+    );
+
+    SalesOrg @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'SalesOrgVH',
+            Parameters: [
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'SalesOrg', ValueListProperty: 'Code' },
+                { $Type: 'Common.ValueListParameterDisplayOnly', ValueListProperty: 'Description' }
+            ]
+        }
+    );
+
+    DistChannel @(
+        Common.ValueListWithFixedValues : true,
+        Common.ValueList: {
+            $Type         : 'Common.ValueList',
+            CollectionPath: 'DistributionChannelVH',
+            Parameters: [
+                { $Type: 'Common.ValueListParameterInOut', LocalDataProperty: 'DistChannel', ValueListProperty: 'Code' },
+                { $Type: 'Common.ValueListParameterDisplayOnly', ValueListProperty: 'Description' }
+            ]
+        }
+    );
 };

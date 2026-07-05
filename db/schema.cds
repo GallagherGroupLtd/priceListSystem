@@ -206,11 +206,6 @@ entity AccountAssignment : managed, cuid {
     AccountScope                       : String(255) @title: 'Account Scope';
     CommercialScope                    : String(255) @title: 'Commercial Scope';
     CustomerNumber                     : String(255) @title: 'Customer Code';
-    PricelistType                      : String(255) @title: 'Pricelist Type';
-    MarketScopeRegion                  : String(255) @title: 'Region';
-    MarketScopeCountry                 : String(255) @title: 'Country';
-    SalesOrg                           : String(4)   @title: 'Sales Organization';
-    DistChannel                        : String(2)   @title: 'Distribution Channel';
     CustPriceList                      : String(20)  @title: 'Customer Pricelist';
     CustGroup1                         : String(255) @title: 'Customer Group 1';
     DeliveringPlant                    : String(255) @title: 'Plant';
@@ -224,6 +219,18 @@ entity AccountAssignment : managed, cuid {
     ControlDataMaintenance             : Boolean     @title: 'Data Maintenance';
     ControlMyRequestTile               : Boolean     @title: 'My Requests Tile';
     ControlApplicationLogTile          : Boolean     @title: 'Application Log Tile';
+
+    scopes                             : Composition of many AccountAssignmentScope
+                                                on scopes.parent = $self;
+}
+
+entity AccountAssignmentScope : managed, cuid {
+    parent             : Association to one AccountAssignment;
+    PricelistType      : String(255) @title: 'Pricelist Type';
+    MarketScopeRegion  : String(255) @title: 'Region';
+    MarketScopeCountry : String(255) @title: 'Country';
+    SalesOrg           : String(4)   @title: 'Sales Organization';
+    DistChannel        : String(2)   @title: 'Distribution Channel';
 }
 
 /** Pricing Condition Description **/

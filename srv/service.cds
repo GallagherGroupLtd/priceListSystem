@@ -76,10 +76,15 @@ service PriceListService {
 
     annotate ContactInfo with @odata.draft.enabled;
 
-    entity AccountAssignment          as projection on my.AccountAssignment
-        actions {
-            action copyRow() returns AccountAssignment;
-        };
+    entity AccountAssignment          as projection on my.AccountAssignment {
+        *,
+            scopes
+    }
+    actions {
+        action copyRow() returns AccountAssignment;
+    };
+    
+    entity AccountAssignmentScope     as projection on my.AccountAssignmentScope;
 
     annotate AccountAssignment with @odata.draft.enabled;
 
