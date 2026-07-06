@@ -4,14 +4,31 @@ sap.ui.define([
 	'sap/ui/model/Filter',
 	'sap/ui/model/FilterOperator',
 	'sap/m/MessageToast',
-	'sap/m/MessageBox'
-], function (ControllerExtension, JSONModel, Filter, FilterOperator, MessageToast, MessageBox) {
+	'sap/m/MessageBox',
+	'sap/ui/export/library',
+	'sap/ui/export/ExportHandler'
+], function (ControllerExtension, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, exportLibrary, ExportHandler) {
 	'use strict';
 
 	const idTreePrefix = "pricelistapp.pricelistdisplay::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--";
 
 	/** Functions for building the tree table (UI Level) **/
 	const H_FIELDS = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
+
+	const EdmType = exportLibrary.EdmType;
+
+	const EXPORT_COLUMN_FIELD_MAP = {
+		ColCategoriesAndProducts: "Title",
+		ColDescription: "Description",
+		ColPriceCurrency: "PriceDisplay",
+		ColValidity: "PriceValidityDisplay",
+		ColDiscountExpiry: "DiscountEffectiveToDate",
+		ColPriceChangeIndicator: "PriceChangeIndicator",
+		ColStatus: "Status",
+		ColStatusValidity: "StatusValidityDisplay",
+		ColSupplier: "Supplier",
+		ColSupplierSKU: "SupplierSKU"
+	};
 
 	let _oInstance = null;
 
@@ -35,112 +52,21 @@ sap.ui.define([
 				oView.setModel(new JSONModel(), "jsonModel");
 
 				// initialize UI mode flags
-				const oJson = oView.getModel('jsonModel');
+				const oJson = oView.getModel("jsonModel");
+
 				if (oJson) {
-					oJson.setProperty('/isDeleteMode', false);
-					oJson.setProperty('/isReorderMode', false);
-
-					oJson.setProperty('/showReset', true);
-
-					oJson.setProperty('/productPriceList', oJson.getProperty('/productPriceList') || []);
-					oJson.setProperty('/originalProductPriceList', oJson.getProperty('/originalProductPriceList') || []);
-					oJson.setProperty('/selectedKeys', []);
-					oJson.setProperty('/pendingDeletedIds', []);
+					oJson.setProperty("/productPriceList", oJson.getProperty("/productPriceList") || []);
+					oJson.setProperty("/originalProductPriceList", oJson.getProperty("/originalProductPriceList") || []);
+					oJson.setProperty("/selectedKeys", []);
 				}
-
-				oView.getModel('jsonModel').setProperty("/isDeleteMode", false);
-				oView.getModel('jsonModel').setProperty("/isReorderMode", false);
-
-				// initialize deletion snapshot stack and original snapshot holder
-				this._deletedSnapshots = [];
-				this._originalSnapshot = null;
 			},
 
 			onPageReady: function () {
-
 				this._productTreeSection = sap.ui.getCore().byId('pricelistapp.pricelistdisplay::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--ProductTreeFragment_ID');
 				this._productTreeTable = sap.ui.getCore().byId('pricelistapp.pricelistdisplay::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--ProductPriceListTreeTable');
 
 				_oInstance = this;
-				// ensure toggles are disabled if there's no data
-				this._updateModeToggleEnabled();
-
-
-				// this._getProductPriceList();
-
-				// this._productTreeTable.collapseAll();
-				// this.productsTreeRefresh();
-
 			},
-			editFlow: {
-				onBeforeSave: async function (mParameters) {
-					const oView = this.base.getView();
-					const oJsonModel = oView.getModel("jsonModel");
-
-					if (!oJsonModel) {
-						return;
-					}
-
-					const aPendingDeletedIds = oJsonModel.getProperty("/pendingDeletedIds") || [];
-
-					if (!aPendingDeletedIds.length) {
-						return;
-					}
-
-					const aOriginalTree = oJsonModel.getProperty("/originalProductPriceList") || [];
-					const aIdsToDelete = this._getTopLevelDeletedIds(aPendingDeletedIds, aOriginalTree);
-
-					if (!aIdsToDelete.length) {
-						return;
-					}
-
-					try {
-						await this._persistPendingDeletes(aIdsToDelete, mParameters && mParameters.context);
-					} catch (oError) {
-						console.error("Failed to persist deleted items", oError);
-						MessageBox.error("Cannot save deleted items. Save was cancelled.");
-
-						return Promise.reject(oError);
-					}
-				},
-
-				onAfterSave: function () {
-					const oView = this.base.getView();
-					const oJsonModel = oView.getModel("jsonModel");
-
-					if (!oJsonModel) {
-						return;
-					}
-
-					const aCurrentTree = oJsonModel.getProperty("/productPriceList") || [];
-
-					oJsonModel.setProperty("/pendingDeletedIds", []);
-					oJsonModel.setProperty("/selectedKeys", []);
-					oJsonModel.setProperty("/originalProductPriceList", JSON.parse(JSON.stringify(aCurrentTree)));
-
-					this._deletedSnapshots = [];
-					this._originalSnapshot = JSON.parse(JSON.stringify(aCurrentTree));
-					this._setDeleteBtnState(false, false);
-				},
-
-				onBeforeDiscard: function () {
-					const oView = this.base.getView();
-					const oJsonModel = oView.getModel("jsonModel");
-
-					if (!oJsonModel) {
-						return;
-					}
-
-					const aOriginalTree = oJsonModel.getProperty("/originalProductPriceList") || [];
-
-					oJsonModel.setProperty("/productPriceList", JSON.parse(JSON.stringify(aOriginalTree)));
-					oJsonModel.setProperty("/pendingDeletedIds", []);
-					oJsonModel.setProperty("/selectedKeys", []);
-
-					this._deletedSnapshots = [];
-					this._setDeleteBtnState(false, false);
-				}
-			}
 		},
 
 		getInstance: function () { return _oInstance; },
@@ -226,19 +152,13 @@ sap.ui.define([
 
 		_setTreeTableData: function (aData) {
 			const oView = this.base.getView();
-			const oJsonModel = oView.getModel('jsonModel');
+			const oJsonModel = oView.getModel("jsonModel");
 
 			const aTreeData = Array.isArray(aData) && aData.length ? this._buildTreeFromFlatData(aData) : this._getMockData();
 
 			oJsonModel.setProperty("/productPriceList", aTreeData);
 			oJsonModel.setProperty("/originalProductPriceList", JSON.parse(JSON.stringify(aTreeData)));
-			oJsonModel.setProperty("/pendingDeletedIds", []);
 			oJsonModel.setProperty("/selectedKeys", []);
-
-			this._deletedSnapshots = [];
-			this._originalSnapshot = JSON.parse(JSON.stringify(aTreeData));
-
-			this._updateModeToggleEnabled();
 		},
 
 		_buildTree: function (rows) {
@@ -738,13 +658,8 @@ sap.ui.define([
 		},
 
 		_onSelectionChangeDisplayMode: function (oEvent) {
-			//Demo code
-			MessageToast.show("Row Selection Change:");
 			const oTable = oEvent.getSource();
 			const aSelectedIndices = oTable.getSelectedIndices();
-			const oDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteBtn");
-			const oResetButton = sap.ui.getCore().byId(idTreePrefix + "ProductListResetBtn");
-			const oRefreshButton = sap.ui.getCore().byId(idTreePrefix + "ProductListRefreshBtn");
 
 			const iSelectedIndex = aSelectedIndices[0];
 			const oRowContext = oTable.getContextByIndex(iSelectedIndex);
@@ -784,17 +699,6 @@ sap.ui.define([
 					}
 				}
 			}
-
-			if (aSelectedIndices.length > 0) {
-				this._setDeleteBtnState(true);
-				// oRefreshButton.setEnabled(true);
-				// oResetButton.setEnabled(true);
-			} else {
-				this._setDeleteBtnState(false);
-				// oRefreshButton.setEnabled(false);
-				// oResetButton.setEnabled(false);
-			}
-			// oTable.clearSelection();
 		},
 
 		// suppress re-entrant selection handling when we programmatically change selection
@@ -850,50 +754,6 @@ sap.ui.define([
 				i++;
 			}
 			return -1;
-		},
-
-		/**
-		 * Keep UndoDelete button visibility/enable in sync with Delete button.
-		 * bEnabled: boolean|undefined - if provided, sets enabled state on both buttons
-		 * bVisible: boolean|undefined - if provided, sets visible state on both buttons
-		 */
-		_setDeleteBtnState: function (bEnabled, bVisible) {
-			const oDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteBtn");
-			const oUndoDeleteButton = sap.ui.getCore().byId(idTreePrefix + "ProductListUndoDeleteBtn");
-			// set delete button enabled state if provided
-			if (typeof bEnabled !== 'undefined') {
-				if (oDeleteButton && typeof oDeleteButton.setEnabled === 'function') oDeleteButton.setEnabled(bEnabled);
-			}
-			// Undo button enabled only when there are deleted snapshots available
-			const hasDeleted = Array.isArray(this._deletedSnapshots) && this._deletedSnapshots.length > 0;
-			if (oUndoDeleteButton && typeof oUndoDeleteButton.setEnabled === 'function') oUndoDeleteButton.setEnabled(hasDeleted);
-			// visibility control (explicit)
-			if (typeof bVisible !== 'undefined') {
-				if (oDeleteButton && typeof oDeleteButton.setVisible === 'function') oDeleteButton.setVisible(bVisible);
-				if (oUndoDeleteButton && typeof oUndoDeleteButton.setVisible === 'function') oUndoDeleteButton.setVisible(bVisible);
-			}
-		},
-
-		_updateModeToggleEnabled: function () {
-			const oDeleteModeToggle = sap.ui.getCore().byId(idTreePrefix + "ProductListDeleteModeBtn");
-			const oReorderModeToggle = sap.ui.getCore().byId(idTreePrefix + "ProductListReorderModeBtn");
-
-			const oView = this.base && this.base.getView && this.base.getView();
-			const editMode = oView.getModel('ui').getProperty('/editMode');
-
-			if (editMode === 'Display') {
-				// if display mode, toggles should be disabled
-				oDeleteModeToggle.setEnabled(false);
-				oReorderModeToggle.setEnabled(false);
-				return;
-			}
-
-			const oJsonModel = oView?.getModel('jsonModel') || [];
-			const aTree = oJsonModel?.getProperty('/productPriceList') || [];
-			const bHasData = Array.isArray(aTree) && aTree.length > 0;
-
-			oDeleteModeToggle.setEnabled(bHasData);
-			oReorderModeToggle.setEnabled(bHasData);
 		},
 
 		_autoSelectAncestorsForKey: function (oTable, roots, childKey) {
@@ -1012,126 +872,6 @@ sap.ui.define([
 		// 	this._setDeleteBtnState(finalCount > 0);
 		// },
 
-		_onSelectionChangeDeleteMode: function (oEvent) {
-			if (this._bSuppressSelectionChange) return;
-
-			const oTable = this._productTreeTable || oEvent.getSource();
-			if (!oTable) return;
-
-			const oView = this.getInstance().base.getView();
-			const oModel = oView.getModel("jsonModel");
-			const aRoots = oModel.getProperty("/productPriceList") || [];
-
-			// Current table selection after user click
-			const aSelectedIndices = oTable.getSelectedIndices ? oTable.getSelectedIndices() : [];
-			const selectedIds = new Set();
-
-			for (const iIndex of aSelectedIndices) {
-				const oContext = oTable.getContextByIndex(iIndex);
-				if (!oContext) continue;
-
-				const oRow = oContext.getObject && oContext.getObject();
-				if (oRow && oRow.ID) {
-					selectedIds.add(oRow.ID);
-				}
-			}
-
-			// Detect clicked row
-			const oRowCtx = oEvent.getParameter && oEvent.getParameter("rowContext");
-			const oClickedRow = oRowCtx && oRowCtx.getObject ? oRowCtx.getObject() : null;
-
-			const clickedId = oClickedRow && oClickedRow.ID;
-			const clickedKind = oClickedRow && oClickedRow.Kind;
-
-			// If user clicked a Category, select/deselect all descendants
-			if (clickedKind === "Category" && clickedId) {
-				const oClickedNode = this._findNodeById(aRoots, clickedId);
-
-				if (oClickedNode) {
-					const aDescendantIds = this._collectDescendantIds(oClickedNode);
-
-					if (selectedIds.has(clickedId)) {
-						// Parent selected -> select all children/categories/products under it
-						aDescendantIds.forEach(function (sId) {
-							selectedIds.add(sId);
-						});
-					} else {
-						// Parent deselected -> deselect everything under it
-						aDescendantIds.forEach(function (sId) {
-							selectedIds.delete(sId);
-						});
-					}
-				}
-			}
-
-			// Bottom-up sync:
-			// if all children of a category are selected, select the category.
-			// otherwise deselect the category.
-			const syncParentSelection = function (aNodes) {
-				if (!Array.isArray(aNodes)) return;
-
-				aNodes.forEach(function (oNode) {
-					if (!oNode || !oNode.ID) return;
-
-					const aChildren = oNode.children || [];
-
-					if (aChildren.length) {
-						syncParentSelection(aChildren);
-
-						const bAllChildrenSelected = aChildren.every(function (oChild) {
-							return selectedIds.has(oChild.ID);
-						});
-
-						if (bAllChildrenSelected) {
-							selectedIds.add(oNode.ID);
-						} else {
-							selectedIds.delete(oNode.ID);
-						}
-					}
-				});
-			};
-
-			syncParentSelection(aRoots);
-
-			// Apply final selected IDs back to visible rows in TreeTable
-			this._bSuppressSelectionChange = true;
-
-			try {
-				if (oTable.clearSelection) {
-					oTable.clearSelection();
-				}
-
-				const oRowsBinding = oTable.getBinding("rows");
-				const iLength = oRowsBinding && oRowsBinding.getLength
-					? oRowsBinding.getLength()
-					: 0;
-
-				for (let i = 0; i < iLength; i++) {
-					const oContext = oTable.getContextByIndex(i);
-					if (!oContext) continue;
-
-					const oRow = oContext.getObject && oContext.getObject();
-
-					if (oRow && oRow.ID && selectedIds.has(oRow.ID)) {
-						if (oTable.addSelectionInterval) {
-							oTable.addSelectionInterval(i, i);
-						} else if (oTable.setSelectedIndex) {
-							oTable.setSelectedIndex(i);
-						}
-					}
-				}
-			} finally {
-				this._bSuppressSelectionChange = false;
-			}
-
-			const aFinalSelectedIds = Array.from(selectedIds);
-
-			oModel.setProperty("/selectedKeys", aFinalSelectedIds);
-
-			const bHasSelection = aFinalSelectedIds.length > 0;
-			this._setDeleteBtnState(bHasSelection, bHasSelection);
-		},
-
 		_findNodeById: function (aNodes, sId) {
 			if (!Array.isArray(aNodes)) return null;
 
@@ -1170,220 +910,93 @@ sap.ui.define([
 			return aIds;
 		},
 
-		onDelete: function () {
-			const oTable = this._productTreeTable;
-			if (!oTable) return;
+		onExportExcel: function (bShowSettingsDialog) {
+			const oTable = this._productTreeTable || sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
 
-			const oView = this.base.getView();
-			const oModel = oView.getModel("jsonModel");
-
-			const aCurrentTree = oModel.getProperty("/productPriceList") || [];
-			const aSelectedIds = oModel.getProperty("/selectedKeys") || [];
-
-			if (!aSelectedIds.length) {
-				MessageToast.show("No rows selected to delete.");
+			if (!oTable) {
+				MessageToast.show("Table not found.");
 				return;
 			}
 
-			const selectedIdSet = new Set(aSelectedIds);
-
-			const aSnapshot = JSON.parse(JSON.stringify(aCurrentTree));
-
-			if (!this._originalSnapshot) {
-				this._originalSnapshot = JSON.parse(JSON.stringify(aSnapshot));
-			}
-
-			if (!this._deletedSnapshots) {
-				this._deletedSnapshots = [];
-			}
-
-			this._deletedSnapshots.push({
-				tree: aSnapshot,
-				pendingDeletedIds: oModel.getProperty("/pendingDeletedIds") || []
-			});
-
-			const aPendingDeletedIds = oModel.getProperty("/pendingDeletedIds") || [];
-			const pendingDeletedIdSet = new Set(aPendingDeletedIds);
-
-			aSelectedIds.forEach(function (sId) {
-				pendingDeletedIdSet.add(sId);
-			});
-
-			const filterTree = function (aNodes) {
-				if (!Array.isArray(aNodes)) return [];
-
-				return aNodes
-					.map(function (oNode) {
-						if (!oNode || !oNode.ID) return oNode;
-
-						if (selectedIdSet.has(oNode.ID)) {
-							return null;
-						}
-
-						const oCopy = Object.assign({}, oNode);
-						oCopy.children = filterTree(oNode.children || []);
-
-						return oCopy;
-					})
-					.filter(Boolean);
-			};
-
-			const aNewTree = filterTree(aCurrentTree);
-
-			oModel.setProperty("/productPriceList", aNewTree);
-			oModel.setProperty("/pendingDeletedIds", Array.from(pendingDeletedIdSet));
-			oModel.setProperty("/selectedKeys", []);
-
-			oModel.updateBindings(true);
-
-			if (oTable.clearSelection) {
-				oTable.clearSelection();
-			}
-
-			const oRowsBinding = oTable.getBinding("rows");
-			if (oRowsBinding && oRowsBinding.refresh) {
-				oRowsBinding.refresh(true);
-			}
-
-			this._setDeleteBtnState(false, false);
-			this._updateModeToggleEnabled();
-
-			MessageToast.show("Selected items removed. Changes will be saved when you press Save.");
-		},
-
-		onUndoDelete: function () {
-			if (!this._deletedSnapshots || !this._deletedSnapshots.length) {
-				MessageToast.show("No deletion to restore.");
-				return;
-			}
-
-			const oSnapshot = this._deletedSnapshots.pop();
-			const oView = this.base.getView();
-			const oModel = oView.getModel('jsonModel');
-
-			const aTree = Array.isArray(oSnapshot) ? oSnapshot : oSnapshot.tree;
-			const aPendingDeletedIds = Array.isArray(oSnapshot) ? [] : (oSnapshot.pendingDeletedIds || []);
-
-			oModel.setProperty("/productPriceList", JSON.parse(JSON.stringify(aTree)));
-			oModel.setProperty("/pendingDeletedIds", aPendingDeletedIds);
-			oModel.setProperty("/selectedKeys", []);
-
-			this._updateModeToggleEnabled();
-
-			const oTable = sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
-			if (oTable && oTable.clearSelection) {
-				oTable.clearSelection();
-			}
-
-			this._setDeleteBtnState(false, false);
-
-			MessageToast.show("Deletion is undone.");
-		},
-
-		/**
-		 * Reset entire tree to original state (before any deletes).
-		 */
-		onResetPrice: function () {
-			const oView = this.base.getView();
-			if (this._originalSnapshot) {
-				oView.getModel('jsonModel').setProperty("/productPriceList", JSON.parse(JSON.stringify(this._originalSnapshot)));
-				this._deletedSnapshots = [];
-				const oTable = sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
-				if (oTable && oTable.clearSelection) oTable.clearSelection();
-				this._setDeleteBtnState(false, false);
-				// ensure toggles reflect presence/absence of data after reset
-				this._updateModeToggleEnabled();
-				MessageToast.show("Pricelist reset to original state.");
-				return;
-			}
-
-			// fallback: if no original snapshot, fetch from backend
-			MessageToast.show("No original snapshot available; fetching from server...");
-			this._getProductPriceList()
-				.then((aRawData) => {
-					this._setTreeTableData(aRawData);
-					MessageToast.show("Pricelist refreshed from server.");
-				})
-				.catch((e) => {
-					console.error(e);
-					MessageToast.show("Failed to refresh pricelist.");
-				});
-		},
-
-		_persistPendingDeletes: async function (aDeletedIds, oPageContext) {
-			if (!Array.isArray(aDeletedIds) || !aDeletedIds.length) {
-				return;
-			}
-
-			const oODataModel = this.base.getView().getModel();
 			const oJsonModel = this.base.getView().getModel("jsonModel");
-			const aOriginalTree = oJsonModel ? (oJsonModel.getProperty("/originalProductPriceList") || []) : [];
+			const aTree = oJsonModel.getProperty("/productPriceList") || [];
+			const aRows = this._flattenTreeForExport(aTree);
 
-			for (const sId of aDeletedIds) {
-				const oNode = this._findNodeById(aOriginalTree, sId);
-				const sEntityPath = this._getDeleteEntityPath(sId, oNode, oPageContext);
-				const oContext = oODataModel.bindContext(sEntityPath).getBoundContext();
-
-				if (!oContext || !oContext.delete) {
-					throw new Error("Cannot create delete context for " + sEntityPath);
-				}
-
-				await oContext.delete("$auto");
-			}
-		},
-
-		_getDeleteEntityPath: function (sId, oNode, oPageContext) {
-			// const aKeys = ["ID=" + this._quoteODataString(sId)];
-			const aKeys = ["ID=" + sId];
-
-			let bIsActiveEntity;
-
-			if (oNode && typeof oNode.IsActiveEntity === "boolean") {
-				bIsActiveEntity = oNode.IsActiveEntity;
-			} else if (oPageContext && oPageContext.getObject) {
-				const oPageObject = oPageContext.getObject();
-
-				if (oPageObject && typeof oPageObject.IsActiveEntity === "boolean") {
-					bIsActiveEntity = oPageObject.IsActiveEntity;
-				}
+			if (!aRows.length) {
+				MessageToast.show("Nothing to export.");
+				return;
 			}
 
-			if (typeof bIsActiveEntity === "boolean") {
-				aKeys.push("IsActiveEntity=" + bIsActiveEntity);
-			}
-
-			return "/ProductPriceList(" + aKeys.join(",") + ")";
-		},
-
-		// _quoteODataString: function (sValue) {
-		// 	return "'" + String(sValue).replace(/'/g, "''") + "'";
-		// },
-
-		_getTopLevelDeletedIds: function (aDeletedIds, aOriginalTree) {
-			const oDeletedSet = new Set(aDeletedIds || []);
-			const aResult = [];
-
-			const walk = function (aNodes, bAncestorDeleted) {
-				if (!Array.isArray(aNodes)) return;
-
-				aNodes.forEach(function (oNode) {
-					if (!oNode || !oNode.ID) return;
-
-					const bThisDeleted = oDeletedSet.has(oNode.ID);
-
-					if (bThisDeleted && !bAncestorDeleted) {
-						aResult.push(oNode.ID);
+			const mSettings = {
+				workbook: {
+					columns: this._buildExportColumns(oTable),
+					context: {
+						sheetName: "Product Price List"
 					}
-
-					walk(oNode.children || [], bAncestorDeleted || bThisDeleted);
-				});
+				},
+				dataSource: aRows,
+				fileName: "ProductPriceList.xlsx"
 			};
 
-			walk(aOriginalTree || [], false);
+			if (!this._oExportHandler) {
+				this._oExportHandler = new ExportHandler();
+			}
 
-			return aResult.length ? aResult : Array.from(oDeletedSet);
+			const pExport = bShowSettingsDialog
+				? this._oExportHandler.exportAs(mSettings)
+				: this._oExportHandler.export(mSettings);
+
+			pExport.catch(function (oError) {
+				if (oError) {
+					MessageBox.error("Export failed: " + (oError.message || "Unknown error."));
+				}
+			});
+		},
+
+		_buildExportColumns: function (oTable) {
+			return oTable.getColumns()
+				.filter(function (oColumn) {
+					return oColumn.getVisible();
+				})
+				.map(function (oColumn) {
+					const sLocalId = oColumn.getId().replace(idTreePrefix, "");
+					const vLabel = oColumn.getLabel && oColumn.getLabel();
+					const sTitle = typeof vLabel === "string" ? vLabel : (vLabel && vLabel.getText ? vLabel.getText() : sLocalId);
+
+					return {
+						label: sTitle,
+						property: EXPORT_COLUMN_FIELD_MAP[sLocalId] || sLocalId,
+						type: EdmType.String
+					};
+				});
+		},
+
+		_flattenTreeForExport: function (aNodes, iLevel, aOut) {
+			iLevel = iLevel || 0;
+			aOut = aOut || [];
+
+			(aNodes || []).forEach(function (oNode) {
+				const bIsProduct = oNode.Kind === "Product" || oNode.kind === "Product";
+
+				aOut.push({
+					Title: "    ".repeat(iLevel) + (oNode.Title || oNode.text || ""),
+					Description: bIsProduct ? (oNode.Description || "") : "",
+					PriceDisplay: bIsProduct ? ((oNode.Price || "") + " " + (oNode.PriceUnit || "")).trim() : "",
+					PriceValidityDisplay: bIsProduct ? ((oNode.PriceValidFrom || "") + " - " + (oNode.PriceValidTo || "")).trim() : "",
+					DiscountEffectiveToDate: bIsProduct ? (oNode.DiscountEffectiveToDate || "") : "",
+					PriceChangeIndicator: bIsProduct ? String(!!oNode.PriceChangeIndicator) : "",
+					Status: bIsProduct ? (oNode.Status || "") : "",
+					StatusValidityDisplay: bIsProduct ? ((oNode.StatusValidFromDate || "") + " - " + (oNode.StatusValidToDate || "")).trim() : "",
+					Supplier: bIsProduct ? (oNode.Supplier || "") : "",
+					SupplierSKU: bIsProduct ? (oNode.SupplierSKU || "") : ""
+				});
+
+				if (Array.isArray(oNode.children) && oNode.children.length) {
+					this._flattenTreeForExport(oNode.children, iLevel + 1, aOut);
+				}
+			}.bind(this));
+
+			return aOut;
 		}
-
-		// (other helper stubs commented)
 	});
 });

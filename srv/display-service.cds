@@ -2,8 +2,13 @@ using { PriceListService as base } from './service';
 
 service PriceListDisplayService {
 
+    @readonly
     entity PricelistData as projection on base.PricelistData;
+    
+    @readonly
     entity PricelistItemData as projection on base.PricelistItemData;
+    
+    @readonly
     entity PricelistItemTree as projection on base.PricelistItemTree;
 
     entity StatusVH as projection on base.StatusVH;
