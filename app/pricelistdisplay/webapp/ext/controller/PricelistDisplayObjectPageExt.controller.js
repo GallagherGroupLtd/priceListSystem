@@ -58,6 +58,22 @@ sap.ui.define([
 					oJson.setProperty("/productPriceList", oJson.getProperty("/productPriceList") || []);
 					oJson.setProperty("/originalProductPriceList", oJson.getProperty("/originalProductPriceList") || []);
 					oJson.setProperty("/selectedKeys", []);
+					oJson.setProperty("/pricelistUpdates", {
+						versions: [],
+						summary: {
+							totalChanges: 0,
+							totalVersions: 0
+						},
+						priceUpdates: [],
+						futurePriceUpdates: [],
+						categoryUpdates: [],
+						notesUpdates: []
+					});
+
+					oJson.setProperty("/pricelistUpdatesFilter", {
+						fromVersion: "",
+						toVersion: ""
+					});
 				}
 			},
 
@@ -66,6 +82,7 @@ sap.ui.define([
 				this._productTreeTable = sap.ui.getCore().byId('pricelistapp.pricelistdisplay::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--ProductPriceListTreeTable');
 
 				_oInstance = this;
+				this._loadPricelistUpdates();
 			},
 		},
 
@@ -908,6 +925,64 @@ sap.ui.define([
 			collect(oNode.children || []);
 
 			return aIds;
+		},
+
+		_loadPricelistUpdates: function () {
+			const oView = this.base.getView();
+			const oContext = oView.getBindingContext();
+
+			if (!oContext) {
+				return Promise.resolve();
+			}
+
+			const oJson = oView.getModel("jsonModel");
+			const oFilter = oJson.getProperty("/pricelistUpdatesFilter") || {};
+			const sPath = oContext.getPath();
+			const sPricelistId = this._extractKeyFromContextPath(sPath);
+
+			if (!sPricelistId) {
+				return Promise.resolve();
+			}
+
+			const oAction = oView.getModel().bindContext("/getPricelistUpdates(...)");
+
+			oAction.setParameter("pricelistId", sPricelistId);
+			oAction.setParameter("fromVersion", oFilter.fromVersion || "");
+			oAction.setParameter("toVersion", oFilter.toVersion || "");
+
+			return oAction.execute()
+				.then(function () {
+					const oResult = oAction.getBoundContext().getObject() || {};
+
+					oJson.setProperty("/pricelistUpdates", {
+						versions: oResult.versions || [],
+						summary: oResult.summary || {
+							totalChanges: 0,
+							totalVersions: 0
+						},
+						priceUpdates: oResult.priceUpdates || [],
+						futurePriceUpdates: oResult.futurePriceUpdates || [],
+						categoryUpdates: oResult.categoryUpdates || [],
+						notesUpdates: oResult.notesUpdates || []
+					});
+				})
+				.catch(function (oError) {
+					console.error("Error loading pricelist updates:", oError);
+					MessageBox.error("Unable to load pricelist updates.");
+				});
+		},
+
+		_extractKeyFromContextPath: function (sPath) {
+			if (!sPath) return "";
+
+			const aMatch = /ID=([0-9a-fA-F-]+)/.exec(sPath);
+
+			if (aMatch && aMatch[1]) {
+				return aMatch[1];
+			}
+
+			const aSimpleMatch = /\(([0-9a-fA-F-]+)\)/.exec(sPath);
+			return aSimpleMatch && aSimpleMatch[1] ? aSimpleMatch[1] : "";
 		},
 
 		onExportExcel: function (bShowSettingsDialog) {

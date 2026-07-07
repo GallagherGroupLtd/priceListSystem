@@ -188,6 +188,14 @@
                         }
                       }
                     },
+                    "PricelistUpdates": {
+                      "template": "pricelistapp.pricelistdisplay.ext.fragment.PricelistUpdates",
+                      "position": {
+                        "placement": "After",
+                        "anchor": "ProductPricelistFacet"
+                      },
+                      "title": "Pricelist Updates"
+                    },
                     "PricelistInfoFacet": {
                       "subSections": {
                         "TermsAndConditions": {

@@ -1,0 +1,120 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:t="sap.ui.table">
+
+    <VBox
+        id="PricelistUpdatesVBox"
+        width="100%"
+        core:require="{ handler: 'pricelistapp/pricelistdisplay/ext/controller/PricelistUpdates'}">
+
+        <OverflowToolbar id="PricelistUpdatesToolbar">
+            <Title id="PricelistUpdatesTitle" text="Version History" />
+            <ToolbarSpacer />
+
+            <Label text="From Version" />
+            <ComboBox
+                id="FromVersionCombo"
+                width="18rem"
+                selectedKey="{jsonModel>/pricelistUpdatesFilter/fromVersion}"
+                items="{jsonModel>/pricelistUpdates/versions}">
+                <core:Item
+                    key="{jsonModel>version}"
+                    text="{jsonModel>displayText}" />
+            </ComboBox>
+
+            <Label text="To Version" />
+            <ComboBox
+                id="ToVersionCombo"
+                width="18rem"
+                selectedKey="{jsonModel>/pricelistUpdatesFilter/toVersion}"
+                items="{jsonModel>/pricelistUpdates/versions}">
+                <core:Item
+                    key="{jsonModel>version}"
+                    text="{jsonModel>displayText}" />
+            </ComboBox>
+
+            <Button text="Apply" type="Emphasized" press="handler.onApplyVersionFilter" />
+            <Button text="Clear" press="handler.onClearVersionFilter" />
+        </OverflowToolbar>
+
+        <MessageStrip
+            text="{= 'Total Changes: ' + (${jsonModel>/pricelistUpdates/summary/totalChanges} || 0) + ' | Versions: ' + (${jsonModel>/pricelistUpdates/summary/totalVersions} || 0) }"
+            type="Information"
+            showIcon="true"
+            class="sapUiSmallMarginTop sapUiSmallMarginBottom" />
+
+        <Panel headerText="Price Updates" expandable="true" expanded="true" width="100%">
+            <t:Table
+                id="PriceUpdatesTable"
+                rows="{jsonModel>/pricelistUpdates/priceUpdates}"
+                selectionMode="None"
+                width="100%">
+                <t:columns>
+                    <t:Column width="12rem"><Label text="Changed On" /><t:template><Text text="{jsonModel>changedAt}" /></t:template></t:Column>
+                    <t:Column width="16rem"><Label text="Version" /><t:template><Text text="{jsonModel>versionDisplay}" /></t:template></t:Column>
+                    <t:Column width="12rem"><Label text="Changed By" /><t:template><Text text="{jsonModel>changedBy}" /></t:template></t:Column>
+                    <t:Column width="18rem"><Label text="Item" /><t:template><Text text="{jsonModel>item}" wrapping="false" /></t:template></t:Column>
+                    <t:Column width="12rem"><Label text="Field" /><t:template><Text text="{jsonModel>field}" /></t:template></t:Column>
+                    <t:Column width="14rem"><Label text="Old Value" /><t:template><Text text="{jsonModel>oldValue}" wrapping="false" /></t:template></t:Column>
+                    <t:Column width="14rem"><Label text="New Value" /><t:template><Text text="{jsonModel>newValue}" wrapping="false" /></t:template></t:Column>
+                </t:columns>
+            </t:Table>
+        </Panel>
+
+        <Panel headerText="Future Price Updates" expandable="true" expanded="true" width="100%">
+            <t:Table
+                id="FuturePriceUpdatesTable"
+                rows="{jsonModel>/pricelistUpdates/futurePriceUpdates}"
+                selectionMode="None"
+                width="100%">
+                <t:columns>
+                    <t:Column width="12rem"><Label text="Changed On" /><t:template><Text text="{jsonModel>changedAt}" /></t:template></t:Column>
+                    <t:Column width="16rem"><Label text="Version" /><t:template><Text text="{jsonModel>versionDisplay}" /></t:template></t:Column>
+                    <t:Column width="12rem"><Label text="Changed By" /><t:template><Text text="{jsonModel>changedBy}" /></t:template></t:Column>
+                    <t:Column width="18rem"><Label text="Item" /><t:template><Text text="{jsonModel>item}" wrapping="false" /></t:template></t:Column>
+                    <t:Column width="12rem"><Label text="Field" /><t:template><Text text="{jsonModel>field}" /></t:template></t:Column>
+                    <t:Column width="14rem"><Label text="Old Value" /><t:template><Text text="{jsonModel>oldValue}" wrapping="false" /></t:template></t:Column>
+                    <t:Column width="14rem"><Label text="New Value" /><t:template><Text text="{jsonModel>newValue}" wrapping="false" /></t:template></t:Column>
+                </t:columns>
+            </t:Table>
+        </Panel>
+
+        <Panel headerText="Added / Removed Categories or Products" expandable="true" expanded="true" width="100%">
+            <t:Table
+                id="CategoryUpdatesTable"
+                rows="{jsonModel>/pricelistUpdates/categoryUpdates}"
+                selectionMode="None"
+                width="100%">
+                <t:columns>
+                    <t:Column width="12rem"><Label text="Changed On" /><t:template><Text text="{jsonModel>changedAt}" /></t:template></t:Column>
+                    <t:Column width="16rem"><Label text="Version" /><t:template><Text text="{jsonModel>versionDisplay}" /></t:template></t:Column>
+                    <t:Column width="12rem"><Label text="Changed By" /><t:template><Text text="{jsonModel>changedBy}" /></t:template></t:Column>
+                    <t:Column width="18rem"><Label text="Item" /><t:template><Text text="{jsonModel>item}" wrapping="false" /></t:template></t:Column>
+                    <t:Column width="12rem"><Label text="Change Type" /><t:template><Text text="{jsonModel>changeType}" /></t:template></t:Column>
+                    <t:Column width="14rem"><Label text="Old Value" /><t:template><Text text="{jsonModel>oldValue}" wrapping="false" /></t:template></t:Column>
+                    <t:Column width="14rem"><Label text="New Value" /><t:template><Text text="{jsonModel>newValue}" wrapping="false" /></t:template></t:Column>
+                </t:columns>
+            </t:Table>
+        </Panel>
+
+        <Panel headerText="Terms and Conditions / Notes Updates" expandable="true" expanded="true" width="100%">
+            <t:Table
+                id="NotesUpdatesTable"
+                rows="{jsonModel>/pricelistUpdates/notesUpdates}"
+                selectionMode="None"
+                width="100%">
+                <t:columns>
+                    <t:Column width="12rem"><Label text="Changed On" /><t:template><Text text="{jsonModel>changedAt}" /></t:template></t:Column>
+                    <t:Column width="16rem"><Label text="Version" /><t:template><Text text="{jsonModel>versionDisplay}" /></t:template></t:Column>
+                    <t:Column width="12rem"><Label text="Changed By" /><t:template><Text text="{jsonModel>changedBy}" /></t:template></t:Column>
+                    <t:Column width="18rem"><Label text="Item" /><t:template><Text text="{jsonModel>item}" wrapping="false" /></t:template></t:Column>
+                    <t:Column width="12rem"><Label text="Field" /><t:template><Text text="{jsonModel>field}" /></t:template></t:Column>
+                    <t:Column width="14rem"><Label text="Old Value" /><t:template><Text text="{jsonModel>oldValue}" wrapping="false" /></t:template></t:Column>
+                    <t:Column width="14rem"><Label text="New Value" /><t:template><Text text="{jsonModel>newValue}" wrapping="false" /></t:template></t:Column>
+                </t:columns>
+            </t:Table>
+        </Panel>
+
+    </VBox>
+</core:FragmentDefinition>

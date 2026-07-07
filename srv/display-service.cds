@@ -11,6 +11,55 @@ service PriceListDisplayService {
     @readonly
     entity PricelistItemTree as projection on base.PricelistItemTree;
 
+    @readonly
+    entity ProductPriceList as projection on base.ProductPriceList;
+
+    @readonly
+    entity PricelistChangeLog as projection on base.PricelistChangeLog;
+
+    type VersionHistoryItem {
+        version       : String;
+        versionNumber : Decimal;
+        publishedDate : Date;
+        publishedBy   : String;
+        status        : String;
+        displayText    : String;
+    }
+
+    type PricelistUpdateItem {
+        changedAt      : DateTime;
+        changedBy      : String;
+        source         : String;
+        refId          : String;
+        changeType     : String;
+        field          : String;
+        oldValue       : String;
+        newValue       : String;
+        version        : String;
+        versionDisplay : String;
+        item           : String;
+    }
+
+    type PricelistUpdatesSummary {
+        totalChanges  : Integer;
+        totalVersions : Integer;
+    }
+
+    type PricelistUpdatesResult {
+        versions           : array of VersionHistoryItem;
+        summary            : PricelistUpdatesSummary;
+        priceUpdates       : array of PricelistUpdateItem;
+        futurePriceUpdates : array of PricelistUpdateItem;
+        categoryUpdates    : array of PricelistUpdateItem;
+        notesUpdates       : array of PricelistUpdateItem;
+    }
+
+    action getPricelistUpdates(
+        pricelistId : UUID,
+        fromVersion : String,
+        toVersion   : String
+    ) returns PricelistUpdatesResult;
+    
     entity StatusVH as projection on base.StatusVH;
     entity PricelistTypeVH as projection on base.PricelistTypeVH;
     entity MarketRegionVH as projection on base.MarketRegionVH;
