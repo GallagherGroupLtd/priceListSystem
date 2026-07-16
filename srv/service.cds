@@ -55,10 +55,34 @@ service PriceListService {
 
     annotate TermsAndConditions with @odata.draft.enabled;
 
-    entity PricingParameters          as projection on my.PricingParameterDetermination
-        actions {
-            action copyRow() returns PricingParameters;
-        };
+    entity PricingParameters as projection on my.PricingParameterDetermination {
+        *,
+        entries
+    }
+    actions {
+        action copyRow() returns PricingParameters;
+    };
+
+    entity PricingParameterEntries as projection on my.PricingParameterDeterminationEntry;
+
+    entity PricingParameterTypeVH {
+        key Code : String(1);
+            Text : String(50);
+    }
+
+    @cds.persistence.skip
+    entity PricingConditionTypeVH {
+        key ParameterType : String(1);
+        key Code          : String(4);
+            Description   : String(255);
+    }
+
+    @cds.persistence.skip
+    entity PricingAccessSequenceVH {
+        key ParameterType : String(1);
+        key Code          : String(255);
+            Description   : String(255);
+    }
 
     annotate PricingParameters with @odata.draft.enabled;
 

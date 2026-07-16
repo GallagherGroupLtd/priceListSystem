@@ -1,7 +1,182 @@
 const authorization = require('./pricelist-display_srv-code/authorization');
 const { getVersionNumber } = require('./pricelist_maintain_srv-code/version-helper');
+const { resolvePricingParameters } = require('./lib/pricing-parameter-resolver');
 
 module.exports = cds.service.impl(async function () {
+    this.on('getDiscountUserContext', async (req) => {
+        const userContext = await authorization.getCurrentAccountAssignment(req);
+
+        if (!userContext || !userContext.assignment) {
+            return req.error(403, 'No account assignment was found for the current user.');
+        }
+
+        const { assignment } = userContext;
+
+        return {
+            IsInternalUser: authorization.isInternalUser(assignment),
+            IsExternalUser: authorization.isExternalCustomer(assignment),
+            CustomerNumber: authorization.isExternalCustomer(assignment)
+                ? assignment.CustomerNumber || ''
+                : ''
+        };
+    });
+
+    this.on('resolveDiscounts', async (req) => {
+        const {
+            pricelistId,
+            customerNumber: requestedCustomerNumber
+        } = req.data || {};
+
+        if (!pricelistId) {
+            return req.error(400, 'Pricelist ID is required.');
+        }
+
+        const currentUserContext =
+            await authorization.getCurrentAccountAssignment(req);
+
+        if (!currentUserContext || !currentUserContext.assignment) {
+            return req.error(
+                403,
+                'No account assignment was found for the current user.'
+            );
+        }
+
+        const currentAssignment = currentUserContext.assignment;
+
+        const isInternal =
+            authorization.isInternalUser(currentAssignment);
+
+        const isExternal =
+            authorization.isExternalCustomer(currentAssignment);
+
+        if (!isInternal && !isExternal) {
+            return req.error(
+                403,
+                'The current account type is not permitted to retrieve discounts.'
+            );
+        }
+
+        let customerNumber;
+
+        if (isExternal) {
+            customerNumber = currentAssignment.CustomerNumber;
+        } else {
+            // Internal Admin and Internal Regional users may simulate an external customer by entering a customer number.
+            customerNumber = requestedCustomerNumber;
+        }
+
+        if (!customerNumber) {
+            return req.error(400, 'Customer number is required.');
+        }
+
+        const db = cds.tx(req);
+        const extdb = await cds.connect.to('extdb');
+
+        const {
+            PricelistData
+        } = this.entities;
+
+        const dbEntities = cds.entities('com.sap.pricelistsystem');
+
+        const {
+            AccountAssignment,
+            AccountAssignmentScope
+        } = dbEntities;
+
+        const pricelist = await db.run(
+            SELECT.one
+                .from(PricelistData)
+                .columns(
+                    'ID',
+                    'PricelistType',
+                    'MarketScopeRegion',
+                    'MarketScopeCountry',
+                    'SalesOrg',
+                    'DistChannel',
+                    'CustPriceList',
+                    'CustGroup1',
+                    'ErpCustomer',
+                    'DeliveringPlant',
+                    'EffectiveDate'
+                )
+                .where({ ID: pricelistId })
+        );
+
+        if (!pricelist) {
+            return req.error(404, 'Pricelist not found.');
+        }
+
+        const customerAssignment = await db.run(
+            SELECT.one
+                .from(AccountAssignment)
+                .where({ CustomerNumber: customerNumber })
+        );
+
+        if (!customerAssignment) {
+            return req.error(
+                404,
+                `No account assignment was found for customer ${customerNumber}.`
+            );
+        }
+
+        const customerScopes = await db.run(
+            SELECT
+                .from(AccountAssignmentScope)
+                .where({ parent_ID: customerAssignment.ID })
+        );
+
+        if (!customerScopes || customerScopes.length === 0) {
+            return req.error(
+                404,
+                `No account-assignment scope was found for customer ${customerNumber}.`
+            );
+        }
+
+        const matchingScope = findMatchingCustomerScope(
+            customerScopes,
+            pricelist
+        );
+
+        if (!matchingScope) {
+            return req.error(
+                404,
+                `No account-assignment scope for customer ${customerNumber} matches the displayed pricelist.`
+            );
+        }
+
+        const discountRows = await resolvePricingParameters({
+            db,
+            extdb,
+            context: {
+                PricelistType: pricelist.PricelistType,
+                MarketScopeRegion: pricelist.MarketScopeRegion,
+                MarketScopeCountry: pricelist.MarketScopeCountry,
+
+                SalesOrg: matchingScope.SalesOrg,
+                DistChannel: matchingScope.DistChannel,
+
+                CustPriceList: customerAssignment.CustPriceList,
+
+                CustGroup1: customerAssignment.CustGroup1,
+
+                ErpCustomer: '',
+                DeliveringPlant: customerAssignment.DeliveringPlant
+            },
+            materialIds: [],
+            parameterType: 'D',
+            effectiveDate: pricelist.EffectiveDate
+        });
+
+        return discountRows.map((row) => ({
+            Material: row.Material,
+            DiscountRate: row.RateDisplay,
+            DiscountValidFrom: row.ValidFrom,
+            DiscountValidTo: row.ValidTo,
+            DiscountConditionType: row.ConditionType,
+            DiscountAccessSequence: row.AccessSequence
+        }));
+    });
+
     this.on('READ', 'PricelistData', async (req) => {
         return authorization.filterPricelistData(req);
     });
@@ -174,6 +349,42 @@ module.exports = cds.service.impl(async function () {
         return oResult;
     });
 });
+
+function findMatchingCustomerScope(scopes, pricelist) {
+    const normalize = (value) =>
+        value === null || value === undefined
+            ? ''
+            : String(value).trim();
+
+    const exactMatch = (scopes || []).find((scope) => {
+        return (
+            normalize(scope.SalesOrg) === normalize(pricelist.SalesOrg) &&
+            normalize(scope.DistChannel) === normalize(pricelist.DistChannel) &&
+            normalize(scope.PricelistType) === normalize(pricelist.PricelistType) &&
+            normalize(scope.MarketScopeRegion) === normalize(pricelist.MarketScopeRegion) &&
+            normalize(scope.MarketScopeCountry) === normalize(pricelist.MarketScopeCountry)
+        );
+    });
+
+    if (exactMatch) {
+        return exactMatch;
+    }
+
+    // Fallback to the fields currently used by external display authorization.
+    return (scopes || []).find((scope) => {
+        const distributionChannelMatches =
+            !normalize(scope.DistChannel) ||
+            normalize(scope.DistChannel) === normalize(pricelist.DistChannel);
+
+        return (
+            normalize(scope.SalesOrg) === normalize(pricelist.SalesOrg) &&
+            normalize(scope.PricelistType) === normalize(pricelist.PricelistType) &&
+            normalize(scope.MarketScopeRegion) === normalize(pricelist.MarketScopeRegion) &&
+            normalize(scope.MarketScopeCountry) === normalize(pricelist.MarketScopeCountry) &&
+            distributionChannelMatches
+        );
+    }) || null;
+}
 
 function stripInternalVersionFields(v) {
     return {

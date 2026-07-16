@@ -205,6 +205,10 @@ sap.ui.define([
             ExtController.getInstance().onExportExcel(true);
         },
 
+        onRetrieveDiscounts: function () {
+            ExtController.getInstance().onRetrieveDiscounts();
+        },
+
         onSelectionChange: function (oEvent) {
             ExtController.getInstance()._onSelectionChangeDisplayMode(oEvent);
         },

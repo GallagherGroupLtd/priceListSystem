@@ -5,9 +5,14 @@ sap.ui.define([
 	'sap/ui/model/FilterOperator',
 	'sap/m/MessageToast',
 	'sap/m/MessageBox',
+    'sap/m/Dialog',
+    'sap/m/Input',
+    'sap/m/Label',
+    'sap/m/Button',
+    'sap/m/VBox',
 	'sap/ui/export/library',
 	'sap/ui/export/ExportHandler'
-], function (ControllerExtension, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, exportLibrary, ExportHandler) {
+], function (ControllerExtension, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, Dialog, Input, Label, Button, VBox, exportLibrary, ExportHandler) {
 	'use strict';
 
 	const idTreePrefix = "pricelistapp.pricelistdisplay::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--";
@@ -22,7 +27,9 @@ sap.ui.define([
 		ColDescription: "Description",
 		ColPriceCurrency: "PriceDisplay",
 		ColValidity: "PriceValidityDisplay",
-		ColDiscountExpiry: "DiscountEffectiveToDate",
+		ColDiscountRate: "DiscountRate",
+		ColDiscountEffectiveDate: "DiscountValidFrom",
+		ColDiscountExpiryDate: "DiscountValidTo",
 		ColPriceChangeIndicator: "PriceChangeIndicator",
 		ColStatus: "Status",
 		ColStatusValidity: "StatusValidityDisplay",
@@ -58,6 +65,15 @@ sap.ui.define([
 					oJson.setProperty("/productPriceList", oJson.getProperty("/productPriceList") || []);
 					oJson.setProperty("/originalProductPriceList", oJson.getProperty("/originalProductPriceList") || []);
 					oJson.setProperty("/selectedKeys", []);
+					oJson.setProperty("/discountUserContext", {
+						IsInternalUser: false,
+						IsExternalUser: false,
+						CustomerNumber: ""
+					});
+
+					oJson.setProperty("/discountLoading", false);
+					oJson.setProperty("/resolvedDiscountRows", []);
+					oJson.setProperty("/discountResolved", false);
 					oJson.setProperty("/pricelistUpdates", {
 						versions: [],
 						summary: {
@@ -83,7 +99,65 @@ sap.ui.define([
 
 				_oInstance = this;
 				this._loadPricelistUpdates();
+				this._initializeDiscountContext();
 			},
+		},
+
+		_initializeDiscountContext: async function () {
+			const oView = this.base.getView();
+			const oJsonModel = oView.getModel("jsonModel");
+
+			try {
+				const oContext = await this._executeAction(
+					"/getDiscountUserContext(...)",
+					{}
+				);
+
+				oJsonModel.setProperty(
+					"/discountUserContext",
+					oContext || {
+						IsInternalUser: false,
+						IsExternalUser: false,
+						CustomerNumber: ""
+					}
+				);
+
+				if (
+					oContext &&
+					oContext.IsExternalUser &&
+					oContext.CustomerNumber
+				) {
+					await this._retrieveDiscounts("");
+				}
+			} catch (oError) {
+				console.error(
+					"Unable to initialize discount user context:",
+					oError
+				);
+
+				oJsonModel.setProperty("/discountUserContext", {
+					IsInternalUser: false,
+					IsExternalUser: false,
+					CustomerNumber: ""
+				});
+			}
+		},
+
+		_executeAction: async function (sActionPath, mParameters) {
+			const oModel = this.base.getView().getModel();
+			const oActionBinding = oModel.bindContext(sActionPath);
+
+			Object.keys(mParameters || {}).forEach((sName) => {
+				oActionBinding.setParameter(sName, mParameters[sName]);
+			});
+
+			await oActionBinding.execute();
+
+			const oBoundContext = oActionBinding.getBoundContext();
+
+			return oBoundContext
+				? oBoundContext.getObject()
+				: null;
 		},
 
 		getInstance: function () { return _oInstance; },
@@ -176,6 +250,7 @@ sap.ui.define([
 			oJsonModel.setProperty("/productPriceList", aTreeData);
 			oJsonModel.setProperty("/originalProductPriceList", JSON.parse(JSON.stringify(aTreeData)));
 			oJsonModel.setProperty("/selectedKeys", []);
+			this._applyCachedDiscountsToProductTree();
 		},
 
 		_buildTree: function (rows) {
@@ -308,8 +383,8 @@ sap.ui.define([
 							PriceValidFrom: null,
 							PriceValidTo: null,
 							DiscountRate: null,
-							DiscountEffectiveFromDate: null,
-							DiscountEffectiveToDate: null,
+							DiscountValidFrom: null,
+							DiscountValidTo: null,
 							PriceChangeIndicator: false,
 							FuturePrice: null,
 							FuturePriceValidFrom: null,
@@ -376,8 +451,8 @@ sap.ui.define([
 						PriceValidFrom: row.PriceValidFrom,
 						PriceValidTo: row.PriceValidTo,
 						DiscountRate: row.DiscountRate || null,
-						DiscountEffectiveFromDate: row.DiscountEffectiveFromDate || null,
-						DiscountEffectiveToDate: row.DiscountEffectiveToDate || null,
+						DiscountValidFrom: row.DiscountValidFrom || null,
+						DiscountValidTo: row.DiscountValidTo || null,
 						PriceChangeIndicator: row.PriceChangeIndicator || false,
 						FuturePrice: row.FuturePrice || null,
 						FuturePriceValidFrom: row.FuturePriceValidFrom || null,
@@ -430,8 +505,8 @@ sap.ui.define([
 					PriceValidFrom: null,
 					PriceValidTo: null,
 					DiscountRate: null,
-					DiscountEffectiveFromDate: null,
-					DiscountEffectiveToDate: null,
+					DiscountValidFrom: null,
+					DiscountValidTo: null,
 					PriceChangeIndicator: false,
 					FuturePrice: null,
 					FuturePriceValidFrom: null,
@@ -466,8 +541,8 @@ sap.ui.define([
 							PriceValidFrom: null,
 							PriceValidTo: null,
 							DiscountRate: null,
-							DiscountEffectiveFromDate: null,
-							DiscountEffectiveToDate: null,
+							DiscountValidFrom: null,
+							DiscountValidTo: null,
 							PriceChangeIndicator: false,
 							FuturePrice: null,
 							FuturePriceValidFrom: null,
@@ -501,9 +576,9 @@ sap.ui.define([
 									PriceUnit: "GDP",
 									PriceValidFrom: "2026-01-01",
 									PriceValidTo: "2026-12-31",
-									DiscountRate: "5",
-									DiscountEffectiveFromDate: "2026-06-06",
-									DiscountEffectiveToDate: "2026-06-08",
+									DiscountRate: "5 %",
+									DiscountValidFrom: "2026-06-06",
+									DiscountValidTo: "2026-06-08",
 									PriceChangeIndicator: true,
 									FuturePrice: "1600.00",
 									FuturePriceValidFrom: "2027-01-01",
@@ -541,8 +616,8 @@ sap.ui.define([
 							PriceValidFrom: null,
 							PriceValidTo: null,
 							DiscountRate: null,
-							DiscountEffectiveFromDate: null,
-							DiscountEffectiveToDate: null,
+							DiscountValidFrom: null,
+							DiscountValidTo: null,
 							PriceChangeIndicator: false,
 							FuturePrice: null,
 							FuturePriceValidFrom: null,
@@ -577,8 +652,8 @@ sap.ui.define([
 									PriceValidFrom: null,
 									PriceValidTo: null,
 									DiscountRate: null,
-									DiscountEffectiveFromDate: null,
-									DiscountEffectiveToDate: null,
+									DiscountValidFrom: null,
+									DiscountValidTo: null,
 									PriceChangeIndicator: false,
 									FuturePrice: null,
 									FuturePriceValidFrom: null,
@@ -612,9 +687,9 @@ sap.ui.define([
 											PriceUnit: "GDP",
 											PriceValidFrom: "2026-01-01",
 											PriceValidTo: "2026-12-31",
-											DiscountRate: "5",
-											DiscountEffectiveFromDate: "2026-06-06",
-											DiscountEffectiveToDate: "2026-06-08",
+											DiscountRate: "5 %",
+											DiscountValidFrom: "2026-06-06",
+											DiscountValidTo: "2026-06-08",
 											PriceChangeIndicator: false,
 											FuturePrice: "1600.00",
 											FuturePriceValidFrom: "2027-01-01",
@@ -649,9 +724,9 @@ sap.ui.define([
 											PriceUnit: "GDP",
 											PriceValidFrom: "2026-01-01",
 											PriceValidTo: "2026-12-31",
-											DiscountRate: "5",
-											DiscountEffectiveFromDate: "2026-06-06",
-											DiscountEffectiveToDate: "2026-06-08",
+											DiscountRate: "5 %",
+											DiscountValidFrom: "2026-06-06",
+											DiscountValidTo: "2026-06-08",
 											PriceChangeIndicator: false,
 											FuturePrice: "1600.00",
 											FuturePriceValidFrom: "2027-01-01",
@@ -1058,7 +1133,9 @@ sap.ui.define([
 					Description: bIsProduct ? (oNode.Description || "") : "",
 					PriceDisplay: bIsProduct ? ((oNode.Price || "") + " " + (oNode.PriceUnit || "")).trim() : "",
 					PriceValidityDisplay: bIsProduct ? ((oNode.PriceValidFrom || "") + " - " + (oNode.PriceValidTo || "")).trim() : "",
-					DiscountEffectiveToDate: bIsProduct ? (oNode.DiscountEffectiveToDate || "") : "",
+					DiscountRate: bIsProduct ? (oNode.DiscountRate || "") : "",
+					DiscountValidFrom: bIsProduct ? (oNode.DiscountValidFrom || "") : "",
+					DiscountValidTo: bIsProduct ? (oNode.DiscountValidTo || "") : "",
 					PriceChangeIndicator: bIsProduct ? String(!!oNode.PriceChangeIndicator) : "",
 					Status: bIsProduct ? (oNode.Status || "") : "",
 					StatusValidityDisplay: bIsProduct ? ((oNode.StatusValidFromDate || "") + " - " + (oNode.StatusValidToDate || "")).trim() : "",
@@ -1072,6 +1149,250 @@ sap.ui.define([
 			}.bind(this));
 
 			return aOut;
+		},
+
+		onRetrieveDiscounts: function () {
+			const oView = this.base.getView();
+			const oJsonModel = oView.getModel("jsonModel");
+			const oUserContext =
+				oJsonModel.getProperty("/discountUserContext") || {};
+
+			if (!oUserContext.IsInternalUser) {
+				MessageBox.error(
+					"Customer simulation is available only to internal users."
+				);
+				return;
+			}
+
+			const oCustomerInput = new Input({
+				width: "100%",
+				placeholder: "Enter customer number",
+				submit: async () => {
+					await this._submitDiscountCustomer(
+						oDialog,
+						oCustomerInput
+					);
+				}
+			});
+
+			const oDialog = new Dialog({
+				title: "Retrieve Discount Information",
+				contentWidth: "28rem",
+				content: [
+					new VBox({
+						width: "100%",
+						class: "sapUiSmallMargin",
+						items: [
+							new Label({
+								text: "Customer Number",
+								labelFor: oCustomerInput
+							}),
+							oCustomerInput
+						]
+					})
+				],
+				beginButton: new Button({
+					text: "Retrieve",
+					type: "Emphasized",
+					press: async () => {
+						await this._submitDiscountCustomer(
+							oDialog,
+							oCustomerInput
+						);
+					}
+				}),
+				endButton: new Button({
+					text: "Cancel",
+					press: function () {
+						oDialog.close();
+					}
+				}),
+				afterClose: function () {
+					oDialog.destroy();
+				}
+			});
+
+			oView.addDependent(oDialog);
+			oDialog.open();
+
+			setTimeout(() => {
+				oCustomerInput.focus();
+			}, 0);
+		},
+
+		_submitDiscountCustomer: async function (
+			oDialog,
+			oCustomerInput
+		) {
+			const sCustomerNumber =
+				String(oCustomerInput.getValue() || "").trim();
+
+			if (!sCustomerNumber) {
+				oCustomerInput.setValueState("Error");
+				oCustomerInput.setValueStateText(
+					"Customer number is required."
+				);
+				return;
+			}
+
+			oCustomerInput.setValueState("None");
+
+			const bSuccess =
+				await this._retrieveDiscounts(sCustomerNumber);
+
+			if (bSuccess) {
+				oDialog.close();
+			}
+		},
+
+		_retrieveDiscounts: async function (sCustomerNumber) {
+			const oView = this.base.getView();
+			const oJsonModel = oView.getModel("jsonModel");
+			const oBindingContext = oView.getBindingContext();
+
+			if (!oBindingContext) {
+				MessageBox.error(
+					"The current pricelist context is unavailable."
+				);
+				return false;
+			}
+
+			const oPricelist = await oBindingContext.requestObject();
+			const sPricelistId = oPricelist && oPricelist.ID;
+
+			if (!sPricelistId) {
+				MessageBox.error(
+					"The current pricelist ID could not be determined."
+				);
+				return false;
+			}
+
+			oJsonModel.setProperty("/discountLoading", true);
+
+			try {
+				const aDiscountRows = await this._executeAction(
+					"/resolveDiscounts(...)",
+					{
+						pricelistId: sPricelistId,
+						customerNumber: sCustomerNumber || ""
+					}
+				);
+
+				const aRows = Array.isArray(aDiscountRows) ? aDiscountRows : [];
+
+				oJsonModel.setProperty("/resolvedDiscountRows",JSON.parse(JSON.stringify(aRows)));
+				oJsonModel.setProperty("/discountResolved", true);
+
+				this._applyDiscountsToProductTree(aRows);
+
+				if (aRows.length) {
+					MessageToast.show(
+						"Discount information retrieved."
+					);
+				} else {
+					MessageToast.show(
+						"No matching discount information was found."
+					);
+				}
+
+				return true;
+			} catch (oError) {
+				console.error(
+					"Error retrieving discount information:",
+					oError
+				);
+
+				MessageBox.error(
+					this._getErrorMessage(
+						oError,
+						"Unable to retrieve discount information."
+					)
+				);
+
+				return false;
+			} finally {
+				oJsonModel.setProperty("/discountLoading", false);
+			}
+		},
+
+		_applyCachedDiscountsToProductTree: function () {
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+			const bDiscountResolved = oJsonModel.getProperty("/discountResolved") === true;
+
+			if (!bDiscountResolved) {
+				return;
+			}
+
+			const aDiscountRows = oJsonModel.getProperty("/resolvedDiscountRows") || [];
+			this._applyDiscountsToProductTree(aDiscountRows);
+		},
+
+		_applyDiscountsToProductTree: function (aDiscountRows) {
+			const oJsonModel =
+				this.base.getView().getModel("jsonModel");
+
+			const aTree =
+				oJsonModel.getProperty("/productPriceList") || [];
+
+			if (!Array.isArray(aTree) || aTree.length === 0) {
+				return;
+			}
+
+			const oDiscount =
+				Array.isArray(aDiscountRows) && aDiscountRows.length
+					? aDiscountRows[0]
+					: null;
+
+			const applyRecursively = (aNodes) => {
+				(aNodes || []).forEach((oNode) => {
+					const bIsProduct =
+						oNode.Kind === "Product" ||
+						oNode.kind === "Product";
+
+					if (bIsProduct) {
+						oNode.DiscountRate =
+							oDiscount?.DiscountRate || "";
+
+						oNode.DiscountValidFrom =
+							oDiscount?.DiscountValidFrom || null;
+
+						oNode.DiscountValidTo =
+							oDiscount?.DiscountValidTo || null;
+
+						oNode.DiscountConditionType =
+							oDiscount?.DiscountConditionType || "";
+
+						oNode.DiscountAccessSequence =
+							oDiscount?.DiscountAccessSequence || "";
+					}
+
+					if (
+						Array.isArray(oNode.children) &&
+						oNode.children.length
+					) {
+						applyRecursively(oNode.children);
+					}
+				});
+			};
+
+			applyRecursively(aTree);
+
+			oJsonModel.setProperty(
+				"/productPriceList",
+				aTree.slice()
+			);
+		},
+
+		_getErrorMessage: function (
+			oError,
+			sFallbackMessage
+		) {
+			return (
+				oError?.error?.message ||
+				oError?.cause?.message ||
+				oError?.message ||
+				sFallbackMessage
+			);
 		}
 	});
 });

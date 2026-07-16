@@ -50,6 +50,14 @@
                 icon="sap-icon://filter"
                 tooltip="Filter"
                 press="handler.onOpenHierarchyFilter"/>
+            <Button
+                id="ProductListRetrieveDiscountBtn"
+                text="Retrieve Discount"
+                icon="sap-icon://customer-financial-fact-sheet"
+                tooltip="Retrieve discount information for a customer"
+                visible="{jsonModel>/discountUserContext/IsInternalUser}"
+                enabled="{= !${jsonModel>/discountLoading} }"
+                press="handler.onRetrieveDiscounts" />
             <ToolbarSeparator id="ProductListToolbarSep_4"/>
             <MenuButton
                 id="ProductTreeExportMenuBtn"
@@ -113,10 +121,24 @@
                     </t:template>
                 </t:Column>
 
-                <t:Column id="ColDiscountExpiry" width="7%" hAlign="Center">
-                    <Label id="LblDiscountExpiry" text="Discount Expiry" textAlign="Center" width="100%"/>
+                <t:Column id="ColDiscountRate" width="8%" hAlign="Center">
+                    <Label id="LblDiscountRate" text="Discount" textAlign="Center" width="100%" />
                     <t:template>
-                        <Text id="TxtDiscountExpiry" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountEffectiveToDate} || '') : '' }" />
+                        <Text id="TxtDiscountRate" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountRate} || '') : '' }" />
+                    </t:template>
+                </t:Column>
+
+                <t:Column id="ColDiscountEffectiveDate" width="9%" hAlign="Center">
+                    <Label id="LblDiscountEffectiveDate" text="Discount Effective Date" textAlign="Center" width="100%" />
+                    <t:template>
+                        <Text id="TxtDiscountEffectiveDate" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountValidFrom} || '') : '' }" />
+                    </t:template>
+                </t:Column>
+
+                <t:Column id="ColDiscountExpiryDate" width="9%" hAlign="Center">
+                    <Label id="LblDiscountExpiryDate" text="Discount Expiry Date" textAlign="Center" width="100%" />
+                    <t:template>
+                        <Text id="TxtDiscountExpiryDate" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountValidTo} || '') : '' }" />
                     </t:template>
                 </t:Column>
 

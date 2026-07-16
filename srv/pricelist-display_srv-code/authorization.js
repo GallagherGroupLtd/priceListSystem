@@ -181,6 +181,62 @@ function mergeWhere(existingWhere, additionalWhere) {
     ];
 }
 
+async function getCurrentAccountAssignment(req) {
+    const db = cds.transaction(req);
+
+    const AccountAssignment = getEntity('AccountAssignment');
+    const AccountAssignmentScope = getEntity('AccountAssignmentScope');
+
+    const email = getUserEmail(req);
+
+    if (!email) {
+        return null;
+    }
+
+    const assignment = await db.run(
+        SELECT.one
+            .from(AccountAssignment)
+            .where`lower(Email) = ${email}`
+    );
+
+    if (!assignment) {
+        return null;
+    }
+
+    const scopes = await db.run(
+        SELECT
+            .from(AccountAssignmentScope)
+            .where({ parent_ID: assignment.ID })
+    );
+
+    return {
+        assignment,
+        scopes: scopes || []
+    };
+}
+
+function isInternalUser(assignment) {
+    return Boolean(
+        assignment &&
+        assignment.AccountType === 'Internal' &&
+        (
+            assignment.AccountScope === 'Admin' ||
+            assignment.AccountScope === 'Regional'
+        )
+    );
+}
+
+function isExternalCustomer(assignment) {
+    return Boolean(
+        assignment &&
+        assignment.AccountType === 'External' &&
+        assignment.AccountScope === 'Customer'
+    );
+}
+
 module.exports = {
-    filterPricelistData
+    filterPricelistData,
+    getCurrentAccountAssignment,
+    isInternalUser,
+    isExternalCustomer
 };

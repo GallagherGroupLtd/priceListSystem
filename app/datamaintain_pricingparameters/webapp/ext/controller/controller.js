@@ -73,10 +73,7 @@ sap.ui.define([
             { label: "CustPriceList", property: "CustPriceList" },
             { label: "CustGroup1", property: "CustGroup1" },
             { label: "ErpCustomer", property: "ErpCustomer" },
-            { label: "DeliveringPlant", property: "DeliveringPlant" },
-            { label: "ErpPriceCondition", property: "ErpPriceCondition" },
-            { label: "ErpSequence", property: "ErpSequence" },
-            { label: "ErpPricingAccessSequence", property: "ErpPricingAccessSequence" }
+            { label: "DeliveringPlant", property: "DeliveringPlant" }
           ];
           const oSettings = {
             workbook: { columns: aColumns },

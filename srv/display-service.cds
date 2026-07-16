@@ -45,6 +45,15 @@ service PriceListDisplayService {
         totalVersions : Integer;
     }
 
+    type DiscountResult {
+        Material              : String;
+        DiscountRate          : String;
+        DiscountValidFrom     : Date;
+        DiscountValidTo       : Date;
+        DiscountConditionType : String;
+        DiscountAccessSequence: String;
+    }
+
     type PricelistUpdatesResult {
         versions           : array of VersionHistoryItem;
         summary            : PricelistUpdatesSummary;
@@ -53,6 +62,20 @@ service PriceListDisplayService {
         categoryUpdates    : array of PricelistUpdateItem;
         notesUpdates       : array of PricelistUpdateItem;
     }
+
+    type DiscountUserContext {
+        IsInternalUser : Boolean;
+        IsExternalUser : Boolean;
+        CustomerNumber : String;
+    }
+
+    action getDiscountUserContext()
+        returns DiscountUserContext;
+
+    action resolveDiscounts(
+        pricelistId     : UUID,
+        customerNumber  : String
+    ) returns array of DiscountResult;
 
     action getPricelistUpdates(
         pricelistId : UUID,
