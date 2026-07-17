@@ -13,6 +13,10 @@ const versionService = require('./pricelist_maintain_srv-code/version-service');
 
 const { resolvePricingParameters } = require('./lib/pricing-parameter-resolver');
 
+const { DISCOUNT_CONDITION_TYPE_WHITELIST } = require('./pricing_parameter_srv-code/constants');
+
+const DISCOUNT_CONDITION_TYPE_WHITELIST_SET = new Set(DISCOUNT_CONDITION_TYPE_WHITELIST);
+
 /**
  * Generic Mass Upload Handler
  * @param {Object} req - CAP request object
@@ -1609,10 +1613,15 @@ module.exports = cds.service.impl(async function () {
                     .orderBy('CODE')
             );
 
-            discountRows = rows.map(row => ({
-                ParameterType: 'D',
-                Code: row.CODE,
-                Description: 'Discount Condition'
+            discountRows = rows
+                .map(row => String(row.CODE || "").trim().toUpperCase())
+                .filter(code =>
+                    DISCOUNT_CONDITION_TYPE_WHITELIST_SET.has(code)
+                )
+                .map(code => ({
+                    ParameterType: 'D',
+                    Code: code,
+                    Description: 'Discount Condition'
             }));
         }
 

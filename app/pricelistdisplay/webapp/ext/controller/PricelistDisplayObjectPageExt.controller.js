@@ -25,6 +25,7 @@ sap.ui.define([
 	const EXPORT_COLUMN_FIELD_MAP = {
 		ColCategoriesAndProducts: "Title",
 		ColDescription: "Description",
+		ColCountryOfOrigin: "CountryOfOrigin",
 		ColPriceCurrency: "PriceDisplay",
 		ColValidity: "PriceValidityDisplay",
 		ColDiscountRate: "DiscountRate",
@@ -100,6 +101,8 @@ sap.ui.define([
 				_oInstance = this;
 				this._loadPricelistUpdates();
 				this._initializeDiscountContext();
+
+				this._expandProductTreeFully();
 			},
 		},
 
@@ -161,6 +164,49 @@ sap.ui.define([
 		},
 
 		getInstance: function () { return _oInstance; },
+
+		// Fully expands the Product Tree after its JSON row binding has processed the latest hierarchy.
+		_expandProductTreeFully: function () {
+			const oTable =
+				this._productTreeTable ||
+				sap.ui.getCore().byId(
+					idTreePrefix + "ProductPriceListTreeTable"
+				);
+
+			if (!oTable) {
+				return;
+			}
+
+			const fnExpand = function () {
+				oTable.expandToLevel(99);
+
+				const oExpandAllButton =
+					sap.ui.getCore().byId(
+						idTreePrefix + "ProductListExpandAllBtn"
+					);
+
+				const oCollapseAllButton =
+					sap.ui.getCore().byId(
+						idTreePrefix + "ProductListCollapseAllBtn"
+					);
+
+				if (oExpandAllButton) {
+					oExpandAllButton.setVisible(false);
+				}
+
+				if (oCollapseAllButton) {
+					oCollapseAllButton.setVisible(true);
+				}
+			};
+
+			const oRowsBinding = oTable.getBinding("rows");
+
+			if (oRowsBinding) {
+				oTable.attachEventOnce("rowsUpdated", fnExpand);
+			}
+
+			setTimeout(fnExpand, 0);
+		},
 
 		_getProductPriceList: function () {
 			const oView = this.base.getView();
@@ -251,6 +297,9 @@ sap.ui.define([
 			oJsonModel.setProperty("/originalProductPriceList", JSON.parse(JSON.stringify(aTreeData)));
 			oJsonModel.setProperty("/selectedKeys", []);
 			this._applyCachedDiscountsToProductTree();
+			oJsonModel.updateBindings(true);
+
+			this._expandProductTreeFully();
 		},
 
 		_buildTree: function (rows) {
@@ -376,6 +425,7 @@ sap.ui.define([
 							CategoryLevel: level,
 							Title: title,
 							Description: row[descField] || null,
+							CountryOfOrigin: row.CountryOfOrigin || null,
 
 							// Categories do not hold specific price/discount data
 							Price: null,
@@ -1131,6 +1181,7 @@ sap.ui.define([
 				aOut.push({
 					Title: "    ".repeat(iLevel) + (oNode.Title || oNode.text || ""),
 					Description: bIsProduct ? (oNode.Description || "") : "",
+					CountryOfOrigin: bIsProduct ? (oNode.CountryOfOrigin || "") : "",
 					PriceDisplay: bIsProduct ? ((oNode.Price || "") + " " + (oNode.PriceUnit || "")).trim() : "",
 					PriceValidityDisplay: bIsProduct ? ((oNode.PriceValidFrom || "") + " - " + (oNode.PriceValidTo || "")).trim() : "",
 					DiscountRate: bIsProduct ? (oNode.DiscountRate || "") : "",

@@ -273,6 +273,47 @@ sap.ui.define([
 		/** Returns the current controller singleton for use in fragment event handlers. */
 		getInstance: function () { return _oInstance; },
 
+		// Fully expands the Product Tree after its JSON row binding has processed the latest hierarchy.
+		_expandProductTreeFully: function () {
+			const oTable =
+				this._productTreeTable ||
+				this._getTreeControl("ProductPriceListTreeTable");
+
+			if (!oTable) {
+				return;
+			}
+
+			const fnExpand = function () {
+				oTable.expandToLevel(99);
+
+				const oExpandAllButton =
+					sap.ui.getCore().byId(
+						ID_TREE_PREFIX + "ProductListExpandAllBtn"
+					);
+
+				const oCollapseAllButton =
+					sap.ui.getCore().byId(
+						ID_TREE_PREFIX + "ProductListCollapseAllBtn"
+					);
+
+				if (oExpandAllButton) {
+					oExpandAllButton.setVisible(false);
+				}
+
+				if (oCollapseAllButton) {
+					oCollapseAllButton.setVisible(true);
+				}
+			};
+
+			const oRowsBinding = oTable.getBinding("rows");
+
+			if (oRowsBinding) {
+				oTable.attachEventOnce("rowsUpdated", fnExpand);
+			}
+
+			setTimeout(fnExpand, 0);
+		},
+
 		// ── Product list toolbar handlers ─────────────────────────────────────────
 
 		/** Discards all local tree state and re-fetches the pricelist from the server. */
@@ -899,6 +940,8 @@ sap.ui.define([
 
 			this._clearProductTreeTransientState();
 			oJsonModel.updateBindings(true);
+
+			this._expandProductTreeFully();
 		},
 
 		// ── Initial load (direct from the ProductPriceList entity) ─────────────────
@@ -933,6 +976,8 @@ sap.ui.define([
 
 					this._clearProductTreeTransientState();
 					oJsonModel.updateBindings(true);
+
+					this._expandProductTreeFully();
 				})
 				.catch((oError) => {
 					console.error(oError);
