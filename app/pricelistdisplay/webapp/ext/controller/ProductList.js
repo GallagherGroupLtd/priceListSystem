@@ -146,6 +146,14 @@ sap.ui.define([
             // sap.ui.getCore().byId(idPrefix + "ProductListExpandBtn").setVisible(true);
         },
 
+        onOpenDisplayColumnSettings: function () {
+            const oExt = ExtController.getInstance();
+
+            if (oExt && oExt.onOpenDisplayColumnSettings) {
+                oExt.onOpenDisplayColumnSettings();
+            }
+        },
+
         onSortProducts: function (oEvent) {
             const oExt = ExtController.getInstance();
             const oView = oExt.base.getView();

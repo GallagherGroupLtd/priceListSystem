@@ -1,8 +1,60 @@
 const authorization = require('./pricelist-display_srv-code/authorization');
+const { getUserEmail } = require("./lib/account-assignment-authorization");
 const { getVersionNumber } = require('./pricelist_maintain_srv-code/version-helper');
 const { resolvePricingParameters } = require('./lib/pricing-parameter-resolver');
+const { getPricelistDisplayColumns } = require("./lib/pricelist-display-columns");
+
+const { SELECT } = cds.ql;
 
 module.exports = cds.service.impl(async function () {
+    this.on("getPricelistDisplayColumnConfiguration",() => {
+            return getPricelistDisplayColumns();
+        }
+    );
+    
+    this.on("getPricelistDisplayLayout",async (req) => {
+        const { pricelistId } = req.data || {};
+
+        if (!pricelistId) {
+            return req.error(400,"Pricelist ID is required.");
+        }
+
+        const db = cds.tx(req);
+
+        const { PricelistData } = this.entities;
+
+        const row = await db.run(
+            SELECT.one
+                .from(PricelistData)
+                .columns("ID","Status","DisplayLayoutConfig","DisplayLayoutMaintainedBy","DisplayLayoutMaintainedAt")
+                .where({
+                    ID: pricelistId,
+                    Status: "Published"
+                })
+        );
+
+        if (!row) {
+            return req.error(404,"Published pricelist was not found.");
+        }
+
+        const currentUserContext = await authorization.getCurrentAccountAssignment(req);
+        const currentUserEmail = getUserEmail(req);
+
+        const maintainedBy = String(row.DisplayLayoutMaintainedBy || "").trim().toLowerCase();
+        const bIsMaintainer = !!currentUserEmail && !!maintainedBy && currentUserEmail === maintainedBy;
+
+        const bIsAdmin = authorization.isInternalAdmin(currentUserContext?.assignment);
+        const bCanManage = bIsMaintainer || bIsAdmin;
+
+        return {
+            config: row.DisplayLayoutConfig || "",
+            hasSavedLayout: !!row.DisplayLayoutConfig,
+            canManageLayout: bCanManage,
+            maintainedBy: bCanManage ? row.DisplayLayoutMaintainedBy || "" : "",
+            maintainedAt: bCanManage ? row.DisplayLayoutMaintainedAt || null : null
+        };
+    });
+
     this.on('getDiscountUserContext', async (req) => {
         const userContext = await authorization.getCurrentAccountAssignment(req);
 

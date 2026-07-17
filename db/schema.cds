@@ -308,6 +308,10 @@ entity PricelistData : managed, cuid {
     PricelistGroupID    : UUID    @title: 'Pricelist Group ID';
     IsVersionActive     : Boolean @title: 'Active Version' default true;
 
+    DisplayLayoutConfig       : LargeString @title: 'Display Layout Configuration';
+    DisplayLayoutMaintainedBy : String(255) @title: 'Display Layout Maintained By';
+    DisplayLayoutMaintainedAt : DateTime    @title: 'Display Layout Maintained At';
+
     MarketDisplay      : String       @title: 'Market Region'  @cds.persistence.skip; //Virtual Field
 
     TermsAndConditions  : LargeString @title: 'Header Terms and Conditions';

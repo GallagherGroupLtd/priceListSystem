@@ -1,6 +1,7 @@
 sap.ui.define([
 	'sap/ui/core/mvc/ControllerExtension',
 	'sap/ui/model/json/JSONModel',
+	"sap/ui/core/Fragment",
 	'sap/ui/model/Filter',
 	'sap/ui/model/FilterOperator',
 	'sap/m/MessageToast',
@@ -12,7 +13,7 @@ sap.ui.define([
     'sap/m/VBox',
 	'sap/ui/export/library',
 	'sap/ui/export/ExportHandler'
-], function (ControllerExtension, JSONModel, Filter, FilterOperator, MessageToast, MessageBox, Dialog, Input, Label, Button, VBox, exportLibrary, ExportHandler) {
+], function (ControllerExtension, JSONModel, Fragment, Filter, FilterOperator, MessageToast, MessageBox, Dialog, Input, Label, Button, VBox, exportLibrary, ExportHandler) {
 	'use strict';
 
 	const idTreePrefix = "pricelistapp.pricelistdisplay::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--";
@@ -75,6 +76,14 @@ sap.ui.define([
 					oJson.setProperty("/discountLoading", false);
 					oJson.setProperty("/resolvedDiscountRows", []);
 					oJson.setProperty("/discountResolved", false);
+					oJson.setProperty("/displayLayout", {
+						officialColumns: [],
+						workingColumns: [],
+						hasSavedLayout: false,
+						canManageLayout: false,
+						maintainedBy: "",
+						maintainedAt: null
+					});
 					oJson.setProperty("/pricelistUpdates", {
 						versions: [],
 						summary: {
@@ -101,9 +110,275 @@ sap.ui.define([
 				_oInstance = this;
 				this._loadPricelistUpdates();
 				this._initializeDiscountContext();
+				this._loadAndApplyOfficialDisplayLayout();
 
 				this._expandProductTreeFully();
 			},
+		},
+
+		_loadDisplayColumnConfiguration: async function () {
+			const oResult = await this._executeAction("/getPricelistDisplayColumnConfiguration(...)",{});
+
+			const aColumns = Array.isArray(oResult) ? oResult : oResult && Array.isArray(oResult.value) ? oResult.value : [];
+
+			if (!aColumns.length) {
+				throw new Error("Pricelist Display column configuration is unavailable.");
+			}
+
+			return aColumns.map((oColumn, iIndex) => ({
+				id: oColumn.id,
+				label: oColumn.label || oColumn.id,
+				mandatory: !!oColumn.mandatory,
+				defaultVisible: oColumn.defaultVisible !== false,
+				order: Number.isInteger(oColumn.order) ? oColumn.order : iIndex
+			})).sort((oFirst, oSecond) => oFirst.order - oSecond.order);
+		},
+
+		_getActualDisplayTableColumns: function () {
+			const oTable = this._productTreeTable || sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
+
+			if (!oTable) {
+				return [];
+			}
+
+			return oTable.getColumns().map((oColumn, iIndex) => {
+				const sFullId = oColumn.getId();
+
+				const sColumnId = sFullId.startsWith(idTreePrefix) ? sFullId.substring(idTreePrefix.length) : sFullId.split("--").pop();
+
+				return {
+					id: sColumnId,
+					column: oColumn,
+					currentIndex: iIndex
+				};
+			});
+		},
+
+		_buildDefaultDisplayColumns: function (aConfiguration) {
+			const aActualColumns = this._getActualDisplayTableColumns();
+
+			const mConfigurationById = new Map((aConfiguration || []).map((oConfiguredColumn) => [
+				oConfiguredColumn.id,
+				oConfiguredColumn
+			]));
+
+			return aActualColumns.map((oActualColumn) => {
+				const oConfiguredColumn = mConfigurationById.get(oActualColumn.id);
+
+				/*
+				* A column introduced in the XML fragment but not yet entered in
+				* the central configuration is shown by default.
+				*/
+				if (!oConfiguredColumn) {
+					return {
+						id: oActualColumn.id,
+						label: oActualColumn.id,
+						mandatory: false,
+						visible: true,
+						configured: false,
+						order: 100000 + oActualColumn.currentIndex
+					};
+				}
+
+				return {
+					id: oConfiguredColumn.id,
+					label: oConfiguredColumn.label || oConfiguredColumn.id,
+					mandatory: !!oConfiguredColumn.mandatory,
+					visible: oConfiguredColumn.mandatory || oConfiguredColumn.defaultVisible !== false,
+					configured: true,
+					order: Number.isInteger(oConfiguredColumn.order) ? oConfiguredColumn.order : oActualColumn.currentIndex
+				};
+			}).sort((oFirst, oSecond) => oFirst.order - oSecond.order);
+		},
+
+		_parseOfficialDisplayLayout: function (sConfig,aConfiguration) {
+			const aDefaults = this._buildDefaultDisplayColumns(aConfiguration);
+
+			if (!sConfig) {
+				return aDefaults;
+			}
+
+			try {
+				const aSavedColumns = JSON.parse(sConfig);
+
+				if (!Array.isArray(aSavedColumns)) {
+					return aDefaults;
+				}
+
+				const mSavedById = new Map(aSavedColumns.filter((oColumn) => oColumn && oColumn.id).map((oColumn, iIndex) => [
+					oColumn.id,
+					{
+						visible: oColumn.visible !== false,
+						order: Number.isInteger(oColumn.order) ? oColumn.order : iIndex
+					}
+				]));
+
+				return aDefaults.map((oDefaultColumn, iIndex) => {
+					const oSavedColumn = mSavedById.get(oDefaultColumn.id);
+
+					return {
+						...oDefaultColumn,
+						visible: oDefaultColumn.mandatory ? true : oSavedColumn ? oSavedColumn.visible : oDefaultColumn.visible,
+						order: oSavedColumn ? oSavedColumn.order : Number.isInteger(oDefaultColumn.order) ? oDefaultColumn.order : iIndex
+					};
+				}).sort((oFirst, oSecond) => oFirst.order - oSecond.order);
+			} catch (oError) {
+				console.error("Invalid saved Display layout. Showing configured default columns.",oError);
+				return aDefaults;
+			}
+		},
+
+		_loadAndApplyOfficialDisplayLayout: async function () {
+			const oContext = this.base.getView().getBindingContext();
+
+			if (!oContext) {
+				return;
+			}
+
+			const sPricelistId = oContext.getProperty("ID");
+
+			if (!sPricelistId) {
+				return;
+			}
+
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+
+			try {
+				const [oLayoutResult,aColumnConfiguration] = await Promise.all([
+					this._executeAction("/getPricelistDisplayLayout(...)",{
+						pricelistId: sPricelistId
+					}),this._loadDisplayColumnConfiguration()
+				]);
+
+				const aColumns = this._parseOfficialDisplayLayout(oLayoutResult?.config || "", aColumnConfiguration);
+				oJsonModel.setProperty("/displayLayout/officialColumns",JSON.parse(JSON.stringify(aColumns)));
+				oJsonModel.setProperty("/displayLayout/workingColumns",JSON.parse(JSON.stringify(aColumns)));
+				oJsonModel.setProperty("/displayLayout/hasSavedLayout",!!oLayoutResult?.hasSavedLayout);
+				oJsonModel.setProperty("/displayLayout/canManageLayout",!!oLayoutResult?.canManageLayout);
+				oJsonModel.setProperty("/displayLayout/maintainedBy",oLayoutResult?.maintainedBy || "");
+				oJsonModel.setProperty("/displayLayout/maintainedAt",oLayoutResult?.maintainedAt || null);
+
+				this._applyDisplayColumnsToTable(aColumns);
+			} catch (oError) {
+				console.error("Unable to load saved Display layout. Showing all actual Product-tree columns.",oError);
+				const aDefaultColumns = this._getActualDisplayTableColumns().map((oActualColumn, iIndex) => ({
+					id: oActualColumn.id,
+					label: oActualColumn.id,
+					mandatory: false,
+					visible: true,
+					configured: false,
+					order: iIndex
+				}));
+
+				oJsonModel.setProperty("/displayLayout/officialColumns",JSON.parse(JSON.stringify(aDefaultColumns)));
+				oJsonModel.setProperty("/displayLayout/workingColumns",JSON.parse(JSON.stringify(aDefaultColumns)));
+				oJsonModel.setProperty("/displayLayout/hasSavedLayout",false);
+				oJsonModel.setProperty("/displayLayout/canManageLayout",false);
+
+				this._applyDisplayColumnsToTable(aDefaultColumns);
+			}
+		},
+
+		_applyDisplayColumnsToTable: function (aColumns) {
+			const oTable = this._productTreeTable || sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
+
+			if (!oTable) {
+				return;
+			}
+
+			(aColumns || []).forEach(
+				(oColumnInfo, iTargetIndex) => {
+					const oColumn = sap.ui.getCore().byId(idTreePrefix + oColumnInfo.id);
+
+					if (!oColumn) {
+						return;
+					}
+
+					oColumn.setVisible(oColumnInfo.mandatory ? true : !!oColumnInfo.visible);
+
+					const iCurrentIndex = oTable.indexOfColumn(oColumn);
+
+					if (iCurrentIndex !== iTargetIndex) {
+						oTable.removeColumn(oColumn);
+						oTable.insertColumn(oColumn,iTargetIndex);
+					}
+				}
+			);
+		},
+
+		onOpenDisplayColumnSettings: function () {
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+
+			const aCurrentColumns = (oJsonModel.getProperty("/displayLayout/workingColumns") || []).map((oColumn) => ({
+				...oColumn,
+				visible: oColumn.mandatory ? true : !!oColumn.visible
+			}));
+
+			oJsonModel.setProperty("/displayLayout/workingColumns",aCurrentColumns);
+
+			if (this._oDisplayColumnSettingsDialog) {
+				this._oDisplayColumnSettingsDialog.open();
+				return;
+			}
+
+			Fragment.load({
+				id: this.base.getView().getId(),
+				name: "pricelistapp.pricelistdisplay.ext.fragment.DisplayColumnSettingsDialog",
+				controller: this
+			}).then((oDialog) => {
+				this._oDisplayColumnSettingsDialog = oDialog;
+				this.base.getView().addDependent(oDialog);
+				oDialog.open();
+			}).catch((oError) => {
+				console.error("Unable to load Display column-settings dialog.",oError);
+				MessageBox.error("Column settings could not be opened.");
+			});
+		},
+
+		onTemporaryDisplayColumnSelectionChange: function (oEvent) {
+			const oContext = oEvent.getSource().getBindingContext("jsonModel");
+
+			if (!oContext) {
+				return;
+			}
+
+			const oColumn = oContext.getObject();
+
+			if (oColumn && oColumn.mandatory) {
+				oContext.setProperty("visible",true);
+			}
+		},
+
+		onApplyTemporaryDisplayColumns: function () {
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+			const aColumns = oJsonModel.getProperty("/displayLayout/workingColumns") || [];
+
+			this._applyDisplayColumnsToTable(aColumns);
+
+			if (this._oDisplayColumnSettingsDialog) {
+				this._oDisplayColumnSettingsDialog.close();
+			}
+		},
+
+		onResetTemporaryDisplayColumns: function () {
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+			const aOfficialColumns = JSON.parse(JSON.stringify(oJsonModel.getProperty("/displayLayout/officialColumns") || this._buildDefaultDisplayColumns()));
+			const aResetColumns = JSON.parse(JSON.stringify(aOfficialColumns.length ? aOfficialColumns : this._getActualDisplayTableColumns().map((oActualColumn,iIndex) => ({
+				id: oActualColumn.id,
+				label: oActualColumn.id,
+				mandatory: false,
+				visible: true,
+				configured: false,
+				order: iIndex
+			}))));
+
+			oJsonModel.setProperty("/displayLayout/workingColumns",aResetColumns);
+
+			this._applyDisplayColumnsToTable(aResetColumns);
+
+			if (this._oDisplayColumnSettingsDialog) {
+				this._oDisplayColumnSettingsDialog.close();
+			}
 		},
 
 		_initializeDiscountContext: async function () {

@@ -12,7 +12,7 @@ const saveProductPriceList = require('./pricelist_maintain_srv-code/save-product
 const versionService = require('./pricelist_maintain_srv-code/version-service');
 
 const { resolvePricingParameters } = require('./lib/pricing-parameter-resolver');
-
+const { getPricelistDisplayColumns } = require("./lib/pricelist-display-columns");
 const { DISCOUNT_CONDITION_TYPE_WHITELIST } = require('./pricing_parameter_srv-code/constants');
 
 const DISCOUNT_CONDITION_TYPE_WHITELIST_SET = new Set(DISCOUNT_CONDITION_TYPE_WHITELIST);
@@ -3148,6 +3148,12 @@ module.exports = cds.service.impl(async function () {
 
         return;
     });
+
+    // Return the centrally maintained Pricelist Display column catalogue. The configuration is code-owned and does not access HANA.
+    this.on("getPricelistDisplayColumnConfiguration",() => {
+            return getPricelistDisplayColumns();
+        }
+    );
 
     // Tree Table Column Layout (Save/Load/Delete)
     this.on('getAvailableLayouts', async (req) => {

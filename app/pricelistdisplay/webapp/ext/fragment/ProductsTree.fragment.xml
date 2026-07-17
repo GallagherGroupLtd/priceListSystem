@@ -51,6 +51,11 @@
                 tooltip="Filter"
                 press="handler.onOpenHierarchyFilter"/>
             <Button
+                id="ProductListColumnSettingsBtn"
+                icon="sap-icon://action-settings"
+                tooltip="Column Settings"
+                press="handler.onOpenDisplayColumnSettings" />
+            <Button
                 id="ProductListRetrieveDiscountBtn"
                 text="Retrieve Discount"
                 icon="sap-icon://customer-financial-fact-sheet"

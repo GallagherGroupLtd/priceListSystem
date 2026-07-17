@@ -26,7 +26,8 @@ sap.ui.define([
 	const HEADER_FIELDS = [
 		"ID", "PricelistType", "MarketScopeRegion", "MarketScopeCountry",
 		"SalesOrg", "DistChannel", "CustPriceList",
-		"CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey"
+		"CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey",
+		"Status", "Version", "PricelistGroupID", "DisplayLayoutConfig", "DisplayLayoutMaintainedBy", "DisplayLayoutMaintainedAt"
 	];
 
 	/**
@@ -200,26 +201,46 @@ sap.ui.define([
 				 * Serialises the current tree to the backend before Fiori Elements commits
 				 * the draft. Returns a rejected promise on error so FE can abort the save.
 				 */
-				onBeforeSave: function () {
+				onBeforeSave: async function () {
 					const oJsonModel = this._getJsonModel();
 
 					// Bug fix: saving while delete/reorder mode is active is not allowed —
 					// the user must press "Finish" on that mode first.
 					if (oJsonModel.getProperty("/isDeleteMode") || oJsonModel.getProperty("/isReorderMode")) {
 						MessageBox.error("Please finish delete or re-order mode before saving your changes.");
-						return Promise.reject();
+						return Promise.reject(new Error("Product-tree mode must be completed before saving."));
 					}
 
 					const aTree = oJsonModel.getProperty("/productPriceList") || [];
 					const aPendingDeletedIds = oJsonModel.getProperty("/pendingDeletedIds") || [];
 
+					const oHeader = this._getCurrentHeaderData();
+					const oOriginalHeader = this._originalHeaderSnapshot || oHeader;
+
+					const bIsPublication = oHeader.Status === "Published" && oOriginalHeader.Status !== "Published";
+
+					/*
+				     * This will prompt only when a new version is being activated/published.
+				     * The current draft already inherits DisplayLayoutConfig from the previous published version through the existing version-copy architecture.
+				     */
+
+					if (bIsPublication) {
+						const oDisplayLayout = await this._confirmDisplayLayoutBeforePublication(oHeader.DisplayLayoutConfig);
+
+						if (!oDisplayLayout) {
+							return Promise.reject(new Error("Pricelist publication was cancelled."));
+						}
+
+						await this._writeDisplayLayoutToDraft(oDisplayLayout);
+
+						// Refresh the locally captured header after writing the layout to the draft context so saveProductPriceList receives the latest values.
+						Object.assign(oHeader,this._getCurrentHeaderData());
+					}
+
 					if (!aTree.length && !aPendingDeletedIds.length) {
 						// MessageToast.show("Nothing to save.");
 						return Promise.resolve();
 					}
-
-					const oHeader = this._getCurrentHeaderData();
-					const oOriginalHeader = this._originalHeaderSnapshot || oHeader;
 
 					return this._callSaveProductPriceList(oHeader, oOriginalHeader, aTree);
 				},
@@ -2199,8 +2220,12 @@ sap.ui.define([
 					setAsDefault: false,
 					setAsMasterDefault: false,
 					canDeleteSelected: false
-				}
+				},
 
+				displayLayoutSettings: {
+					columns: [],
+					publicationRequired: false
+				}
 			};
 		},
 
@@ -2480,6 +2505,186 @@ sap.ui.define([
 				oReorderToggle.setText("Re-order");
 				oReorderToggle.setTooltip("Toggle re-order mode");
 			}
+		},
+
+		_loadDisplayColumnConfiguration: async function () {
+			const oModel = this.base.getView().getModel();
+
+			const oActionBinding = oModel.bindContext("/getPricelistDisplayColumnConfiguration(...)");
+
+			await oActionBinding.execute();
+
+			const oBoundContext = oActionBinding.getBoundContext();
+			const oResult = oBoundContext ? oBoundContext.getObject() : null;
+
+			const aColumns = Array.isArray(oResult) ? oResult : oResult && Array.isArray(oResult.value) ? oResult.value : [];
+
+			if (!aColumns.length) {
+				throw new Error("Pricelist Display column configuration is unavailable.");
+			}
+
+			return aColumns.map((oColumn, iIndex) => ({
+				id: oColumn.id,
+				label: oColumn.label || oColumn.id,
+				mandatory: !!oColumn.mandatory,
+				defaultVisible: oColumn.defaultVisible !== false,
+				order: Number.isInteger(oColumn.order) ? oColumn.order : iIndex
+			})).sort((oFirst, oSecond) => oFirst.order - oSecond.order);
+		},
+
+		_buildDefaultDisplayLayoutColumns: function (aConfiguration) {
+			return (aConfiguration || []).map((oColumn, iIndex) => ({
+				id: oColumn.id,
+				label: oColumn.label || oColumn.id,
+				mandatory: !!oColumn.mandatory,
+				visible: !!oColumn.mandatory || oColumn.defaultVisible !== false,
+				order: Number.isInteger(oColumn.order) ? oColumn.order : iIndex
+			})).sort((oFirst, oSecond) => oFirst.order - oSecond.order);
+		},
+
+		_parseDisplayLayoutConfig: function (sConfig,aConfiguration) {
+			const aDefaultColumns = this._buildDefaultDisplayLayoutColumns(aConfiguration);
+
+			if (!sConfig) {
+				return aDefaultColumns;
+			}
+
+			try {
+				const aSavedColumns = JSON.parse(sConfig);
+
+				if (!Array.isArray(aSavedColumns)) {
+					return aDefaultColumns;
+				}
+
+				const mSavedById = new Map(aSavedColumns.filter((oColumn) => oColumn && oColumn.id).map((oColumn, iIndex) => [
+					oColumn.id,
+					{
+						visible: oColumn.visible !== false,
+						order: Number.isInteger(oColumn.order) ? oColumn.order : iIndex
+					}
+				]));
+
+				return aDefaultColumns.map((oDefaultColumn, iIndex) => {
+					const oSavedColumn = mSavedById.get(oDefaultColumn.id);
+
+					return {
+						id: oDefaultColumn.id,
+						label: oDefaultColumn.label,
+						mandatory: !!oDefaultColumn.mandatory,
+						visible: oDefaultColumn.mandatory ? true : oSavedColumn ? oSavedColumn.visible : oDefaultColumn.visible,
+						order: oSavedColumn ? oSavedColumn.order : Number.isInteger(oDefaultColumn.order) ? oDefaultColumn.order : iIndex
+					};
+				}).sort((oFirst, oSecond) => oFirst.order - oSecond.order);
+			} catch (oError) {
+				console.error("Invalid DisplayLayoutConfig. Using the central default configuration.",oError);
+				return aDefaultColumns;
+			}
+		},
+
+		_confirmDisplayLayoutBeforePublication: async function (sExistingConfig) {
+			const oJsonModel = this._getJsonModel();
+			const aConfiguration = await this._loadDisplayColumnConfiguration();
+			const aColumns = this._parseDisplayLayoutConfig(sExistingConfig,aConfiguration);
+
+			oJsonModel.setProperty("/displayLayoutSettings/columns",aColumns);
+			oJsonModel.setProperty("/displayLayoutSettings/publicationRequired",true);
+
+			return new Promise((resolve) => {
+				this._fnResolveDisplayLayoutPublication = resolve;
+
+				if (this._oDisplayLayoutPublicationDialog) {
+					this._oDisplayLayoutPublicationDialog.open();
+					return;
+				}
+
+				Fragment.load({
+					id: this.base.getView().getId(),
+					name: "pricelistapp.pricelistmaintain.ext.fragment.DisplayLayoutPublicationDialog",
+					controller: this
+				}).then((oDialog) => {
+					this._oDisplayLayoutPublicationDialog = oDialog;
+					this.base.getView().addDependent(oDialog);
+					oDialog.open();
+				}).catch((oError) => {
+					console.error("Unable to load Display-layout publication dialog.",oError);
+					this._resolveDisplayLayoutPublication(null);
+				});
+			});
+		},
+
+		onDisplayLayoutColumnSelectionChange: function (oEvent) {
+			const oContext = oEvent.getSource().getBindingContext("jsonModel");
+
+			if (!oContext) {
+				return;
+			}
+
+			const oColumn = oContext.getObject();
+
+			if (oColumn && oColumn.mandatory) {
+				oContext.setProperty("visible",true);
+			}
+		},
+
+		onConfirmDisplayLayoutPublication: function () {
+			const oJsonModel = this._getJsonModel();
+
+			const aDialogColumns = oJsonModel.getProperty("/displayLayoutSettings/columns") || [];
+			const bMandatoryColumnsPresent = aDialogColumns.filter((oColumn) => oColumn.mandatory).every((oColumn) => oColumn.visible);
+
+
+			if (!bMandatoryColumnsPresent) {
+				MessageBox.error("Categories and Products and Description must remain visible.");
+				return;
+			}
+
+			const aPersistedColumns = aDialogColumns.map((oColumn, iIndex) => ({
+                id: oColumn.id,
+                visible: oColumn.mandatory ? true : !!oColumn.visible,
+                order: iIndex
+            }));
+
+			this._resolveDisplayLayoutPublication({
+				config: JSON.stringify(aPersistedColumns)
+			});
+		},
+
+		onCancelDisplayLayoutPublication: function () {
+			this._resolveDisplayLayoutPublication(null);
+		},
+
+		onAfterCloseDisplayLayoutPublicationDialog: function () {
+			//Kept as placceholder for future requirements
+		},
+
+		_resolveDisplayLayoutPublication: function (oResult) {
+			if (this._oDisplayLayoutPublicationDialog) {
+				this._oDisplayLayoutPublicationDialog.close();
+			}
+
+			const fnResolve = this._fnResolveDisplayLayoutPublication;
+			this._fnResolveDisplayLayoutPublication = null;
+
+			if (fnResolve) {
+				fnResolve(oResult);
+			}
+		},
+
+		_writeDisplayLayoutToDraft: async function (oDisplayLayout) {
+			const oContext = this.base.getView().getBindingContext();
+
+			if (!oContext) {
+				throw new Error("Pricelist binding context is unavailable.");
+			}
+
+			const sCurrentUser = await this._getCurrentUserId();
+			const sMaintainedAt = new Date().toISOString();
+
+			await Promise.all([
+				oContext.setProperty("DisplayLayoutConfig",oDisplayLayout.config),
+				oContext.setProperty("DisplayLayoutMaintainedBy",sCurrentUser || ""),
+				oContext.setProperty("DisplayLayoutMaintainedAt",sMaintainedAt)
+			]);
 		},
 
 		_callSaveProductPriceList: function (oHeader, oOriginalHeader, aTree) {

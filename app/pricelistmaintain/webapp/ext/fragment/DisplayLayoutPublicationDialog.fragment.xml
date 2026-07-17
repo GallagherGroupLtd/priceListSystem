@@ -1,0 +1,26 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+    <Dialog id="DisplayLayoutPublicationDialog" title="Confirm Pricelist Display Layout" contentWidth="34rem"
+        draggable="true" resizable="true" afterClose=".onAfterCloseDisplayLayoutPublicationDialog">
+        <content>
+            <VBox class="sapUiSmallMargin" width="100%">
+                <MessageStrip text="Select the Product-tree columns that should be shown by default in Pricelist Display for this published version."
+                    type="Information" showIcon="true" showCloseButton="false" class="sapUiSmallMarginBottom" />
+                <Text text="Categories and Products and Description are mandatory and cannot be hidden." wrapping="true" class="sapUiSmallMarginBottom" />
+                <List id="DisplayLayoutPublicationColumnList" items="{jsonModel>/displayLayoutSettings/columns}" mode="None">
+                    <CustomListItem>
+                        <HBox width="100%" alignItems="Center">
+                            <CheckBox selected="{jsonModel>visible}" enabled="{= !${jsonModel>mandatory} }" select=".onDisplayLayoutColumnSelectionChange" />
+                            <Text text="{jsonModel>label}" wrapping="true" class="sapUiTinyMarginBegin" />
+                        </HBox>
+                    </CustomListItem>
+                </List>
+            </VBox>
+        </content>
+        <beginButton>
+            <Button text="Confirm and Publish" type="Emphasized" press=".onConfirmDisplayLayoutPublication" />
+        </beginButton>
+        <endButton>
+            <Button text="Cancel" press=".onCancelDisplayLayoutPublication" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

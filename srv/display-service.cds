@@ -69,6 +69,29 @@ service PriceListDisplayService {
         CustomerNumber : String;
     }
 
+    type PricelistDisplayColumnConfiguration {
+        id             : String(100);
+        label          : String(255);
+        mandatory      : Boolean;
+        defaultVisible : Boolean;
+        order          : Integer;
+    }
+
+    action getPricelistDisplayColumnConfiguration()
+        returns array of PricelistDisplayColumnConfiguration;
+        
+    type PricelistDisplayLayoutResult {
+        config             : LargeString;
+        hasSavedLayout     : Boolean;
+        canManageLayout    : Boolean;
+        maintainedBy       : String(255);
+        maintainedAt       : DateTime;
+    }
+
+    action getPricelistDisplayLayout(
+        pricelistId : UUID
+    ) returns PricelistDisplayLayoutResult;
+
     action getDiscountUserContext()
         returns DiscountUserContext;
 

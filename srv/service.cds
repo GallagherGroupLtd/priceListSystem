@@ -258,6 +258,18 @@ service PriceListService {
     action saveTreeLayout(ID: UUID, tableId: String, layoutName: String, defaultLayout: Boolean, masterDefault: Boolean, config: String) returns LayoutInfo;
     action deleteTreeLayout(ID: UUID) returns Boolean;
 
+    // Code-level configuration for columns supported by the Pricelist Display Product tree. No database persistence is involved.
+    type PricelistDisplayColumnConfiguration {
+        id             : String(100);
+        label          : String(255);
+        mandatory      : Boolean;
+        defaultVisible : Boolean;
+        order          : Integer;
+    }
+
+    action getPricelistDisplayColumnConfiguration()
+        returns array of PricelistDisplayColumnConfiguration;
+
     type UploadValidatedItem {
         PricelistPartNumber      : String;
         PartNumberDescr          : String;
