@@ -2518,7 +2518,6 @@ module.exports = cds.service.impl(async function () {
     });
 
     this.on('getProductTreeData', async (req) => {
-
         let headerData;
         try {
             headerData = JSON.parse(req.data.headerData);
@@ -2795,13 +2794,59 @@ module.exports = cds.service.impl(async function () {
             }
         };
 
+        // const loadMaterials = async (itemStructureDatas) => {
+        //     const where = buildMaterialWhere(itemStructureDatas);
+        //     const extQuery = `WITH ranked AS (SELECT *, ROW_NUMBER() OVER ( PARTITION BY "MATERIAL_KEY", "SALES_ORGANIZATION", "DISTRIBUTION_CHANNEL"
+        //         ORDER BY SUBSTRING("CREATED_AT", 1, 19) DESC) AS rn FROM "SAPECC"."T_MATERIAL_MASTER_DATA" WHERE ${where})
+        //         SELECT * FROM ranked WHERE rn = 1`;
+        //     const materialsMaster = await extdb.run(extQuery);
+        //     await mergeMaterialStatus(materialsMaster);
+        //     return materialsMaster;
+        // };
+
         const loadMaterials = async (itemStructureDatas) => {
             const where = buildMaterialWhere(itemStructureDatas);
-            const extQuery = `WITH ranked AS (SELECT *, ROW_NUMBER() OVER ( PARTITION BY "MATERIAL_KEY", "SALES_ORGANIZATION", "DISTRIBUTION_CHANNEL"
-                ORDER BY SUBSTRING("CREATED_AT", 1, 19) DESC) AS rn FROM "SAPECC"."T_MATERIAL_MASTER_DATA" WHERE ${where})
-                SELECT * FROM ranked WHERE rn = 1`;
+            const sResolvedPlant = resolvedPlant ? escapeSql(resolvedPlant) : "";
+
+            const sPlantPriority = resolvedPlant 
+                ? `
+                    CASE
+                        WHEN "PLANT" = '${sResolvedPlant}' THEN 0
+                        WHEN "PLANT" = '*' THEN 1
+                        ELSE 2
+                    END,
+                `
+                : `
+                    CASE
+                        WHEN "PLANT" = '*' THEN 0
+                        ELSE 1
+                    END,
+                `;
+
+            const extQuery = `
+                WITH ranked AS (
+                    SELECT
+                        *,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY
+                                "MATERIAL_KEY",
+                                "SALES_ORGANIZATION",
+                                "DISTRIBUTION_CHANNEL"
+                            ORDER BY
+                                ${sPlantPriority}
+                                SUBSTRING("CREATED_AT", 1, 19) DESC
+                        ) AS rn
+                    FROM "SAPECC"."T_MATERIAL_MASTER_DATA"
+                    WHERE ${where}
+                )
+                SELECT *
+                FROM ranked
+                WHERE rn = 1
+            `;
+
             const materialsMaster = await extdb.run(extQuery);
             await mergeMaterialStatus(materialsMaster);
+
             return materialsMaster;
         };
 

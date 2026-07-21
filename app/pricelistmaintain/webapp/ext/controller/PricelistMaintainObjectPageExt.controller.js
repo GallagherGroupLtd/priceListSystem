@@ -1014,6 +1014,77 @@ sap.ui.define([
 		// 		});
 		// },
 
+		/**
+		 * Enriches Product nodes in an already-persisted ProductPriceList tree with Country of Origin returned by getProductTreeData.
+		 *
+		 * Only CountryOfOrigin is copied. Persisted prices, discounts, ordering, deletions, notes, IDs and all other maintained fields remain unchanged.
+		 *
+		 * MaterialKey is the primary match. Product Title, which contains the material number, is used as a fallback for older persisted rows without MaterialKey.
+		 */
+		_enrichPersistedTreeCountryOfOrigin: function (aPersistedTree, aGeneratedRows) {
+			const aSafeTree = Array.isArray(aPersistedTree) ? this._clone(aPersistedTree) : [];
+			const aSafeGeneratedRows = Array.isArray(aGeneratedRows) ? aGeneratedRows : [];
+
+			const mCountryByMaterialKey = new Map();
+			const mCountryByMaterial = new Map();
+
+			aSafeGeneratedRows.forEach((oRow) => {
+				const sCountryOfOrigin = String(oRow.CountryOfOrigin || "").trim();
+
+				if (!sCountryOfOrigin) {
+					return;
+				}
+
+				const sMaterialKey = String(oRow.MaterialKey || "").trim();
+				const sMaterial = String(oRow.Material || "").trim();
+
+				if (sMaterialKey) {
+					mCountryByMaterialKey.set(sMaterialKey,sCountryOfOrigin);
+				}
+
+				if (sMaterial) {
+					mCountryByMaterial.set(sMaterial,sCountryOfOrigin);
+				}
+			});
+
+			const enrichNodes = (aNodes) => {
+				(aNodes || []).forEach((oNode) => {
+					if (oNode.Kind === "Product") {
+						const sExistingCountry = String(oNode.CountryOfOrigin || "").trim();
+
+						if (!sExistingCountry) {
+							const sMaterialKey = String(oNode.MaterialKey || "").trim();
+							const sMaterial = String(oNode.Title || "").trim();
+
+							oNode.CountryOfOrigin = mCountryByMaterialKey.get(sMaterialKey) || mCountryByMaterial.get(sMaterial) || null;
+						}
+					}
+
+					if (Array.isArray(oNode.children) && oNode.children.length > 0) {
+						enrichNodes(oNode.children);
+					}
+				});
+			};
+
+			enrichNodes(aSafeTree);
+
+			return aSafeTree;
+		},
+
+		_hasMissingCountryOfOrigin: function (aTree) {
+			const hasMissingValue = (aNodes) => {
+				return (aNodes || []).some((oNode) => {
+					if (oNode.Kind === "Product" && !String(oNode.CountryOfOrigin || "").trim()) {
+						return true;
+					}
+
+					return Array.isArray(oNode.children) && oNode.children.length > 0 && hasMissingValue(oNode.children);
+				});
+			};
+
+			return hasMissingValue(aTree);
+		},
+
 		_initialLoadProductPriceList: function () {
 			const oJsonModel = this._getJsonModel();
 
@@ -1035,19 +1106,27 @@ sap.ui.define([
 
 			return this._fetchProductPriceListEntityTree()
 				.then((aPersistedTree) => {
-					if (Array.isArray(aPersistedTree) && aPersistedTree.length > 0) {
+					const bHasPersistedTree = Array.isArray(aPersistedTree) && aPersistedTree.length > 0;
+					if (!bHasPersistedTree) {
+						return this._getProductPriceList("").then((aGeneratedRows) => {
+							const aGeneratedTree = this._buildTreeFromFlatData(aGeneratedRows || []);
+							applyTree(aGeneratedTree);
+						});
+					}
+
+					if (!this._hasMissingCountryOfOrigin(aPersistedTree)) {
 						applyTree(aPersistedTree);
 						return;
 					}
 
 					return this._getProductPriceList("")
 						.then((aGeneratedRows) => {
-							const aGeneratedTree = this._buildTreeFromFlatData(aGeneratedRows || []);
-							applyTree(aGeneratedTree);
+							const aEnrichedTree = this._enrichPersistedTreeCountryOfOrigin(aPersistedTree,aGeneratedRows);
+							applyTree(aEnrichedTree);
 						});
 				})
 				.catch((oError) => {
-					console.error("Failed to load or generate product tree:",oError);
+					console.error("Failed to load or enrich product tree:",oError);
 					MessageToast.show("Failed to load the pricelist.");
 					throw oError;
 				});
