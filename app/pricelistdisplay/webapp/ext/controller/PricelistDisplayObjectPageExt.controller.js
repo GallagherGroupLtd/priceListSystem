@@ -20,6 +20,13 @@ sap.ui.define([
 
 	/** Functions for building the tree table (UI Level) **/
 	const H_FIELDS = ["MainCategory", "SubCategory1", "SubCategory2", "SubCategory3", "SubCategory4", "SubCategory5"];
+	const PRODUCT_PRICE_LIST_ENTITY_FIELDS = ["ID", "parent_ID", "pricelist_ID", "PricelistType", "MarketScopeRegion", "MarketScopeCountry",
+		"SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey",
+		"OrderIndex", "Kind", "CategoryLevel", "Title", "Description", "CountryOfOrigin", "PublishedName",
+		"TermsAndConditions", "IsTACDisableExt", "IsTACDisableInt", "Notes", "IsNotesDisableExt", "IsNotesDisableInt",
+		"Price", "PriceUnit", "PriceValidFrom", "PriceValidTo", "DiscountRate", "DiscountValidFrom", "DiscountValidTo", "PriceChangeIndicator",
+		"FuturePrice", "FuturePriceValidFrom", "FuturePriceValidTo", "Status", "StatusValidFromDate", "StatusValidToDate", "Supplier", "SupplierSKU"
+	];
 
 	const EdmType = exportLibrary.EdmType;
 
@@ -111,8 +118,8 @@ sap.ui.define([
 				this._loadPricelistUpdates();
 				this._initializeDiscountContext();
 				this._loadAndApplyOfficialDisplayLayout();
-
-				this._expandProductTreeFully();
+				this._loadProductPriceListOnEnter();
+				// this._expandProductTreeFully();
 			},
 		},
 
@@ -483,6 +490,137 @@ sap.ui.define([
 			setTimeout(fnExpand, 0);
 		},
 
+		_loadProductPriceListOnEnter: function () {
+			const oView = this.base.getView();
+			const oContext = oView.getBindingContext();
+			const sContextPath = oContext && oContext.getPath();
+
+			const oJsonModel = oView.getModel("jsonModel");
+			const aExistingTree = oJsonModel ? oJsonModel.getProperty("/productPriceList") || [] : [];
+			const bSameContextAlreadyLoaded = !!sContextPath && this._lastLoadedProductTreeContextPath === sContextPath && aExistingTree.length > 0;
+
+			if (bSameContextAlreadyLoaded) {
+				return Promise.resolve();
+			}
+
+			return this._initialLoadProductPriceList()
+				.then(() => {
+					this._lastLoadedProductTreeContextPath = sContextPath;
+				});
+		},
+
+		_initialLoadProductPriceList: function () {
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+
+			if (!oJsonModel) {
+				return Promise.resolve();
+			}
+
+			return this._fetchProductPriceListEntityTree()
+				.then((aTree) => {
+					const aSafeTree = Array.isArray(aTree) ? aTree : [];
+					const aTreeCopy = JSON.parse(JSON.stringify(aSafeTree));
+
+					oJsonModel.setProperty("/productPriceList",aTreeCopy);
+					oJsonModel.setProperty("/originalProductPriceList",JSON.parse(JSON.stringify(aSafeTree)));
+					oJsonModel.setProperty("/selectedKeys",[]);
+
+					this._applyCachedDiscountsToProductTree();
+					oJsonModel.updateBindings(true);
+					this._expandProductTreeFully();
+				})
+				.catch((oError) => {
+					console.error("Failed to load persisted ProductPriceList tree:",oError);
+					oJsonModel.setProperty("/productPriceList",[]);
+					oJsonModel.setProperty("/originalProductPriceList",[]);
+					oJsonModel.updateBindings(true);
+					MessageToast.show("Failed to load the product list.");
+
+					throw oError;
+				});
+		},
+
+		_fetchProductPriceListEntityTree: function () {
+			const oView = this.base.getView();
+			const oContext = oView.getBindingContext();
+
+			if (!oContext) {
+				return Promise.resolve([]);
+			}
+
+			const sPricelistId = oContext.getProperty("ID");
+
+			if (!sPricelistId) {
+				return Promise.resolve([]);
+			}
+
+			const oODataModel = oView.getModel();
+
+			const aFilters = [
+				new Filter("pricelist_ID", FilterOperator.EQ, sPricelistId),
+				new Filter("IsDeleted", FilterOperator.NE, true)
+			];
+
+			const oListBinding = oODataModel.bindList("/ProductPriceList",null,[],aFilters,{
+					$select:
+						PRODUCT_PRICE_LIST_ENTITY_FIELDS.join(","),
+					$orderby:
+						"OrderIndex"
+				}
+			);
+
+			return oListBinding
+				.requestContexts(0, 10000)
+				.then((aContexts) => {
+					const aRows = aContexts.map((oRowContext) => oRowContext.getObject());
+					return this._buildTreeFromEntityRows(aRows);
+				});
+		},
+
+		_buildTreeFromEntityRows: function (aFlatRows) {
+			if (!Array.isArray(aFlatRows) || aFlatRows.length === 0) {
+				return [];
+			}
+
+			const mNodeById = {};
+			const aRoots = [];
+
+			aFlatRows.forEach((oRow) => {
+				mNodeById[oRow.ID] = Object.assign({},oRow,{children: []});
+			});
+
+			aFlatRows.forEach((oRow) => {
+				const oNode = mNodeById[oRow.ID];
+				const sParentId = oRow.parent_ID;
+
+				if (sParentId && mNodeById[sParentId]) {
+					oNode.parent = {ID: sParentId};
+					mNodeById[sParentId].children.push(oNode);
+				} else {
+					oNode.parent = null;
+					aRoots.push(oNode);
+				}
+			});
+
+			const sortNodes = (aNodes) => {
+				aNodes.sort((oFirst, oSecond) => {
+					const iFirst = Number.isFinite(Number(oFirst.OrderIndex)) ? Number(oFirst.OrderIndex) : 0;
+					const iSecond = Number.isFinite(Number(oSecond.OrderIndex)) ? Number(oSecond.OrderIndex) : 0;
+					return iFirst - iSecond;
+				});
+
+				aNodes.forEach((oNode) => {
+					if (Array.isArray(oNode.children) && oNode.children.length > 0) {
+						sortNodes(oNode.children);
+					}
+				});
+			};
+
+			sortNodes(aRoots);
+
+			return aRoots;
+		},
+
 		_getProductPriceList: function () {
 			const oView = this.base.getView();
 
@@ -566,7 +704,7 @@ sap.ui.define([
 			const oView = this.base.getView();
 			const oJsonModel = oView.getModel("jsonModel");
 
-			const aTreeData = Array.isArray(aData) && aData.length ? this._buildTreeFromFlatData(aData) : this._getMockData();
+			const aTreeData = Array.isArray(aData) && aData.length ? this._buildTreeFromFlatData(aData) : [];
 
 			oJsonModel.setProperty("/productPriceList", aTreeData);
 			oJsonModel.setProperty("/originalProductPriceList", JSON.parse(JSON.stringify(aTreeData)));
