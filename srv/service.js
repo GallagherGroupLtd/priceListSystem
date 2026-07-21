@@ -760,26 +760,12 @@ module.exports = cds.service.impl(async function () {
                 }
 
                 if (oldData.Status === "Published") {
-                    const changedFieldNames = Object.keys(changedFields);
-                    const invalidFields = changedFieldNames.filter(field => field !== "Status");
-
-                    if (invalidFields.length > 0) {
-                        results.push({
-                            sourceId: id,
-                            status: "ERROR",
-                            message: "Published pricelists can only be moved to For Revision. Other fields cannot be changed."
-                        });
-                        continue;
-                    }
-
-                    if (changedFields.Status && changedFields.Status !== "For Revision") {
-                        results.push({
-                            sourceId: id,
-                            status: "ERROR",
-                            message: "Published pricelists can only be moved to For Revision."
-                        });
-                        continue;
-                    }
+                    results.push({
+                        sourceId: id,
+                        status: "ERROR",
+                        message: 'Published pricelists cannot be changed through Mass Edit. Use "Move to For Revision" to create a separate working revision.'
+                    });
+                    continue;
                 }
 
                 if (Object.keys(changedFields).length === 0) {
@@ -848,7 +834,7 @@ module.exports = cds.service.impl(async function () {
     });
 
     this.on("moveToForRevision", PricelistData, async (req) => {
-        const ID = req.params?.[0]?.ID;
+        const ID = req.params?.[0]?.ID || req.data?.ID;
 
         if (!ID) {
             return req.error(400, "Missing Pricelist ID.");
@@ -856,33 +842,38 @@ module.exports = cds.service.impl(async function () {
 
         const tx = cds.tx(req);
 
-        const row = await tx.run(
-            SELECT.one.from(PricelistData).where({ ID })
-        );
-
-        if (!row) {
-            return req.error(404, "Pricelist not found.");
-        }
-
-        if (row.Status !== "Published") {
-            return req.error(400, "Only Published pricelists can be moved to For Revision.");
-        }
-
-        await tx.run(
-            UPDATE(PricelistData)
-                .set({
-                    Status: "For Revision",
-                    modifiedAt: new Date(),
-                    modifiedBy: req.user?.id || "unknown"
-                })
+        const publishedRow = await tx.run(
+            SELECT.one
+                .from(PricelistData)
                 .where({ ID })
         );
 
-        const updatedRow = await tx.run(
-            SELECT.one.from(PricelistData).where({ ID })
-        );
+        if (!publishedRow) {
+            return req.error(404, "Pricelist not found.");
+        }
 
-        return updatedRow;
+        if (publishedRow.Status !== "Published") {
+            return req.error(400, "Only Published pricelists can be moved to For Revision.");
+        }
+
+        if (publishedRow.IsVersionActive !== true) {
+            return req.error(400, "Only the active Published version can be moved to For Revision.");
+        }
+
+        try {
+            return await versionService.createWorkingRevision(
+                tx,
+                {
+                    PricelistData,
+                    PricelistItemData,
+                    ProductPriceList
+                },
+                publishedRow,
+                "For Revision"
+            );
+        } catch (error) {
+            return req.error(400, error.message || "Unable to create working revision.");
+        }
     });
 
     // Handler for Mass Upload - Data Maintenance App

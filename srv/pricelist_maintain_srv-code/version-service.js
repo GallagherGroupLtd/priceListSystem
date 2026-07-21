@@ -3,7 +3,8 @@ const { SELECT, INSERT, UPDATE } = cds.ql;
 
 const {
     PUBLISHED,
-    computeVersion
+    computeVersion,
+    getVersionNumber
 } = require("./version-helper");
 
 const DRAFT_AND_NAV_FIELDS = [
@@ -47,6 +48,20 @@ async function handlePricelistCreate(req) {
     req.data.IsVersionActive = req.data.IsVersionActive ?? true;
 }
 
+function determineVersionActiveState({status,version}) {
+    // Every Published version is active when it is the version currently being saved. Older Published versions are deactivated separately when a newer version is published.
+    if (status === PUBLISHED) {
+        return true;
+    }
+
+    // Only the initial Drafted version 0.1 is active. Drafted revisions such as 1.1, 2.1, etc. are working revisions and must remain inactive, including when they are saved without a status change.
+    if (status === "Drafted" && getVersionNumber(version) === 0.1) {
+        return true;
+    }
+
+    return false;
+}
+
 async function handlePricelistSave(req, entities) {
     const {
         PricelistData,
@@ -67,10 +82,7 @@ async function handlePricelistSave(req, entities) {
     const oldStatus = active?.Status;
     const newStatus = req.data.Status;
 
-    const groupId =
-        active?.PricelistGroupID ||
-        req.data.PricelistGroupID ||
-        cds.utils.uuid();
+    const groupId = active?.PricelistGroupID || req.data.PricelistGroupID || cds.utils.uuid();
 
     // Backfill for old records that existed before PricelistGroupID was introduced.
     req.data.PricelistGroupID = groupId;
@@ -78,37 +90,12 @@ async function handlePricelistSave(req, entities) {
     const effectiveDate = req.data.EffectiveDate || active?.EffectiveDate;
     const baseVersion = active?.Version ?? req.data.Version ?? "0.1";
 
-    req.data.Version = computeVersion(
-        baseVersion,
-        oldStatus,
-        newStatus,
-        effectiveDate
-    );
-
-    /*
-     * Published -> Revision/Draft/Non-published save:
-     * 1. Preserve old published state into a new historical/current-published row.
-     * 2. Current row continues as editable working revision.
-     *
-     * At this stage:
-     * - preserved published row remains IsVersionActive = true
-     * - working revision row also remains IsVersionActive = true so it stays visible
-     */
     if (active && oldStatus === PUBLISHED && newStatus !== PUBLISHED) {
-        await preservePublishedVersion(
-            tx,
-            { PricelistData, PricelistItemData, ProductPriceList },
-            active,
-            { PricelistGroupID: groupId }
-        );
-
-        req.data.IsVersionActive = true;
-    } else {
-        req.data.IsVersionActive =
-            req.data.IsVersionActive ??
-            active?.IsVersionActive ??
-            true;
+        return req.reject(400, 'Published pricelists cannot be changed directly. Use "Move to For Revision".');
     }
+
+    req.data.Version = computeVersion(baseVersion,oldStatus,newStatus,effectiveDate);
+    req.data.IsVersionActive = determineVersionActiveState({status: newStatus,version: req.data.Version});
 
     /*
      * Revision/Draft -> Published:
@@ -116,12 +103,7 @@ async function handlePricelistSave(req, entities) {
      * Previous published versions in same group become inactive.
      */
     if (newStatus === PUBLISHED && oldStatus !== PUBLISHED) {
-        await deactivateOtherPublishedVersions(
-            tx,
-            PricelistData,
-            groupId,
-            ID
-        );
+        await deactivateOtherPublishedVersions(tx,PricelistData,groupId,ID);
 
         req.data.IsVersionActive = true;
         req.data.PublishedDate = new Date();
@@ -136,52 +118,125 @@ async function handlePricelistSave(req, entities) {
     };
 }
 
-async function preservePublishedVersion(tx, entities, sourceHeader, options = {}) {
+// async function preservePublishedVersion(tx, entities, sourceHeader, options = {}) {
+//     const {
+//         PricelistData,
+//         PricelistItemData,
+//         ProductPriceList
+//     } = entities;
+
+//     const sourceHeaderId = sourceHeader.ID;
+//     const targetHeaderId = cds.utils.uuid();
+
+//     const groupId =
+//         options.PricelistGroupID ||
+//         sourceHeader.PricelistGroupID ||
+//         cds.utils.uuid();
+
+//     const headerCopy = cleanForInsert(sourceHeader);
+
+//     headerCopy.ID = targetHeaderId;
+//     headerCopy.PricelistGroupID = groupId;
+//     headerCopy.Status = sourceHeader.Status;
+//     headerCopy.Version = sourceHeader.Version;
+//     headerCopy.IsVersionActive = true;
+
+//     await tx.run(
+//         INSERT.into(PricelistData).entries(headerCopy)
+//     );
+
+//     await copyPricelistItemData(
+//         tx,
+//         PricelistItemData,
+//         sourceHeaderId,
+//         targetHeaderId
+//     );
+
+//     await copyProductPriceList(
+//         tx,
+//         ProductPriceList,
+//         sourceHeaderId,
+//         targetHeaderId
+//     );
+
+//     return {
+//         sourceHeaderId,
+//         targetHeaderId,
+//         PricelistGroupID: groupId
+//     };
+// }
+
+async function createWorkingRevision(tx, entities, sourceHeader, targetStatus = "For Revision") {
     const {
         PricelistData,
         PricelistItemData,
         ProductPriceList
     } = entities;
 
+    if (!sourceHeader?.ID) {
+        throw new Error("Published pricelist header is required.");
+    }
+
+    if (sourceHeader.Status !== PUBLISHED) {
+        throw new Error("Only Published pricelists can be moved to a working revision.");
+    }
+
+    if (sourceHeader.IsVersionActive !== true) {
+        throw new Error("Only the active Published version can be moved to a working revision.");
+    }
+
     const sourceHeaderId = sourceHeader.ID;
     const targetHeaderId = cds.utils.uuid();
 
-    const groupId =
-        options.PricelistGroupID ||
-        sourceHeader.PricelistGroupID ||
-        cds.utils.uuid();
+    const groupId = sourceHeader.PricelistGroupID || cds.utils.uuid();
+
+    if (!sourceHeader.PricelistGroupID) {
+        await tx.run(
+            UPDATE(PricelistData)
+                .set({ PricelistGroupID: groupId })
+                .where({ ID: sourceHeader.ID })
+        );
+
+        sourceHeader.PricelistGroupID = groupId;
+    }
+
+    const existingWorkingRevision = await tx.run(
+        SELECT.one
+            .from(PricelistData)
+            .where([
+                { ref: ["PricelistGroupID"] }, "=", { val: groupId },
+                "and",
+                { ref: ["Status"] }, "!=", { val: PUBLISHED }
+            ])
+            .columns("ID", "Status", "Version")
+    );
+
+    if (existingWorkingRevision) {
+        throw new Error(`A working revision already exists with version ${existingWorkingRevision.Version}.`);
+    }
+
+    const targetVersion = computeVersion(sourceHeader.Version || "0.1",PUBLISHED,targetStatus,sourceHeader.EffectiveDate);
 
     const headerCopy = cleanForInsert(sourceHeader);
 
     headerCopy.ID = targetHeaderId;
     headerCopy.PricelistGroupID = groupId;
-    headerCopy.Status = sourceHeader.Status;
-    headerCopy.Version = sourceHeader.Version;
-    headerCopy.IsVersionActive = true;
+    headerCopy.Status = targetStatus;
+    headerCopy.Version = targetVersion;
+    headerCopy.IsVersionActive = false;
+    headerCopy.PublishedDate = null;
+    headerCopy.PublishedBy = null;
 
-    await tx.run(
-        INSERT.into(PricelistData).entries(headerCopy)
+    await tx.run(INSERT.into(PricelistData).entries(headerCopy));
+
+    await copyPricelistItemData(tx,PricelistItemData,sourceHeaderId,targetHeaderId);
+    await copyProductPriceList(tx,ProductPriceList,sourceHeaderId,targetHeaderId);
+
+    return await tx.run(
+        SELECT.one
+            .from(PricelistData)
+            .where({ ID: targetHeaderId })
     );
-
-    await copyPricelistItemData(
-        tx,
-        PricelistItemData,
-        sourceHeaderId,
-        targetHeaderId
-    );
-
-    await copyProductPriceList(
-        tx,
-        ProductPriceList,
-        sourceHeaderId,
-        targetHeaderId
-    );
-
-    return {
-        sourceHeaderId,
-        targetHeaderId,
-        PricelistGroupID: groupId
-    };
 }
 
 async function copyPricelistItemData(tx, PricelistItemData, sourceHeaderId, targetHeaderId) {
@@ -320,9 +375,10 @@ module.exports = {
     PUBLISHED,
     handlePricelistCreate,
     handlePricelistSave,
-    preservePublishedVersion,
+    // preservePublishedVersion,
     copyPricelistItemData,
     copyProductPriceList,
+    createWorkingRevision,
     deactivateOtherPublishedVersions,
     rejectInactivePublishedHeader,
     rejectInactivePublishedChild

@@ -6,11 +6,20 @@ const PUBLISHED = "Published";
 const getVersionNumber = (versionText) => {
     if (!versionText) return 0.1;
 
-    const valuePart = String(versionText).includes(":")
-        ? String(versionText).split(":").pop().trim()
-        : String(versionText).trim();
+    const text = String(versionText).trim();
+    const match = text.match(/(\d+(?:\.\d+)?)$/);
 
-    return parseFloat(valuePart) || 0.1;
+    if (!match) return 0.1;
+
+    const parsed = Number.parseFloat(match[1]);
+    return Number.isFinite(parsed) ? parsed : 0.1;
+
+    //Commented older code as older version of pricelist are not being supported due to not having the same nomenclature after recent changes in pricelist app.
+    // const valuePart = String(versionText).includes(":")
+    //     ? String(versionText).split(":").pop().trim()
+    //     : String(versionText).trim();
+
+    // return parseFloat(valuePart) || 0.1;
 };
 
 const formatEffectiveDate = (effectiveDate) => {

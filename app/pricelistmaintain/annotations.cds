@@ -213,14 +213,14 @@ annotate service.PricelistData with @(
     // --- LIST PAGE ---
     UI.SelectionVariant #PublishedActive : {
         SelectOptions : [
-            {
-                PropertyName : Status,
-                Ranges : [{
-                    Sign : #I,
-                    Option : #EQ,
-                    Low : 'Published'
-                }]
-            },
+            // {
+            //     PropertyName : Status,
+            //     Ranges : [{
+            //         Sign : #I,
+            //         Option : #EQ,
+            //         Low : 'Published'
+            //     }]
+            // },
             {
                 PropertyName : IsVersionActive,
                 Ranges : [{
