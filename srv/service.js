@@ -2627,11 +2627,34 @@ module.exports = cds.service.impl(async function () {
         };
 
         const loadItemStructure = async () => {
-            const rows = await db.run(SELECT.from('PricelistItemStructureComponents')
-                .where({ PricelistType, MarketScopeRegion, MarketScopeCountry, SalesOrg, DistChannel, CustPriceList, ErpCustomer, CustGroup1, DeliveringPlant })
-                .orderBy({ Sequence: 'asc' }));
-            if (!rows || rows.length === 0) return [];
+            const itemStructureFilters = {PricelistType,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer,DeliveringPlant};
+
+            const activeItemStructureFilters = Object.fromEntries(
+                Object.entries(itemStructureFilters).filter(([, value]) => {
+                    if (value === undefined || value === null) {
+                        return false;
+                    }
+
+                    if (typeof value === "string" && value.trim() === "") {
+                        return false;
+                    }
+
+                    return true;
+                })
+            );
+
+            const rows = await db.run(
+                SELECT.from("PricelistItemStructureComponents")
+                    .where(activeItemStructureFilters)
+                    .orderBy({ Sequence: "asc" })
+            );
+
+            if (!Array.isArray(rows) || rows.length === 0) {
+                return [];
+            }
+
             await mergeCategoryTerms(rows);
+
             return rows;
         };
 
@@ -2669,20 +2692,33 @@ module.exports = cds.service.impl(async function () {
             const materialIds = [
                 ...new Set(
                     materialsMaster
-                        .map(m => String(m.MATERIAL || "").trim())
+                        .map(material => String(material.MATERIAL || "").trim())
                         .filter(Boolean)
                 )
             ];
 
-            if (materialIds.length === 0) return;
+            if (materialIds.length === 0) {
+                return;
+            }
 
             const partNumberResults = await db.run(
-                SELECT.from('PriceProductMaintenance')
+                SELECT.from("com.sap.pricelistsystem.PricelistPartNumberDetermination")
+                    .columns(
+                        "ProductID",
+                        "ProductStatus",
+                        "StatusValidity",
+                        "StatusExpiry",
+                        "MaterialClassification1",
+                        "MaterialClassification2",
+                        "ProductDescription1",
+                        "ProductDescription2",
+                        "ThirdPartySupplier",
+                        "ThirdPartySupplierSKU"
+                    )
                     .where({
                         ...(SalesOrg && { SalesOrg }),
                         ...(DistChannel && { DistChannel }),
-                        ProductID: { in: materialIds },
-                        IsActiveEntity: true
+                        ProductID: { in: materialIds }
                     })
             );
 
@@ -2690,22 +2726,26 @@ module.exports = cds.service.impl(async function () {
 
             for (const item of partNumberResults || []) {
                 const productId = String(item.ProductID || "").trim();
-                if (!productId) continue;
+
+                if (!productId) {
+                    continue;
+                }
 
                 lookup.set(productId, item);
             }
 
-            materialsMaster.forEach(row => {
-                const productId = String(row.MATERIAL || "").trim();
-                const m = lookup.get(productId);
-
-                row.ProductStatus = m?.ProductStatus || null;
-                row.StatusValidity = m?.StatusValidity || null;
-                row.StatusExpiry = m?.StatusExpiry || null;
-                row.MaterialClassification1 = m?.MaterialClassification1 || null;
-                row.MaterialClassification2 = m?.MaterialClassification2 || null;
-                row.ThirdPartySupplier = m?.ThirdPartySupplier || null;
-                row.ThirdPartySupplierSKU = m?.ThirdPartySupplierSKU || null;
+            materialsMaster.forEach(material => {
+                const productId = String(material.MATERIAL || "").trim();
+                const maintainedProduct = lookup.get(productId);
+                material.ProductStatus = maintainedProduct?.ProductStatus || null;
+                material.StatusValidity = maintainedProduct?.StatusValidity || null;
+                material.StatusExpiry = maintainedProduct?.StatusExpiry || null;
+                material.MaterialClassification1 = maintainedProduct?.MaterialClassification1 || null;
+                material.MaterialClassification2 = maintainedProduct?.MaterialClassification2 || null;
+                material.ProductDescription1 = maintainedProduct?.ProductDescription1 || null;
+                material.ProductDescription2 = maintainedProduct?.ProductDescription2 || null;
+                material.ThirdPartySupplier = maintainedProduct?.ThirdPartySupplier || null;
+                material.ThirdPartySupplierSKU = maintainedProduct?.ThirdPartySupplierSKU || null;
             });
         };
 

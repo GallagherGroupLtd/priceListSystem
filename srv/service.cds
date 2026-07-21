@@ -829,6 +829,8 @@ service PriceListService {
     };
 }
 
+annotate PriceListService with @cds.server.body_parser.limit: '1mb';
+
 @cds.persistence.skip
 entity Subcategory1VH {
     key Subategory1 : String(255);

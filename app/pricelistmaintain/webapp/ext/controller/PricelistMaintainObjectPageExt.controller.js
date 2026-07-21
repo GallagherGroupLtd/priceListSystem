@@ -91,6 +91,14 @@ sap.ui.define([
 		"Supplier", "SupplierSKU"
 	];
 
+	// Fields accepted by saveProductPriceList for each ProductPriceList node.
+	const PRODUCT_PRICE_SAVE_FIELDS = [
+		"ID", "OrderIndex", "Kind", "CategoryLevel", "Title", "Description", "CountryOfOrigin", "MaterialKey",
+		"PublishedName", "TermsAndConditions", "IsTACDisableExt", "IsTACDisableInt", "Notes", "IsNotesDisableExt", "IsNotesDisableInt", 
+		"Price", "PriceUnit", "PriceValidFrom", "PriceValidTo", "DiscountRate","DiscountValidFrom", "DiscountValidTo", "PriceChangeIndicator",
+		"FuturePrice", "FuturePriceValidFrom", "FuturePriceValidTo", "Status", "StatusValidFromDate", "StatusValidToDate", "Supplier", "SupplierSKU"
+	];
+
 	const CATEGORY_NODE_FIELD_CONFIG = [
 		{ level: 0, titleField: "MainCategory", descField: "MainCategoryLocal", extraFields: { TermsAndConditions: "MainCategoryTermsandCond" } },
 		{ level: 1, titleField: "SubCategory1", descField: "SubCategory1Local", extraFields: { TermsAndConditions: "SubCategory1TermsandCond" } },
@@ -983,26 +991,65 @@ sap.ui.define([
 		 *
 		 * @returns {Promise<void>}
 		 */
+		// _initialLoadProductPriceList: function () {
+		// 	const oJsonModel = this._getJsonModel();
+		// 	if (!oJsonModel) return Promise.resolve();
+
+		// 	return this._fetchProductPriceListEntityTree()
+		// 		.then((aTree) => {
+		// 			oJsonModel.setProperty("/productPriceList", this._clone(aTree));
+		// 			oJsonModel.setProperty("/productPriceListFull", this._clone(aTree));
+		// 			oJsonModel.setProperty("/originalProductPriceList", this._clone(aTree));
+
+		// 			this._originalSnapshot = this._clone(aTree);
+
+		// 			this._clearProductTreeTransientState();
+		// 			oJsonModel.updateBindings(true);
+
+		// 			this._expandProductTreeFully();
+		// 		})
+		// 		.catch((oError) => {
+		// 			console.error(oError);
+		// 			MessageToast.show("Failed to load the pricelist.");
+		// 		});
+		// },
+
 		_initialLoadProductPriceList: function () {
 			const oJsonModel = this._getJsonModel();
-			if (!oJsonModel) return Promise.resolve();
+
+			if (!oJsonModel) {
+				return Promise.resolve();
+			}
+
+			const applyTree = (aTree) => {
+				const aSafeTree = Array.isArray(aTree) ? aTree : [];
+				oJsonModel.setProperty("/productPriceList",this._clone(aSafeTree));
+				oJsonModel.setProperty("/productPriceListFull",this._clone(aSafeTree));
+				oJsonModel.setProperty("/originalProductPriceList",this._clone(aSafeTree));
+
+				this._originalSnapshot = this._clone(aSafeTree);
+				this._clearProductTreeTransientState();
+				oJsonModel.updateBindings(true);
+				this._expandProductTreeFully();
+			};
 
 			return this._fetchProductPriceListEntityTree()
-				.then((aTree) => {
-					oJsonModel.setProperty("/productPriceList", this._clone(aTree));
-					oJsonModel.setProperty("/productPriceListFull", this._clone(aTree));
-					oJsonModel.setProperty("/originalProductPriceList", this._clone(aTree));
+				.then((aPersistedTree) => {
+					if (Array.isArray(aPersistedTree) && aPersistedTree.length > 0) {
+						applyTree(aPersistedTree);
+						return;
+					}
 
-					this._originalSnapshot = this._clone(aTree);
-
-					this._clearProductTreeTransientState();
-					oJsonModel.updateBindings(true);
-
-					this._expandProductTreeFully();
+					return this._getProductPriceList("")
+						.then((aGeneratedRows) => {
+							const aGeneratedTree = this._buildTreeFromFlatData(aGeneratedRows || []);
+							applyTree(aGeneratedTree);
+						});
 				})
 				.catch((oError) => {
-					console.error(oError);
+					console.error("Failed to load or generate product tree:",oError);
 					MessageToast.show("Failed to load the pricelist.");
+					throw oError;
 				});
 		},
 
@@ -2687,19 +2734,61 @@ sap.ui.define([
 			]);
 		},
 
+		// Produces the minimal nested tree required by saveProductPriceList.
+		_buildSaveTreePayload: function (aNodes) {
+			if (!Array.isArray(aNodes)) {
+				return [];
+			}
+
+			const cleanNode = (oNode) => {
+				const oPayloadNode = {};
+
+				PRODUCT_PRICE_SAVE_FIELDS.forEach((sField) => {
+					const vValue = oNode[sField];
+
+					if (vValue !== undefined && vValue !== null && vValue !== "") {
+						oPayloadNode[sField] = vValue;
+					}
+				});
+
+				// Preserving explicit false values because these are meaningful for boolean fields and would otherwise be omitted by generic cleaning.
+				[
+					"IsTACDisableExt",
+					"IsTACDisableInt",
+					"IsNotesDisableExt",
+					"IsNotesDisableInt",
+					"PriceChangeIndicator"
+				].forEach((sField) => {
+					if (oNode[sField] === false) {
+						oPayloadNode[sField] = false;
+					}
+				});
+
+				if (Array.isArray(oNode.children) && oNode.children.length > 0) {
+					oPayloadNode.children = oNode.children.map(cleanNode);
+				}
+
+				return oPayloadNode;
+			};
+
+			return aNodes.map(cleanNode);
+		},
+
 		_callSaveProductPriceList: function (oHeader, oOriginalHeader, aTree) {
 			const oActionBinding = this.base.getView().getModel().bindContext("/saveProductPriceList(...)");
 
+			const aSaveTree = this._buildSaveTreePayload(aTree);
+
 			oActionBinding.setParameter("headerData", JSON.stringify(oHeader));
 			oActionBinding.setParameter("originalHeaderData", JSON.stringify(oOriginalHeader));
-			oActionBinding.setParameter("treeData", JSON.stringify(aTree));
+			oActionBinding.setParameter("treeData", JSON.stringify(aSaveTree));
 
 			return oActionBinding
 				.execute()
 				.then(() => {
 					MessageToast.show("Pricelist saved successfully.");
 
-					// Clear session-scoped staging state now that it is persisted.
+					// Clearing session-scoped staging state now that it is persisted.
 					this._originalSnapshot = null;
 					this._originalHeaderSnapshot = null;
 					this._deletedSnapshots = [];

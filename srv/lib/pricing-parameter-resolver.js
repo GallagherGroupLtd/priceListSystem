@@ -95,24 +95,23 @@ function pickBestByDate(records, targetDate) {
         .sort((a, b) => Number(a.PRIORITY || 999) - Number(b.PRIORITY || 999))[0] || null;
 }
 
-async function resolvePricingParameters({
-    db,
-    extdb,
-    context,
-    materialIds = [],
-    parameterType,
-    effectiveDate
-}) {
+async function resolvePricingParameters({db,extdb,context,materialIds = [],parameterType,effectiveDate}) {
     const headers = await db.run(
-        SELECT.from('PricingParameterDetermination')
+        SELECT.from("PricingParameterDetermination")
             .columns(
-                '*',
+                "*",
                 {
-                    ref: ['entries'],
-                    expand: ['ID', 'ParameterType', 'ConditionType', 'AccessSequence', 'Priority']
+                    ref: ["entries"],
+                    expand: [
+                        { ref: ["ID"] },
+                        { ref: ["ParameterType"] },
+                        { ref: ["ConditionType"] },
+                        { ref: ["AccessSequence"] },
+                        { ref: ["Priority"] }
+                    ]
                 }
             )
-            .orderBy({ createdAt: 'desc' })
+            .orderBy({ createdAt: "desc" })
     );
 
     const selectedHeader = pickBestHeader(headers, context || {});
