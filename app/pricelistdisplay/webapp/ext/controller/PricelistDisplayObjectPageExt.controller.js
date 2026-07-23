@@ -540,41 +540,28 @@ sap.ui.define([
 				});
 		},
 
-		_fetchProductPriceListEntityTree: function () {
+		_fetchProductPriceListEntityTree: async function () {
 			const oView = this.base.getView();
 			const oContext = oView.getBindingContext();
+			const oJsonModel = oView.getModel("jsonModel");
 
 			if (!oContext) {
-				return Promise.resolve([]);
+				return [];
 			}
 
 			const sPricelistId = oContext.getProperty("ID");
 
 			if (!sPricelistId) {
-				return Promise.resolve([]);
+				return [];
 			}
 
-			const oODataModel = oView.getModel();
+			const sCustomerNumber = String(oJsonModel.getProperty("/discountUserContext/CustomerNumber") || "").trim();
+			const aRows = await this._executeAction("/getAuthorizedProductTree(...)",{
+				pricelistId: sPricelistId,
+				customerNumber: sCustomerNumber
+			});
 
-			const aFilters = [
-				new Filter("pricelist_ID", FilterOperator.EQ, sPricelistId),
-				new Filter("IsDeleted", FilterOperator.NE, true)
-			];
-
-			const oListBinding = oODataModel.bindList("/ProductPriceList",null,[],aFilters,{
-					$select:
-						PRODUCT_PRICE_LIST_ENTITY_FIELDS.join(","),
-					$orderby:
-						"OrderIndex"
-				}
-			);
-
-			return oListBinding
-				.requestContexts(0, 10000)
-				.then((aContexts) => {
-					const aRows = aContexts.map((oRowContext) => oRowContext.getObject());
-					return this._buildTreeFromEntityRows(aRows);
-				});
+			return this._buildTreeFromEntityRows(Array.isArray(aRows) ? aRows : []);
 		},
 
 		_buildTreeFromEntityRows: function (aFlatRows) {
@@ -617,8 +604,24 @@ sap.ui.define([
 			};
 
 			sortNodes(aRoots);
+			const pruneEmptyCategories = (aNodes) => {
+				return (aNodes || []).reduce((aRetainedNodes, oNode) => {
+					const aRetainedChildren = pruneEmptyCategories(oNode.children || []);
+					oNode.children = aRetainedChildren;
+					if (oNode.Kind === "Product") {
+						aRetainedNodes.push(oNode);
+						return aRetainedNodes;
+					}
 
-			return aRoots;
+					if (aRetainedChildren.length > 0) {
+						aRetainedNodes.push(oNode);
+					}
+
+					return aRetainedNodes;
+				},[]);
+			};
+
+			return pruneEmptyCategories(aRoots);
 		},
 
 		_getProductPriceList: function () {
@@ -1596,7 +1599,7 @@ sap.ui.define([
 					Description: bIsProduct ? (oNode.Description || "") : "",
 					CountryOfOrigin: bIsProduct ? (oNode.CountryOfOrigin || "") : "",
 					PriceDisplay: bIsProduct ? ((oNode.Price || "") + " " + (oNode.PriceUnit || "")).trim() : "",
-					PriceValidityDisplay: bIsProduct ? ((oNode.PriceValidFrom || "") + " - " + (oNode.PriceValidTo || "")).trim() : "",
+					PriceValidityDisplay: bIsProduct ? (oNode.PriceValidFrom || "") : "",
 					DiscountRate: bIsProduct ? (oNode.DiscountRate || "") : "",
 					DiscountValidFrom: bIsProduct ? (oNode.DiscountValidFrom || "") : "",
 					DiscountValidTo: bIsProduct ? (oNode.DiscountValidTo || "") : "",
@@ -1701,10 +1704,12 @@ sap.ui.define([
 
 			oCustomerInput.setValueState("None");
 
-			const bSuccess =
-				await this._retrieveDiscounts(sCustomerNumber);
+			const bSuccess = await this._retrieveDiscounts(sCustomerNumber);
 
 			if (bSuccess) {
+				const oJsonModel = this.base.getView().getModel("jsonModel");
+			    oJsonModel.setProperty("/discountUserContext/CustomerNumber",sCustomerNumber);
+				await this._initialLoadProductPriceList();
 				oDialog.close();
 			}
 		},

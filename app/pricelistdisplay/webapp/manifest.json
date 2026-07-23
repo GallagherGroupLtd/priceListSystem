@@ -155,49 +155,24 @@
                     "ProductsTree":{
                       "template": "pricelistapp.pricelistdisplay.ext.fragment.ProductsTree",
                       "position": {
-                        "placement": "Before",
-                        "anchor": "ProductPricelistFacet"
+                        "placement": "After",
+                        "anchor": "PricelistInfoFacet"
                       },
                       "title": "Gallagher Products"
-                    },
-                    "ProductPricelistFacet": {
-                      "subSections": {
-                        "PricelistMainCategory": {
-                          "template": "pricelistapp.pricelistdisplay.ext.fragment.PricelistMainCategory",
-                          "position": {
-                            "placement": "After",
-                            "anchor": "ProductsTree"
-                          },
-                          "title": "Main Category Details"
-                        },
-                        "PricelistSubCategory": {
-                          "template": "pricelistapp.pricelistdisplay.ext.fragment.PricelistSubCategory",
-                          "position": {
-                            "placement": "After",
-                            "anchor": "PricelistMainCategory"
-                          },
-                          "title": "Sub Category Details"
-                        },
-                        "ProductDetails": {
-                          "template": "pricelistapp.pricelistdisplay.ext.fragment.ProductDetails",
-                          "title": "Product Details",
-                          "position": {
-                            "placement": "After",
-                            "anchor": "PricelistSubCategory"
-                          }
-                        }
-                      }
                     },
                     "PricelistUpdates": {
                       "template": "pricelistapp.pricelistdisplay.ext.fragment.PricelistUpdates",
                       "position": {
                         "placement": "After",
-                        "anchor": "ProductPricelistFacet"
+                        "anchor": "ProductsTree"
                       },
                       "title": "Pricelist Updates"
                     },
                     "PricelistInfoFacet": {
                       "subSections": {
+                        "GeneralInfo": {
+                          "visible": false
+                        },
                         "TermsAndConditions": {
                           "template": "pricelistapp.pricelistdisplay.ext.fragment.TermsAndConditions",
                           "position": {

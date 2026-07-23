@@ -107,6 +107,11 @@ service PriceListDisplayService {
 
     action getDiscountUserContext()
         returns DiscountUserContext;
+    
+    action getAuthorizedProductTree(
+        pricelistId    : UUID,
+        customerNumber : String
+    ) returns array of ProductPriceList;
 
     action resolveDiscounts(
         pricelistId     : UUID,

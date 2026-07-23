@@ -1,4 +1,5 @@
 const authorization = require('./pricelist-display_srv-code/authorization');
+const { getAuthorizedProductTree } = require("./pricelist-display_srv-code/product-tree-authorization");
 const { getUserEmail } = require("./lib/account-assignment-authorization");
 const { getVersionNumber } = require('./pricelist_maintain_srv-code/version-helper');
 const { resolvePricingParameters } = require('./lib/pricing-parameter-resolver');
@@ -71,6 +72,59 @@ module.exports = cds.service.impl(async function () {
                 ? assignment.CustomerNumber || ''
                 : ''
         };
+    });
+
+    this.on("getAuthorizedProductTree", async (req) => {
+        const {pricelistId,customerNumber: requestedCustomerNumber} = req.data || {};
+
+        if (!pricelistId) {
+            return req.error(400,"Pricelist ID is required.");
+        }
+
+        const currentUserContext = await authorization.getCurrentAccountAssignment(req);
+
+        if (!currentUserContext || !currentUserContext.assignment) {
+            return req.error(403,"No account assignment was found for the current user.");
+        }
+
+        const currentAssignment = currentUserContext.assignment;
+        const isInternal = authorization.isInternalUser(currentAssignment);
+        const isExternal = authorization.isExternalCustomer(currentAssignment);
+
+        if (!isInternal && !isExternal) {
+            return req.error(403,"The current account type is not permitted to display the product tree.");
+        }
+
+        const customerNumber = isExternal ? String(currentAssignment.CustomerNumber || "").trim() : String(requestedCustomerNumber || "").trim();
+        const db = cds.tx(req);
+
+        const {
+            PricelistData,
+            ProductPriceList
+        } = this.entities;
+
+        if (isInternal && !customerNumber) {
+            return db.run(SELECT.from(ProductPriceList).where({
+                    pricelist_ID: pricelistId,
+                    IsDeleted: {
+                        "!=": true
+                    }
+                }).orderBy("OrderIndex")
+            );
+        }
+
+        if (!customerNumber) {
+            return req.error(400,"Customer number is required.");
+        }
+
+        const extdb = await cds.connect.to("extdb");
+        const result = await getAuthorizedProductTree({db,extdb,ProductPriceList,PricelistData,pricelistId,customerNumber});
+
+        if (result.status) {
+            return req.error(result.status,result.message);
+        }
+
+        return result.rows;
     });
 
     this.on('resolveDiscounts', async (req) => {

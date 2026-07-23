@@ -124,13 +124,15 @@ annotate service.PricelistData with @(
         ID    : 'PricelistInfoFacet',
         Facets: [
         ]
-    },
-    {
-        $Type : 'UI.CollectionFacet',
-        Label : 'Category and Product Details',
-        ID    : 'ProductPricelistFacet',
-        Facets: [
+    }
+    // ,
+    // {
+    //     $Type : 'UI.CollectionFacet',
+    //     Label : 'Category and Product Details',
+    //     ID    : 'ProductPricelistFacet',
+    //     Facets: [
             
-        ]
-    }]
+    //     ]
+    // }
+    ]
 );
