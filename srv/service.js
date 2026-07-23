@@ -2865,7 +2865,7 @@ module.exports = cds.service.impl(async function () {
                     MaterialKey: mat.MATERIAL_KEY,
                     Material: mat.MATERIAL,
                     MaterialDescription: mat.MATERIAL_DESCRIPTION,
-                    CountryOfOrigin: mat.COUNTRY_OF_ORIGIN || null,
+                    CountryOfOrigin: mat.PLANT_COUNTRY_OF_ORIGIN || null,
                     Status: mat.ProductStatus || null,
                     StatusValidFromDate: mat.StatusValidity || null,
                     StatusValidToDate: mat.StatusExpiry  || null,

@@ -55,6 +55,9 @@ annotate service.PricelistData with @(
         }
     ],
 
+    // Display app must not inherit maintenance Object Page actions.
+    UI.Identification : [],
+
     // --- OBJECT PAGE HEADER ---
     UI.HeaderInfo       : {
         TypeName        : 'Pricelist',

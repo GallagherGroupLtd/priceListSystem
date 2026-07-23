@@ -1,59 +1,63 @@
 <core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m" xmlns:macros="sap.fe.macros" xmlns:smartForm="sap.ui.comp.smartform">
 	<VBox id="VBox3" core:require="{ handler: 'pricelistapp/pricelistdisplay/ext/controller/PricelistSubCategory'}">
 
-		<smartForm:SmartForm id="SubCategoryForm" editable="true" >
+		<smartForm:SmartForm id="SubCategoryForm" editable="false" >
 			<smartForm:layout>
                 <smartForm:ColumnLayout id="columnsLayout" columnsM="2" columnsL="2" columnsXL="2" />
             </smartForm:layout>
 
 			<smartForm:Group id="SubCategoryTermsAndCondGroup" title=" ">
                 <smartForm:GroupElement id="SubCategoryGroupElement" label="Sub Category Name">
-					<Input id="subCategoryInput" value="sub category test name"></Input>
+					<!-- <Input id="subCategoryInput" value="sub category test name" enabled="false"></Input> -->
+                    <Text id="subCategoryInput" text="sub category test name" wrapping="true" />
                 </smartForm:GroupElement>
 				<smartForm:GroupElement id="nameGroupElement" label="Published Sub Category Name">
-					<Input id="publishedSubCategoryInput" value="sub category published name"></Input>
+					<!-- <Input id="publishedSubCategoryInput" value="sub category published name" enabled="false"></Input> -->
+                    <Text id="publishedSubCategoryInput" text="sub category published name" wrapping="true" />
                 </smartForm:GroupElement>
             </smartForm:Group>
 
 		</smartForm:SmartForm>
         
-        <smartForm:SmartForm id="SubCategoryNotesForm" editable="true" >
+        <smartForm:SmartForm id="SubCategoryNotesForm" editable="false" >
             <smartForm:Group id="SubCategoryTermsAndCondContextGroup">
                 <smartForm:GroupElement id="ContextGroupElement" label="Terms and Conditions">
-                    <TextArea 
+                    <!-- <TextArea 
                         id="SubCategoryTermsAndCondContextText" 
                         value="{Context}" 
                         maxLength="1000" 
                         rows="10"
-                        width="100%" />
+                        width="100%" enabled="false"/> -->
+                    <Text id="SubCategoryTermsAndCondContextText" text="{Context}" width="100%" wrapping="true" renderWhitespace="true" />
                 </smartForm:GroupElement>
-				<smartForm:GroupElement id="SubCategoryTermsDisableGroupElement" label="Disable">
+				<!-- <smartForm:GroupElement id="SubCategoryTermsDisableGroupElement" label="Disable">
 					<HBox id="SubCategoryTermsExtUSerVBox" alignContent="Center">
                 		<Text id="SubCategoryTermsExtUserText" text="External User" />
                 		<Switch id="SubCategoryTermsExtUserSwitch" state="false" change=".onTermsDisableSwitchChange" />
 						<Text id="SubCategoryTermsIntUserText" text="Internal User" class="sapUiMediumMarginBegin" />
                 		<Switch id="SubCategoryTermsIntUserSwitch" state="false" change=".onTermsDisableSwitchChange" />
             		</HBox>
-				</smartForm:GroupElement>
+				</smartForm:GroupElement> -->
             </smartForm:Group>
 
             <smartForm:Group id="SubCategoryNoteGroup">
                 <smartForm:GroupElement id="SubCategoryNotesGroupElement" label="Notes">
-                    <TextArea 
+                    <!-- <TextArea 
                         id="SubCategoryGeneralNotesText" 
                         value="{generalNotes>/Notes}" 
                         maxLength="5000" 
                         rows="10"
-                        width="100%" />
+                        width="100%" enabled="false"/> -->
+                    <Text id="SubCategoryGeneralNotesText" text="{generalNotes>/Notes}" width="100%" wrapping="true" renderWhitespace="true" />
                 </smartForm:GroupElement>
-				<smartForm:GroupElement id="notesDisableGroupElement" label="Disable">
+				<!-- <smartForm:GroupElement id="notesDisableGroupElement" label="Disable">
 					<HBox id="notesExtUSerVBox" alignContent="Center">
                 		<Text id="notesExtUserText" text="External User" />
                 		<Switch id="notesExtUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
 						<Text id="notesIntUserText" text="Internal User" class="sapUiMediumMarginBegin" />
                 		<Switch id="notesIntUserSwitch" state="false" change=".onNotesDisableSwitchChange" />
             		</HBox>
-				</smartForm:GroupElement>
+				</smartForm:GroupElement> -->
             </smartForm:Group>
 
         </smartForm:SmartForm>

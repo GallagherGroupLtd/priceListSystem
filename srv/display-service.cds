@@ -3,15 +3,28 @@ using { PriceListService as base } from './service';
 service PriceListDisplayService {
 
     @readonly
+    @odata.draft.enabled: false
+    @Capabilities.InsertRestrictions.Insertable: false
+    @Capabilities.UpdateRestrictions.Updatable: false
+    @Capabilities.DeleteRestrictions.Deletable: false
     entity PricelistData as projection on base.PricelistData;
     
     @readonly
+    @Capabilities.InsertRestrictions.Insertable: false
+    @Capabilities.UpdateRestrictions.Updatable: false
+    @Capabilities.DeleteRestrictions.Deletable: false
     entity PricelistItemData as projection on base.PricelistItemData;
     
     @readonly
+    @Capabilities.InsertRestrictions.Insertable: false
+    @Capabilities.UpdateRestrictions.Updatable: false
+    @Capabilities.DeleteRestrictions.Deletable: false
     entity PricelistItemTree as projection on base.PricelistItemTree;
 
     @readonly
+    @Capabilities.InsertRestrictions.Insertable: false
+    @Capabilities.UpdateRestrictions.Updatable: false
+    @Capabilities.DeleteRestrictions.Deletable: false
     entity ProductPriceList as projection on base.ProductPriceList;
 
     @readonly

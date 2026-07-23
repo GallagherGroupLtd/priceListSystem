@@ -318,7 +318,7 @@
                     </t:template>
                 </t:Column>
 
-                <t:Column id="ColFuturePrice" width="6%" hAlign="Center">
+                <!-- <t:Column id="ColFuturePrice" width="6%" hAlign="Center">
                     <Label id="LblFuturePrice" text="Future Price" textAlign="Center" width="100%"/>
                     <t:template>
                         <Text id="TxtFuturePrice" text="{= ${jsonModel>Kind} === 'Product' ? (( ${jsonModel>FuturePrice} || '') + ' ' + (${jsonModel>PriceUnit} || '')) : '' }" />
@@ -330,7 +330,7 @@
                     <t:template>
                         <Text id="TxtFuturePriceValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>FuturePriceValidFrom} || '') + ' - ' + (${jsonModel>FuturePriceValidTo} || '') : '' }" />
                     </t:template>
-                </t:Column>
+                </t:Column> -->
 
                 <t:Column id="ColStatus" width="6%" hAlign="Center">
                     <Label id="LblStatus" text="Status" textAlign="Center" width="100%"/>
