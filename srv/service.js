@@ -2656,11 +2656,18 @@ module.exports = cds.service.impl(async function () {
             SalesOrg && common.push(`"SALES_ORGANIZATION" = '${escapeSql(SalesOrg)}'`);
             DistChannel && common.push(`"DISTRIBUTION_CHANNEL" = '${escapeSql(DistChannel)}'`);
             // common.push(DeliveringPlant ? `"PLANT" = '${escapeSql(DeliveringPlant)}'` : `"PLANT" = '*'`);
-            if (resolvedPlant) {
-                common.push(`("PLANT" = '${escapeSql(resolvedPlant)}' OR "PLANT" = '*')`);
-            } else {
-                common.push(`"PLANT" = '*'`);
-            }
+            // if (resolvedPlant) {
+            //     common.push(`("PLANT" = '${escapeSql(resolvedPlant)}' OR "PLANT" = '*')`);
+            // } else {
+            //     common.push(`"PLANT" = '*'`);
+            // }
+
+            /*
+            * Product tree currently uses wildcard plant records. 
+            * This preserves existing product selection behaviour while Country of Origin is resolved separately using the resolved plant with wildcard fallback.
+            * If business later requires plant-specific product selection, I will revisit this filter together with the Country of Origin lookup to avoid reintroducing duplicate product rows.
+            */
+            common.push(`"PLANT" = '*'`);
 
             const catOr = itemStructureDatas.map(row => {
                 const c = [];
@@ -2804,24 +2811,103 @@ module.exports = cds.service.impl(async function () {
         //     return materialsMaster;
         // };
 
+        const hasCountryOfOrigin = value => value !== null && value !== undefined && String(value).trim() !== "";
+
+        // Reads Country of Origin for the supplied materials and one plant.
+        const readCountryOfOrigin = async (materialIds, plant) => {
+            if (!plant || !Array.isArray(materialIds) || materialIds.length === 0) {
+                return new Map();
+            }
+
+            const materialFilter = materialIds.map(material => `'${escapeSql(material)}'`).join(", ");
+
+            const conditions = [
+                `"MATERIAL" IN (${materialFilter})`,
+                `"PLANT" = '${escapeSql(plant)}'`
+            ];
+
+            if (SalesOrg) {
+                conditions.push(`"SALES_ORGANIZATION" = '${escapeSql(SalesOrg)}'`);
+            }
+
+            if (DistChannel) {
+                conditions.push(`"DISTRIBUTION_CHANNEL" = '${escapeSql(DistChannel)}'`);
+            }
+
+            const query = `
+                WITH ranked AS (
+                    SELECT
+                        "MATERIAL",
+                        "PLANT_COUNTRY_OF_ORIGIN",
+                        ROW_NUMBER() OVER (
+                            PARTITION BY "MATERIAL"
+                            ORDER BY
+                                SUBSTRING("CREATED_AT", 1, 19) DESC
+                        ) AS rn
+                    FROM "SAPECC"."T_MATERIAL_MASTER_DATA"
+                    WHERE ${conditions.join(" AND ")}
+                )
+                SELECT
+                    "MATERIAL",
+                    "PLANT_COUNTRY_OF_ORIGIN"
+                FROM ranked
+                WHERE rn = 1
+            `;
+
+            const rows = await extdb.run(query);
+            const countryByMaterial = new Map();
+
+            for (const row of rows || []) {
+                const material = String(row.MATERIAL || "").trim();
+
+                const countryOfOrigin = row.PLANT_COUNTRY_OF_ORIGIN;
+
+                if (material && hasCountryOfOrigin(countryOfOrigin)) {
+                    countryByMaterial.set(material,String(countryOfOrigin).trim());
+                }
+            }
+
+            return countryByMaterial;
+        };
+
+        /**
+         * Updates only PLANT_COUNTRY_OF_ORIGIN on the existing material rows.
+         * Lookup order:
+         * 1. resolved plant
+         * 2. wildcard plant, only for rows where the resolved plant value is blank
+         */
+        const enrichCountryOfOrigin = async materialsMaster => {
+            if (!Array.isArray(materialsMaster) || materialsMaster.length === 0) {
+                return;
+            }
+
+            const materialIds = [
+                ...new Set(materialsMaster.map(material => String(material.MATERIAL || "").trim()).filter(Boolean))
+            ];
+
+            if (materialIds.length === 0) {
+                return;
+            }
+
+            const resolvedPlantCountries = resolvedPlant ? await readCountryOfOrigin(materialIds,resolvedPlant) : new Map();
+            const fallbackMaterialIds = materialIds.filter(material => !resolvedPlantCountries.has(material));
+            const wildcardCountries = fallbackMaterialIds.length > 0 ? await readCountryOfOrigin(fallbackMaterialIds,"*") : new Map();
+
+            for (const materialRow of materialsMaster) {
+                const material = String(materialRow.MATERIAL || "").trim();
+
+                if (resolvedPlantCountries.has(material)) {
+                    materialRow.CountryOfOrigin = resolvedPlantCountries.get(material);
+                } else if (wildcardCountries.has(material)) {
+                    materialRow.CountryOfOrigin = wildcardCountries.get(material);
+                } else {
+                    materialRow.CountryOfOrigin = null;
+                }
+            }
+        };
+
         const loadMaterials = async (itemStructureDatas) => {
             const where = buildMaterialWhere(itemStructureDatas);
-            const sResolvedPlant = resolvedPlant ? escapeSql(resolvedPlant) : "";
-
-            const sPlantPriority = resolvedPlant 
-                ? `
-                    CASE
-                        WHEN "PLANT" = '${sResolvedPlant}' THEN 0
-                        WHEN "PLANT" = '*' THEN 1
-                        ELSE 2
-                    END,
-                `
-                : `
-                    CASE
-                        WHEN "PLANT" = '*' THEN 0
-                        ELSE 1
-                    END,
-                `;
 
             const extQuery = `
                 WITH ranked AS (
@@ -2833,7 +2919,6 @@ module.exports = cds.service.impl(async function () {
                                 "SALES_ORGANIZATION",
                                 "DISTRIBUTION_CHANNEL"
                             ORDER BY
-                                ${sPlantPriority}
                                 SUBSTRING("CREATED_AT", 1, 19) DESC
                         ) AS rn
                     FROM "SAPECC"."T_MATERIAL_MASTER_DATA"
@@ -2844,7 +2929,47 @@ module.exports = cds.service.impl(async function () {
                 WHERE rn = 1
             `;
 
+
+            // const sResolvedPlant = resolvedPlant ? escapeSql(resolvedPlant) : "";
+
+            // const sPlantPriority = resolvedPlant 
+            //     ? `
+            //         CASE
+            //             WHEN "PLANT" = '${sResolvedPlant}' THEN 0
+            //             WHEN "PLANT" = '*' THEN 1
+            //             ELSE 2
+            //         END,
+            //     `
+            //     : `
+            //         CASE
+            //             WHEN "PLANT" = '*' THEN 0
+            //             ELSE 1
+            //         END,
+            //     `;
+
+            // const extQuery = `
+            //     WITH ranked AS (
+            //         SELECT
+            //             *,
+            //             ROW_NUMBER() OVER (
+            //                 PARTITION BY
+            //                     "MATERIAL_KEY",
+            //                     "SALES_ORGANIZATION",
+            //                     "DISTRIBUTION_CHANNEL"
+            //                 ORDER BY
+            //                     ${sPlantPriority}
+            //                     SUBSTRING("CREATED_AT", 1, 19) DESC
+            //             ) AS rn
+            //         FROM "SAPECC"."T_MATERIAL_MASTER_DATA"
+            //         WHERE ${where}
+            //     )
+            //     SELECT *
+            //     FROM ranked
+            //     WHERE rn = 1
+            // `;
+
             const materialsMaster = await extdb.run(extQuery);
+            await enrichCountryOfOrigin(materialsMaster);
             await mergeMaterialStatus(materialsMaster);
 
             return materialsMaster;
@@ -2865,7 +2990,7 @@ module.exports = cds.service.impl(async function () {
                     MaterialKey: mat.MATERIAL_KEY,
                     Material: mat.MATERIAL,
                     MaterialDescription: mat.MATERIAL_DESCRIPTION,
-                    CountryOfOrigin: mat.PLANT_COUNTRY_OF_ORIGIN || null,
+                    CountryOfOrigin: mat.CountryOfOrigin || null,
                     Status: mat.ProductStatus || null,
                     StatusValidFromDate: mat.StatusValidity || null,
                     StatusValidToDate: mat.StatusExpiry  || null,
