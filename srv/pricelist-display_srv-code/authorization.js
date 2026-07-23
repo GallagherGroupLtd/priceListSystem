@@ -32,7 +32,11 @@ async function filterPricelistData(req) {
     const publishedWhere = [
         { ref: ['Status'] },
         '=',
-        { val: 'Published' }
+        { val: 'Published' },
+        'and',
+        { ref: ['IsVersionActive'] },
+        '=',
+        { val: true }
     ];
 
     if (isInternalAdmin(assignment)) {
