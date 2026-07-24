@@ -546,22 +546,25 @@ sap.ui.define([
 			const oJsonModel = oView.getModel("jsonModel");
 
 			if (!oContext) {
+				oJsonModel.setProperty("/productPriceList", []);
 				return [];
 			}
 
 			const sPricelistId = oContext.getProperty("ID");
 
 			if (!sPricelistId) {
+				oJsonModel.setProperty("/productPriceList", []);
 				return [];
 			}
 
 			const sCustomerNumber = String(oJsonModel.getProperty("/discountUserContext/CustomerNumber") || "").trim();
-			const aRows = await this._executeAction("/getAuthorizedProductTree(...)",{
+			const oResult = await this._executeAction("/getAuthorizedProductTree(...)",{
 				pricelistId: sPricelistId,
 				customerNumber: sCustomerNumber
 			});
+			const aRows = oResult && Array.isArray(oResult.value) ? oResult.value : Array.isArray(oResult) ? oResult : [];
 
-			return this._buildTreeFromEntityRows(Array.isArray(aRows) ? aRows : []);
+			return this._buildTreeFromEntityRows(aRows);
 		},
 
 		_buildTreeFromEntityRows: function (aFlatRows) {
