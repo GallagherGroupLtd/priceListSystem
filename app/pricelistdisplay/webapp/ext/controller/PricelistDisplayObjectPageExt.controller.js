@@ -430,7 +430,7 @@ sap.ui.define([
 
 		_executeAction: async function (sActionPath, mParameters) {
 			const oModel = this.base.getView().getModel();
-			const oActionBinding = oModel.bindContext(sActionPath);
+			const oActionBinding = oModel.bindContext(sActionPath,null,{$$groupId: "$direct"});
 
 			Object.keys(mParameters || {}).forEach((sName) => {
 				oActionBinding.setParameter(sName, mParameters[sName]);
@@ -440,9 +440,7 @@ sap.ui.define([
 
 			const oBoundContext = oActionBinding.getBoundContext();
 
-			return oBoundContext
-				? oBoundContext.getObject()
-				: null;
+			return oBoundContext ? oBoundContext.getObject() : null;
 		},
 
 		getInstance: function () { return _oInstance; },
@@ -535,8 +533,6 @@ sap.ui.define([
 					oJsonModel.setProperty("/originalProductPriceList",[]);
 					oJsonModel.updateBindings(true);
 					MessageToast.show("Failed to load the product list.");
-
-					throw oError;
 				});
 		},
 

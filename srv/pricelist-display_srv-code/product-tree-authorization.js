@@ -2,38 +2,74 @@ const { SELECT } = cds.ql;
 
 const normalize = (value) => String(value === null || value === undefined ? "" : value).trim();
 const escapeSql = (value) => normalize(value).replace(/'/g, "''");
+const normalizeClassification = (value) => normalize(value).toUpperCase();
 
- // Loads the selected customer's classification. The customer lookup is restricted by the sales organization and distribution channel of the displayed pricelist.
-async function getCustomerClassification({extdb,customerNumber,salesOrg,distChannel}) {
+// Loads the latest customer classification directly by customer numbe
+async function getCustomerClassification({extdb,customerNumber}) {
     const customer = escapeSql(customerNumber);
-    const salesOrganization = escapeSql(salesOrg);
-    const distributionChannel = escapeSql(distChannel);
-
     if (!customer) {
         return "";
     }
 
-    const conditions = [`"CUSTOMER" = '${customer}'`];
+    const rows = await extdb.run(`
+        SELECT
+            "CUSTOMER_CLASSIFICATION",
+            "UPDATED_AT",
+            "CREATED_AT"
+        FROM "SAPECC"."T_CUSTOMER_MASTER_DATA"
+        WHERE "CUSTOMER" = '${customer}'
+          AND "CUSTOMER_CLASSIFICATION" IS NOT NULL
+          AND TRIM("CUSTOMER_CLASSIFICATION") <> ''
+        ORDER BY
+            SUBSTRING("UPDATED_AT", 1, 19) DESC,
+            SUBSTRING("CREATED_AT", 1, 19) DESC
+        LIMIT 1
+    `);
 
-    if (salesOrganization) {
-        conditions.push(`"SALES_ORGANIZATION" = '${salesOrganization}'`);
-    }
+    return normalizeClassification(Array.isArray(rows) && rows.length ? rows[0].CUSTOMER_CLASSIFICATION : "");
+}
 
-    if (distributionChannel) {
-        conditions.push(`"DISTRIBUTION_CHANNEL" = '${distributionChannel}'`);
+async function getProductListingAuthorization({extdb,customerClassification}) {
+    const classification = escapeSql(customerClassification);
+
+    if (!classification) {
+        return {
+            allowedMaterialGroups: new Set(),
+            includeSharedProducts: false
+        };
     }
 
     const rows = await extdb.run(`
         SELECT
-            "CUSTOMER_CLASSIFICATION"
-        FROM SAPECC.T_CUSTOMER_MASTER_DATA
-        WHERE ${conditions.join(" AND ")}
+            "MATERIAL_GROUP_2",
+            "SHARED_PRODUCT"
+        FROM "SAPECC"."T_PRODUCT_LISTING"
+        WHERE UPPER(TRIM("CUSTOMER_CLASSIFICATION")) =
+              UPPER(TRIM('${classification}'))
     `);
 
-    return normalize(Array.isArray(rows) && rows.length ? rows[0].CUSTOMER_CLASSIFICATION : "");
+    const allowedMaterialGroups = new Set();
+    let includeSharedProducts = false;
+
+    (rows || []).forEach((row) => {
+        const materialGroup = normalizeClassification(row.MATERIAL_GROUP_2);
+
+        if (materialGroup) {
+            allowedMaterialGroups.add(materialGroup);
+        }
+
+        if (normalizeClassification(row.SHARED_PRODUCT) === "X") {
+            includeSharedProducts = true;
+        }
+    });
+
+    return {
+        allowedMaterialGroups,
+        includeSharedProducts
+    };
 }
 
-async function getMaterialClassifications({extdb,materialIds,salesOrg,distChannel}) {
+async function getMaterialAuthorization({extdb,materialIds,salesOrg,distChannel}) {
     const uniqueMaterialIds = [
         ...new Set((materialIds || []).map(normalize).filter(Boolean))
     ];
@@ -59,23 +95,38 @@ async function getMaterialClassifications({extdb,materialIds,salesOrg,distChanne
     const rows = await extdb.run(`
         SELECT
             "MATERIAL",
-            "MATERIAL_GROUP_2"
+            "MATERIAL_GROUP_2",
+            "PRODUCT_ATTRIBUTE_5"
         FROM SAPECC.T_MATERIAL_MASTER_DATA
         WHERE ${conditions.join(" AND ")}
     `);
 
-    const classificationByMaterial = new Map();
-
+    const authorizationByMaterial = new Map();
     (rows || []).forEach((row) => {
         const materialId = normalize(row.MATERIAL);
-        const classification = normalize(row.MATERIAL_GROUP_2);
-
-        if (materialId && !classificationByMaterial.has(materialId)) {
-            classificationByMaterial.set(materialId,classification);
+        if (!materialId) {
+            return;
         }
+        const existing = authorizationByMaterial.get(materialId) || {
+            materialGroups: new Set(),
+            isShared: false
+        };
+
+        const materialGroup = normalizeClassification(row.MATERIAL_GROUP_2);
+        if (materialGroup) {
+            existing.materialGroups.add(materialGroup);
+        }
+        if (normalizeClassification(row.PRODUCT_ATTRIBUTE_5) === "X") {
+            existing.isShared = true;
+        }
+
+        authorizationByMaterial.set(
+            materialId,
+            existing
+        );
     });
 
-    return classificationByMaterial;
+    return authorizationByMaterial;
 }
 
 /**
@@ -139,7 +190,8 @@ async function getAuthorizedProductTree({db,extdb,ProductPriceList,PricelistData
         };
     }
 
-    const customerClassification = await getCustomerClassification({extdb,customerNumber,salesOrg: pricelist.SalesOrg,distChannel: pricelist.DistChannel});
+    // const customerClassification = await getCustomerClassification({extdb,customerNumber,salesOrg: pricelist.SalesOrg,distChannel: pricelist.DistChannel});
+    const customerClassification = await getCustomerClassification({extdb,customerNumber});
 
     if (!customerClassification) {
         return {
@@ -149,17 +201,31 @@ async function getAuthorizedProductTree({db,extdb,ProductPriceList,PricelistData
         };
     }
 
+    const {allowedMaterialGroups,includeSharedProducts} = await getProductListingAuthorization({extdb,customerClassification});
+
+    if (!allowedMaterialGroups.size && !includeSharedProducts) {
+        return {
+            rows: []
+        };
+    }
+
     const productRows = rows.filter((row) => normalize(row.Kind) === "Product");
-    const materialIds = productRows.map((row) => normalize(row.MaterialKey || row.Title)).filter(Boolean);
-    const classificationByMaterial = await getMaterialClassifications({extdb,materialIds,salesOrg: pricelist.SalesOrg,distChannel: pricelist.DistChannel});
+    const materialIds = productRows.map((row) => normalize(row.Title)).filter(Boolean);
+    const authorizationByMaterial = await getMaterialAuthorization({extdb,materialIds,salesOrg: pricelist.SalesOrg,distChannel: pricelist.DistChannel});
 
     const allowedProductIds = new Set();
 
     productRows.forEach((row) => {
-        const materialId = normalize(row.MaterialKey || row.Title);
-        const materialClassification = normalize(classificationByMaterial.get(materialId));
+        const materialId = normalize(row.Title);
+        const materialAuthorization =  authorizationByMaterial.get(materialId);
+        if (!materialAuthorization) {
+            return;
+        }
+        const hasAllowedMaterialGroup = Array.from(materialAuthorization.materialGroups).some((materialGroup) => allowedMaterialGroups.has(materialGroup));
 
-        if (materialClassification && materialClassification === customerClassification) {
+        const isAllowedSharedProduct = includeSharedProducts && materialAuthorization.isShared;
+
+        if (hasAllowedMaterialGroup || isAllowedSharedProduct) {
             allowedProductIds.add(normalize(row.ID));
         }
     });
