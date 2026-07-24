@@ -11,11 +11,13 @@ const ACCESS_MATCH_FIELDS = [
     },
     {
         sourceField: 'CustPriceList',
-        suffix: 'CUSTOMER_PRICE_GROUP'
+        suffix: 'PRICELIST_TYPE',
+        matchBlank: true
     },
     {
         sourceField: 'CustGroup1',
-        suffix: 'MATERIAL_PRICE_GROUP'
+        suffix: 'CUSTOMER_GROUP_1',
+        matchBlank: true
     }
 ];
 
@@ -155,10 +157,16 @@ async function resolvePricingParameters({db,extdb,context,materialIds = [],param
         }
 
         for (const match of cols.matchFields) {
-            const contextValue = context?.[match.sourceField];
+            if (!availableCols.has(match.column)) continue;
+            const contextValue = normalize(context?.[match.sourceField]);
 
-            if (notEmpty(contextValue) && availableCols.has(match.column)) {
+            // if (notEmpty(contextValue) && availableCols.has(match.column)) {
+            //     where.push(`${quoted(match.column)} = '${escapeSql(contextValue)}'`);
+            // }
+            if (contextValue) {
                 where.push(`${quoted(match.column)} = '${escapeSql(contextValue)}'`);
+            } else if (match.matchBlank) {
+                where.push(`(${quoted(match.column)} IS NULL OR TRIM(${quoted(match.column)}) = '')`);
             }
         }
 

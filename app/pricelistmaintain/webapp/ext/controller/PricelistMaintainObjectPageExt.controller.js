@@ -750,17 +750,33 @@ sap.ui.define([
 				return;
 			}
 
-			// Capture a snapshot before deletion so the operation can be undone.
-			const aSnapshot = this._clone(aCurrentTree);
+			const aCurrentFullTree = oModel.getProperty("/productPriceListFull") || [];
+			const aVisibleTreeSnapshot = this._clone(aCurrentTree);
+			const aFullTreeSnapshot = this._clone(aCurrentFullTree);
 
 			if (!this._originalSnapshot) {
-				this._originalSnapshot = this._clone(aSnapshot);
+				this._originalSnapshot = this._clone(aVisibleTreeSnapshot);
 			}
 
 			this._deletedSnapshots.push({
-				tree: aSnapshot,
-				pendingDeletedIds: oModel.getProperty("/pendingDeletedIds") || []
+				tree: aVisibleTreeSnapshot,
+				fullTree: aFullTreeSnapshot,
+				pendingDeletedIds: [
+					...(oModel.getProperty("/pendingDeletedIds") || [])
+				]
 			});
+
+			// // Capture a snapshot before deletion so the operation can be undone.
+			// const aSnapshot = this._clone(aCurrentTree);
+
+			// if (!this._originalSnapshot) {
+			// 	this._originalSnapshot = this._clone(aSnapshot);
+			// }
+
+			// this._deletedSnapshots.push({
+			// 	tree: aSnapshot,
+			// 	pendingDeletedIds: oModel.getProperty("/pendingDeletedIds") || []
+			// });
 
 			// Accumulate backend IDs that need to be deleted on save.
 			const aPendingDeletedIds = oModel.getProperty("/pendingDeletedIds") || [];
@@ -795,6 +811,24 @@ sap.ui.define([
 					.filter(Boolean);
 			};
 
+			//This is done to ensure deletion of full tree is not the same as for visible tree, to act as a safety net in case deletion is called in some other way.
+			const filterFullTreeByDeletedIds = (aNodes) => {
+				if (!Array.isArray(aNodes)) return [];
+
+				return aNodes.map((oNode) => {
+					if (!oNode) return null;
+
+					if (oNode.ID && pendingDeletedIdSet.has(oNode.ID)) {
+						return null;
+					}
+
+					return Object.assign({}, oNode, {
+						children: filterFullTreeByDeletedIds(oNode.children || [])
+					});
+				})
+				.filter(Boolean);
+			};
+
 			// After removing the selected rows, drop any Category that has become empty
 			// Deleting the last child of a parent should delete the parent too. 
 			const removeEmptyCategories = (aNodes) => {
@@ -816,9 +850,16 @@ sap.ui.define([
 					})
 					.filter(Boolean);
 			};
-			const aCleanTree = removeEmptyCategories(filterTree(aCurrentTree, "/productPriceList"));
+			// const aCleanTree = removeEmptyCategories(filterTree(aCurrentTree, "/productPriceList"));
 
-			oModel.setProperty("/productPriceList", aCleanTree);
+			const aCleanVisibleTree = removeEmptyCategories(filterTree(aCurrentTree,"/productPriceList"));
+			const aCleanFullTree = removeEmptyCategories(filterFullTreeByDeletedIds(aCurrentFullTree));
+
+			oModel.setProperty("/productPriceList",aCleanVisibleTree);
+			oModel.setProperty("/productPriceListFull",this._clone(aCleanFullTree));
+
+			// oModel.setProperty("/productPriceList", aCleanTree);
+			// oModel.setProperty("/productPriceListFull", this._clone(aCleanTree));
 			oModel.setProperty("/pendingDeletedIds", Array.from(pendingDeletedIdSet));
 			oModel.setProperty("/selectedKeys", []);
 
@@ -841,12 +882,21 @@ sap.ui.define([
 
 			const oSnapshot = this._deletedSnapshots.pop();
 			const oModel = this._getJsonModel();
-			const aTree = Array.isArray(oSnapshot) ? oSnapshot : oSnapshot.tree;
-			const aPendingDeletedIds = Array.isArray(oSnapshot) ? [] : (oSnapshot.pendingDeletedIds || []);
 
-			oModel.setProperty("/productPriceList", this._clone(aTree));
+			const aVisibleTree = Array.isArray(oSnapshot) ? oSnapshot : (oSnapshot.tree || []);
+			const aFullTree = Array.isArray(oSnapshot) ? oSnapshot : (oSnapshot.fullTree || oSnapshot.tree || []);
+			const aPendingDeletedIds = Array.isArray(oSnapshot) ? [] : [
+				...(oSnapshot.pendingDeletedIds || [])
+			];
+			// const aTree = Array.isArray(oSnapshot) ? oSnapshot : oSnapshot.tree;
+			// const aPendingDeletedIds = Array.isArray(oSnapshot) ? [] : (oSnapshot.pendingDeletedIds || []);
+
+			oModel.setProperty("/productPriceList", this._clone(aVisibleTree));
+			oModel.setProperty("/productPriceListFull", this._clone(aFullTree));
 			oModel.setProperty("/pendingDeletedIds", aPendingDeletedIds);
 			oModel.setProperty("/selectedKeys", []);
+
+			oModel.updateBindings(true);
 
 			const oTable = this._getTreeControl("ProductPriceListTreeTable");
 			if (oTable && oTable.clearSelection) oTable.clearSelection();
