@@ -52,6 +52,32 @@ sap.ui.define([
 		return (v == null) ? "" : String(v).trim();
 	}
 
+	function createEmptyPricelistUpdatesModel() {
+		return {
+			loading: false,
+			loadError: "",
+
+			currentVersion: "",
+			previousVersion: "",
+			hasPreviousVersion: false,
+
+			summary: {
+				totalChanges: 0,
+				currentPricelistCount: 0,
+				updatesCount: 0,
+				upcomingPriceCount: 0,
+				addedRemovedCount: 0,
+				termsNotesCount: 0
+			},
+
+			currentPricelist: [],
+			pricelistUpdates: [],
+			upcomingPrices: [],
+			addedRemovedProducts: [],
+			termsNotesUpdates: []
+		};
+	}
+
 	return ControllerExtension.extend('pricelistapp.pricelistdisplay.ext.controller.PricelistDisplayObjectPageExt', {
 		// this section allows to extend lifecycle hooks or hooks provided by Fiori elements
 		override: {
@@ -91,22 +117,7 @@ sap.ui.define([
 						maintainedBy: "",
 						maintainedAt: null
 					});
-					oJson.setProperty("/pricelistUpdates", {
-						versions: [],
-						summary: {
-							totalChanges: 0,
-							totalVersions: 0
-						},
-						priceUpdates: [],
-						futurePriceUpdates: [],
-						categoryUpdates: [],
-						notesUpdates: []
-					});
-
-					oJson.setProperty("/pricelistUpdatesFilter", {
-						fromVersion: "",
-						toVersion: ""
-					});
+					oJson.setProperty("/pricelistUpdates",createEmptyPricelistUpdatesModel());
 				}
 			},
 
@@ -1467,6 +1478,84 @@ sap.ui.define([
 			return aIds;
 		},
 
+		_buildVersionHistoryTree: function (aRows) {
+			if (!Array.isArray(aRows) || !aRows.length) {
+				return [];
+			}
+
+			const mRowsByKey = new Map();
+			const aOrderedRows = [];
+
+			aRows.forEach(function (oSourceRow) {
+				if (!oSourceRow || !oSourceRow.rowKey) {
+					return;
+				}
+
+				const sRowKey = String(
+					oSourceRow.rowKey
+				);
+
+				if (mRowsByKey.has(sRowKey)) {
+					console.warn("Duplicate Version History row key ignored:",sRowKey);
+					return;
+				}
+
+				const oTreeRow = {
+					...oSourceRow,
+					rowKey: sRowKey,
+					parentKey: oSourceRow.parentKey ? String(oSourceRow.parentKey) : null,
+					children: []
+				};
+
+				mRowsByKey.set(sRowKey,oTreeRow);
+				aOrderedRows.push(oTreeRow);
+			});
+
+			const aRootRows = [];
+
+			aOrderedRows.forEach(function (oRow) {
+				const sParentKey = oRow.parentKey;
+				if (!sParentKey || sParentKey === oRow.rowKey || !mRowsByKey.has(sParentKey)) {
+					aRootRows.push(oRow);
+					return;
+				}
+
+				mRowsByKey.get(sParentKey).children.push(oRow);
+			});
+
+			return aRootRows;
+		},
+
+		_normalizePricelistUpdatesResult: function (oResult) {
+			const oDefault = createEmptyPricelistUpdatesModel();
+
+			const oSummary = oResult && oResult.summary ? oResult.summary : {};
+
+			return {
+				loading: false,
+				loadError: "",
+
+				currentVersion: oResult?.currentVersion || "",
+				previousVersion: oResult?.previousVersion || "",
+				hasPreviousVersion: Boolean(oResult?.hasPreviousVersion),
+
+				summary: {
+					totalChanges: Number(oSummary.totalChanges || 0),
+					currentPricelistCount: Number(oSummary.currentPricelistCount || 0),
+					updatesCount: Number(oSummary.updatesCount || 0),
+					upcomingPriceCount: Number(oSummary.upcomingPriceCount || 0),
+					addedRemovedCount: Number(oSummary.addedRemovedCount || 0),
+					termsNotesCount: Number(oSummary.termsNotesCount || 0)
+				},
+
+				currentPricelist: this._buildVersionHistoryTree(oResult?.currentPricelist || oDefault.currentPricelist),
+				pricelistUpdates: this._buildVersionHistoryTree(oResult?.pricelistUpdates || oDefault.pricelistUpdates),
+				upcomingPrices: this._buildVersionHistoryTree(oResult?.upcomingPrices || oDefault.upcomingPrices),
+				addedRemovedProducts: this._buildVersionHistoryTree(oResult?.addedRemovedProducts || oDefault.addedRemovedProducts),
+				termsNotesUpdates: this._buildVersionHistoryTree(oResult?.termsNotesUpdates || oDefault.termsNotesUpdates)
+			};
+		},
+
 		_loadPricelistUpdates: function () {
 			const oView = this.base.getView();
 			const oContext = oView.getBindingContext();
@@ -1476,7 +1565,6 @@ sap.ui.define([
 			}
 
 			const oJson = oView.getModel("jsonModel");
-			const oFilter = oJson.getProperty("/pricelistUpdatesFilter") || {};
 			const sPath = oContext.getPath();
 			const sPricelistId = this._extractKeyFromContextPath(sPath);
 
@@ -1484,31 +1572,29 @@ sap.ui.define([
 				return Promise.resolve();
 			}
 
+		    const oCurrentState = oJson.getProperty("/pricelistUpdates") || createEmptyPricelistUpdatesModel();
+			oJson.setProperty("/pricelistUpdates",
+				{
+					...oCurrentState,
+					loading: true,
+					loadError: ""
+				}
+			);
 			const oAction = oView.getModel().bindContext("/getPricelistUpdates(...)");
-
 			oAction.setParameter("pricelistId", sPricelistId);
-			oAction.setParameter("fromVersion", oFilter.fromVersion || "");
-			oAction.setParameter("toVersion", oFilter.toVersion || "");
 
 			return oAction.execute()
-				.then(function () {
-					const oResult = oAction.getBoundContext().getObject() || {};
-
-					oJson.setProperty("/pricelistUpdates", {
-						versions: oResult.versions || [],
-						summary: oResult.summary || {
-							totalChanges: 0,
-							totalVersions: 0
-						},
-						priceUpdates: oResult.priceUpdates || [],
-						futurePriceUpdates: oResult.futurePriceUpdates || [],
-						categoryUpdates: oResult.categoryUpdates || [],
-						notesUpdates: oResult.notesUpdates || []
-					});
-				})
-				.catch(function (oError) {
-					console.error("Error loading pricelist updates:", oError);
-					MessageBox.error("Unable to load pricelist updates.");
+				.then(() => {
+					const oBoundContext = oAction.getBoundContext();
+					const oResult = oBoundContext ? oBoundContext.getObject() : {};
+					const oNormalizedResult = this._normalizePricelistUpdatesResult(oResult || {});
+					oJson.setProperty("/pricelistUpdates",oNormalizedResult);
+				}).catch(oError => {
+					console.error("Error loading Version History:",oError);
+					const oEmptyResult = createEmptyPricelistUpdatesModel();
+					oEmptyResult.loadError = "Unable to load Version History.";
+					oJson.setProperty("/pricelistUpdates",oEmptyResult);
+					MessageBox.error("Unable to load Version History.");
 				});
 		},
 

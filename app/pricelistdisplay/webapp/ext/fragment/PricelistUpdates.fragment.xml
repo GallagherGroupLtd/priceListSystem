@@ -1,120 +1,353 @@
-<core:FragmentDefinition
-    xmlns:core="sap.ui.core"
-    xmlns="sap.m"
-    xmlns:t="sap.ui.table">
-
-    <VBox
-        id="PricelistUpdatesVBox"
-        width="100%"
-        core:require="{ handler: 'pricelistapp/pricelistdisplay/ext/controller/PricelistUpdates'}">
-
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m" xmlns:t="sap.ui.table">
+    <VBox id="PricelistUpdatesVBox" width="100%" busy="{jsonModel>/pricelistUpdates/loading}"
+        core:require="{handler:'pricelistapp/pricelistdisplay/ext/controller/PricelistUpdates'}">
         <OverflowToolbar id="PricelistUpdatesToolbar">
-            <Title id="PricelistUpdatesTitle" text="Version History" />
+            <Title id="PricelistUpdatesTitle" 
+                text="{= 'Changes (' + (${jsonModel>/pricelistUpdates/summary/totalChanges} || 0) + ')'}" />
             <ToolbarSpacer />
-
-            <Label text="From Version" />
-            <ComboBox
-                id="FromVersionCombo"
-                width="18rem"
-                selectedKey="{jsonModel>/pricelistUpdatesFilter/fromVersion}"
-                items="{jsonModel>/pricelistUpdates/versions}">
-                <core:Item
-                    key="{jsonModel>version}"
-                    text="{jsonModel>displayText}" />
-            </ComboBox>
-
-            <Label text="To Version" />
-            <ComboBox
-                id="ToVersionCombo"
-                width="18rem"
-                selectedKey="{jsonModel>/pricelistUpdatesFilter/toVersion}"
-                items="{jsonModel>/pricelistUpdates/versions}">
-                <core:Item
-                    key="{jsonModel>version}"
-                    text="{jsonModel>displayText}" />
-            </ComboBox>
-
-            <Button text="Apply" type="Emphasized" press="handler.onApplyVersionFilter" />
-            <Button text="Clear" press="handler.onClearVersionFilter" />
+            <Text id="PricelistVersionComparisonText"
+                visible="{jsonModel>/pricelistUpdates/hasPreviousVersion}"
+                text="{= 'Version ' + ${jsonModel>/pricelistUpdates/currentVersion} + ' compared with Version ' + ${jsonModel>/pricelistUpdates/previousVersion}}" />
         </OverflowToolbar>
-
-        <MessageStrip
-            text="{= 'Total Changes: ' + (${jsonModel>/pricelistUpdates/summary/totalChanges} || 0) + ' | Versions: ' + (${jsonModel>/pricelistUpdates/summary/totalVersions} || 0) }"
-            type="Information"
-            showIcon="true"
+        <MessageStrip id="NoPreviousVersionMessage"
+            visible="{= !${jsonModel>/pricelistUpdates/hasPreviousVersion}&amp;&amp;!${jsonModel>/pricelistUpdates/loading}}"
+            text="No previous published version is available for comparison." type="Information" showIcon="true"
             class="sapUiSmallMarginTop sapUiSmallMarginBottom" />
-
-        <Panel headerText="Price Updates" expandable="true" expanded="true" width="100%">
-            <t:Table
-                id="PriceUpdatesTable"
-                rows="{jsonModel>/pricelistUpdates/priceUpdates}"
+        <MessageStrip id="VersionHistoryLoadError"
+            visible="{= !!${jsonModel>/pricelistUpdates/loadError}}"
+            text="{jsonModel>/pricelistUpdates/loadError}"
+            type="Error" showIcon="true" class="sapUiSmallMarginTop sapUiSmallMarginBottom" />
+        <HBox id="VersionHistoryNavigation" wrap="Wrap" class="sapUiSmallMarginTop sapUiSmallMarginBottom">
+            <Button id="NavigateCurrentPricelist"
+                text="{= 'Current Pricelist (' + (${jsonModel>/pricelistUpdates/summary/currentPricelistCount} || 0) + ')'}"
+                press="handler.onNavigate">
+                <customData>
+                    <core:CustomData key="target" value="CurrentPricelistPanel" />
+                </customData>
+            </Button>
+            <Button id="NavigatePricelistUpdates"
+                visible="{jsonModel>/pricelistUpdates/hasPreviousVersion}"
+                text="{= 'Updates in Pricelist (' + (${jsonModel>/pricelistUpdates/summary/updatesCount} || 0) + ')'}"
+                press="handler.onNavigate">
+                <customData>
+                    <core:CustomData key="target" value="PricelistUpdatesPanel" />
+                </customData>
+            </Button>
+            <Button id="NavigateUpcomingPrices"
+                text="{= 'Upcoming Price (' + (${jsonModel>/pricelistUpdates/summary/upcomingPriceCount} || 0) + ')'}"
+                press="handler.onNavigate">
+                <customData>
+                    <core:CustomData key="target" value="UpcomingPricesPanel" />
+                </customData>
+            </Button>
+            <Button id="NavigateAddedRemoved" 
+                visible="{jsonModel>/pricelistUpdates/hasPreviousVersion}"
+                text="{= 'Added &amp; Removed Products (' + (${jsonModel>/pricelistUpdates/summary/addedRemovedCount} || 0) + ')'}"
+                press="handler.onNavigate">
+                <customData>
+                    <core:CustomData key="target" value="AddedRemovedProductsPanel" />
+                </customData>
+            </Button>
+            <Button id="NavigateTermsNotes"
+                visible="{jsonModel>/pricelistUpdates/hasPreviousVersion}"
+                text="{= 'T&amp;C and Notes Updates (' + (${jsonModel>/pricelistUpdates/summary/termsNotesCount} || 0) + ')'}"
+                press="handler.onNavigate">
+                <customData>
+                    <core:CustomData key="target" value="TermsNotesUpdatesPanel" />
+                </customData>
+            </Button>
+        </HBox>
+        <!-- ======================================================
+             1. CURRENT PRICELIST
+             ====================================================== -->
+        <Panel id="CurrentPricelistPanel" headerText="Current Pricelist" expandable="true" expanded="true" width="100%">
+            <t:TreeTable id="CurrentPricelistTable"
+                rows="{path:'jsonModel>/pricelistUpdates/currentPricelist',parameters: {arrayNames: ['children']}}"
+                rowsUpdated="handler.onRowsUpdated"
                 selectionMode="None"
                 width="100%">
                 <t:columns>
-                    <t:Column width="12rem"><Label text="Changed On" /><t:template><Text text="{jsonModel>changedAt}" /></t:template></t:Column>
-                    <t:Column width="16rem"><Label text="Version" /><t:template><Text text="{jsonModel>versionDisplay}" /></t:template></t:Column>
-                    <t:Column width="12rem"><Label text="Changed By" /><t:template><Text text="{jsonModel>changedBy}" /></t:template></t:Column>
-                    <t:Column width="18rem"><Label text="Item" /><t:template><Text text="{jsonModel>item}" wrapping="false" /></t:template></t:Column>
-                    <t:Column width="12rem"><Label text="Field" /><t:template><Text text="{jsonModel>field}" /></t:template></t:Column>
-                    <t:Column width="14rem"><Label text="Old Value" /><t:template><Text text="{jsonModel>oldValue}" wrapping="false" /></t:template></t:Column>
-                    <t:Column width="14rem"><Label text="New Value" /><t:template><Text text="{jsonModel>newValue}" wrapping="false" /></t:template></t:Column>
+                    <t:Column width="22rem">
+                        <Label text="Categories and Products" />
+                        <t:template>
+                            <Text text="{jsonModel>title}" wrapping="false" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="16rem">
+                        <Label text="Description" />
+                        <t:template>
+                            <Text text="{jsonModel>description}" wrapping="false" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="11rem">
+                        <Label text="Previous Price" />
+                        <t:template>
+                            <Text text="{jsonModel>previousPrice}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="11rem">
+                        <Label text="Updated Price" />
+                        <t:template>
+                            <ObjectStatus text="{jsonModel>updatedPrice}" state="{path:'jsonModel>priceDirection',formatter:'handler.priceState'}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="10rem">
+                        <Label text="Price Unit" />
+                        <t:template>
+                            <Text text="{jsonModel>priceUnit}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="13rem">
+                        <Label text="Price Effective Date" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedPriceValidFrom}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="13rem">
+                        <Label text="Price Expiry Date" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedPriceValidTo}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="9rem">
+                        <Label text="% Change" />
+                        <t:template>
+                            <ObjectStatus text="{jsonModel>percentageChange}" state="{path:'jsonModel>priceDirection',formatter:'handler.priceState'}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="11rem">
+                        <Label text="Discount Rate" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedDiscountRate}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="14rem">
+                        <Label text="Discount Effective Date" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedDiscountValidFrom}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="14rem">
+                        <Label text="Discount Expiry Date" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedDiscountValidTo}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="12rem">
+                        <Label text="Upcoming Price" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedFuturePrice}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="15rem">
+                        <Label text="Upcoming Effective Date" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedFuturePriceValidFrom}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="14rem">
+                        <Label text="Upcoming Expiry Date" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedFuturePriceValidTo}" />
+                        </t:template>
+                    </t:Column>
                 </t:columns>
-            </t:Table>
+            </t:TreeTable>
         </Panel>
-
-        <Panel headerText="Future Price Updates" expandable="true" expanded="true" width="100%">
-            <t:Table
-                id="FuturePriceUpdatesTable"
-                rows="{jsonModel>/pricelistUpdates/futurePriceUpdates}"
-                selectionMode="None"
-                width="100%">
+        <!-- ======================================================
+             2. UPDATES IN PRICELIST
+             ====================================================== -->
+        <Panel id="PricelistUpdatesPanel" visible="{jsonModel>/pricelistUpdates/hasPreviousVersion}" headerText="Updates in Pricelist"
+            expandable="true" expanded="true" width="100%">
+            <t:TreeTable id="PricelistUpdatesTable" rows="{path:'jsonModel>/pricelistUpdates/pricelistUpdates',parameters: {arrayNames: ['children']}}"
+                rowsUpdated="handler.onRowsUpdated" selectionMode="None" width="100%">
                 <t:columns>
-                    <t:Column width="12rem"><Label text="Changed On" /><t:template><Text text="{jsonModel>changedAt}" /></t:template></t:Column>
-                    <t:Column width="16rem"><Label text="Version" /><t:template><Text text="{jsonModel>versionDisplay}" /></t:template></t:Column>
-                    <t:Column width="12rem"><Label text="Changed By" /><t:template><Text text="{jsonModel>changedBy}" /></t:template></t:Column>
-                    <t:Column width="18rem"><Label text="Item" /><t:template><Text text="{jsonModel>item}" wrapping="false" /></t:template></t:Column>
-                    <t:Column width="12rem"><Label text="Field" /><t:template><Text text="{jsonModel>field}" /></t:template></t:Column>
-                    <t:Column width="14rem"><Label text="Old Value" /><t:template><Text text="{jsonModel>oldValue}" wrapping="false" /></t:template></t:Column>
-                    <t:Column width="14rem"><Label text="New Value" /><t:template><Text text="{jsonModel>newValue}" wrapping="false" /></t:template></t:Column>
+                    <t:Column width="22rem">
+                        <Label text="Categories and Products" />
+                        <t:template>
+                            <Text text="{jsonModel>title}" wrapping="false" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="12rem">
+                        <Label text="Change" />
+                        <t:template>
+                            <ObjectStatus text="{jsonModel>changeType}" state="{path:'jsonModel>changeType',formatter:'handler.changeState'}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="18rem">
+                        <Label text="Previous Description" />
+                        <t:template>
+                            <Text text="{jsonModel>previousDescription}" wrapping="false" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="18rem">
+                        <Label text="Updated Description" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedDescription}" wrapping="false" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="11rem">
+                        <Label text="Previous Price" />
+                        <t:template>
+                            <Text text="{jsonModel>previousPrice}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="11rem">
+                        <Label text="Updated Price" />
+                        <t:template>
+                            <ObjectStatus text="{jsonModel>updatedPrice}" state="{path:'jsonModel>priceDirection',formatter:'handler.priceState'}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="13rem">
+                        <Label text="Previous Price From" />
+                        <t:template>
+                            <Text text="{jsonModel>previousPriceValidFrom}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="13rem">
+                        <Label text="Updated Price From" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedPriceValidFrom}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="12rem">
+                        <Label text="Previous Discount" />
+                        <t:template>
+                            <Text text="{jsonModel>previousDiscountRate}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="12rem">
+                        <Label text="Updated Discount" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedDiscountRate}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="15rem">
+                        <Label text="Previous Upcoming Price" />
+                        <t:template>
+                            <Text text="{jsonModel>previousFuturePrice}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="15rem">
+                        <Label text="Updated Upcoming Price" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedFuturePrice}" />
+                        </t:template>
+                    </t:Column>
                 </t:columns>
-            </t:Table>
+            </t:TreeTable>
         </Panel>
-
-        <Panel headerText="Added / Removed Categories or Products" expandable="true" expanded="true" width="100%">
-            <t:Table
-                id="CategoryUpdatesTable"
-                rows="{jsonModel>/pricelistUpdates/categoryUpdates}"
-                selectionMode="None"
-                width="100%">
+        <!-- ======================================================
+             3. UPCOMING PRICE
+             ====================================================== -->
+        <Panel id="UpcomingPricesPanel" headerText="Upcoming Price" expandable="true" expanded="true" width="100%">
+            <t:TreeTable
+                id="UpcomingPricesTable"
+                rows="{path:'jsonModel>/pricelistUpdates/upcomingPrices',parameters: {arrayNames: ['children']}}"
+                rowsUpdated="handler.onRowsUpdated" selectionMode="None" width="100%">
                 <t:columns>
-                    <t:Column width="12rem"><Label text="Changed On" /><t:template><Text text="{jsonModel>changedAt}" /></t:template></t:Column>
-                    <t:Column width="16rem"><Label text="Version" /><t:template><Text text="{jsonModel>versionDisplay}" /></t:template></t:Column>
-                    <t:Column width="12rem"><Label text="Changed By" /><t:template><Text text="{jsonModel>changedBy}" /></t:template></t:Column>
-                    <t:Column width="18rem"><Label text="Item" /><t:template><Text text="{jsonModel>item}" wrapping="false" /></t:template></t:Column>
-                    <t:Column width="12rem"><Label text="Change Type" /><t:template><Text text="{jsonModel>changeType}" /></t:template></t:Column>
-                    <t:Column width="14rem"><Label text="Old Value" /><t:template><Text text="{jsonModel>oldValue}" wrapping="false" /></t:template></t:Column>
-                    <t:Column width="14rem"><Label text="New Value" /><t:template><Text text="{jsonModel>newValue}" wrapping="false" /></t:template></t:Column>
+                    <t:Column width="22rem">
+                        <Label text="Categories and Products" />
+                        <t:template>
+                            <Text text="{jsonModel>title}" wrapping="false" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="16rem">
+                        <Label text="Description" />
+                        <t:template>
+                            <Text text="{jsonModel>description}" wrapping="false" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="12rem">
+                        <Label text="Upcoming Price" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedFuturePrice}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="15rem">
+                        <Label text="Effective Date" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedFuturePriceValidFrom}" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="14rem">
+                        <Label text="Expiry Date" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedFuturePriceValidTo}" />
+                        </t:template>
+                    </t:Column>
                 </t:columns>
-            </t:Table>
+            </t:TreeTable>
         </Panel>
-
-        <Panel headerText="Terms and Conditions / Notes Updates" expandable="true" expanded="true" width="100%">
-            <t:Table
-                id="NotesUpdatesTable"
-                rows="{jsonModel>/pricelistUpdates/notesUpdates}"
-                selectionMode="None"
-                width="100%">
+        <!-- ======================================================
+             4. ADDED AND REMOVED PRODUCTS
+             ====================================================== -->
+        <Panel id="AddedRemovedProductsPanel" visible="{jsonModel>/pricelistUpdates/hasPreviousVersion}"
+            headerText="Added &amp; Removed Products" expandable="true" expanded="true" width="100%">
+            <t:TreeTable id="AddedRemovedProductsTable" rows="{path:'jsonModel>/pricelistUpdates/addedRemovedProducts',parameters: {arrayNames: ['children']}}"
+                rowsUpdated="handler.onRowsUpdated" selectionMode="None" width="100%">
                 <t:columns>
-                    <t:Column width="12rem"><Label text="Changed On" /><t:template><Text text="{jsonModel>changedAt}" /></t:template></t:Column>
-                    <t:Column width="16rem"><Label text="Version" /><t:template><Text text="{jsonModel>versionDisplay}" /></t:template></t:Column>
-                    <t:Column width="12rem"><Label text="Changed By" /><t:template><Text text="{jsonModel>changedBy}" /></t:template></t:Column>
-                    <t:Column width="18rem"><Label text="Item" /><t:template><Text text="{jsonModel>item}" wrapping="false" /></t:template></t:Column>
-                    <t:Column width="12rem"><Label text="Field" /><t:template><Text text="{jsonModel>field}" /></t:template></t:Column>
-                    <t:Column width="14rem"><Label text="Old Value" /><t:template><Text text="{jsonModel>oldValue}" wrapping="false" /></t:template></t:Column>
-                    <t:Column width="14rem"><Label text="New Value" /><t:template><Text text="{jsonModel>newValue}" wrapping="false" /></t:template></t:Column>
+                    <t:Column width="22rem">
+                        <Label text="Categories and Products" />
+                        <t:template>
+                            <Text text="{jsonModel>title}" wrapping="false" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="18rem">
+                        <Label text="Description" />
+                        <t:template>
+                            <Text text="{jsonModel>description}" wrapping="false" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="12rem">
+                        <Label text="Change" />
+                        <t:template>
+                            <ObjectStatus text="{jsonModel>changeType}" state="{path:'jsonModel>changeType',formatter:'handler.changeState'}" />
+                        </t:template>
+                    </t:Column>
                 </t:columns>
-            </t:Table>
+            </t:TreeTable>
         </Panel>
-
+        <!-- ======================================================
+             5. T&C AND NOTES UPDATES
+             ====================================================== -->
+        <Panel id="TermsNotesUpdatesPanel" visible="{jsonModel>/pricelistUpdates/hasPreviousVersion}"
+            headerText="T&amp;C and Notes Updates" expandable="true" expanded="true" width="100%">
+            <t:TreeTable id="TermsNotesUpdatesTable" rows="{path:'jsonModel>/pricelistUpdates/termsNotesUpdates',parameters: {arrayNames: ['children']}}"
+                rowsUpdated="handler.onRowsUpdated" selectionMode="None" width="100%">
+                <t:columns>
+                    <t:Column width="20rem">
+                        <Label text="Categories and Products" />
+                        <t:template>
+                            <Text text="{jsonModel>title}" wrapping="false" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="24rem">
+                        <Label text="Previous Terms and Conditions" />
+                        <t:template>
+                            <Text text="{jsonModel>previousTermsAndConditions}" wrapping="true" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="24rem">
+                        <Label text="Updated Terms and Conditions" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedTermsAndConditions}" wrapping="true" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="24rem">
+                        <Label text="Previous Notes" />
+                        <t:template>
+                            <Text text="{jsonModel>previousNotes}" wrapping="true" />
+                        </t:template>
+                    </t:Column>
+                    <t:Column width="24rem">
+                        <Label text="Updated Notes" />
+                        <t:template>
+                            <Text text="{jsonModel>updatedNotes}" wrapping="true" />
+                        </t:template>
+                    </t:Column>
+                </t:columns>
+            </t:TreeTable>
+        </Panel>
     </VBox>
 </core:FragmentDefinition>

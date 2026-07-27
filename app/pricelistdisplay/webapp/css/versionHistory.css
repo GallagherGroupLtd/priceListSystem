@@ -1,0 +1,32 @@
+/*
+ * ============================================================
+ * Version History
+ * ============================================================
+ */
+
+/*
+ * Changed business rows
+ */
+
+.pricelistVersionHistoryChangedRow .sapMText,
+.pricelistVersionHistoryChangedRow .sapMObjectStatus,
+.pricelistVersionHistoryChangedRow .sapMLabel,
+.pricelistVersionHistoryChangedRow .sapUiTableCell {
+    font-weight: 700;
+}
+
+/*
+ * Added rows
+ */
+
+.pricelistVersionHistoryAddedRow .sapMObjectStatusText {
+    color: var(--sapPositiveTextColor);
+}
+
+/*
+ * Removed rows
+ */
+
+.pricelistVersionHistoryRemovedRow .sapMObjectStatusText {
+    color: var(--sapNegativeTextColor);
+}

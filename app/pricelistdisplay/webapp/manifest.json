@@ -62,6 +62,7 @@
       "libs": {
         "sap.m": {},
         "sap.ui.core": {},
+        "sap.ui.table": {},
         "sap.fe.templates": {}
       }
     },
@@ -94,7 +95,11 @@
       }
     },
     "resources": {
-      "css": []
+      "css": [
+        {
+          "uri": "css/versionHistory.css"
+        }
+      ]
     },
     "routing": {
       "config": {},
@@ -166,7 +171,7 @@
                         "placement": "After",
                         "anchor": "ProductsTree"
                       },
-                      "title": "Pricelist Updates"
+                      "title": "Changes"
                     },
                     "PricelistInfoFacet": {
                       "subSections": {
