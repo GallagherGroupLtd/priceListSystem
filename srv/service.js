@@ -2790,6 +2790,56 @@ module.exports = cds.service.impl(async function () {
             });
         };
 
+        const compareItemStructureSequence = (vSequenceA, vSequenceB) => {
+            const sSequenceA = String(vSequenceA ?? "").trim();
+            const sSequenceB = String(vSequenceB ?? "").trim();
+
+            const bBlankA = sSequenceA === "";
+            const bBlankB = sSequenceB === "";
+
+            if (bBlankA && bBlankB) {
+                return 0;
+            }
+
+            if (bBlankA) {
+                return 1;
+            }
+
+            if (bBlankB) {
+                return -1;
+            }
+
+            const bNumericA = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/.test(sSequenceA) && Number.isFinite(Number(sSequenceA));
+
+            const bNumericB = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/.test(sSequenceB) && Number.isFinite(Number(sSequenceB));
+
+            if (bNumericA && bNumericB) {
+                const iNumericComparison = Number(sSequenceA) - Number(sSequenceB);
+
+                if (iNumericComparison !== 0) {
+                    return iNumericComparison;
+                }
+
+                return sSequenceA.localeCompare(sSequenceB, undefined, {
+                    numeric: true,
+                    sensitivity: "base"
+                });
+            }
+
+            if (bNumericA) {
+                return -1;
+            }
+
+            if (bNumericB) {
+                return 1;
+            }
+
+            return sSequenceA.localeCompare(sSequenceB, undefined, {
+                numeric: true,
+                sensitivity: "base"
+            });
+        };
+
         const loadItemStructure = async () => {
             const itemStructureFilters = {PricelistType,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer,DeliveringPlant};
 
@@ -2810,16 +2860,28 @@ module.exports = cds.service.impl(async function () {
             const rows = await db.run(
                 SELECT.from("PricelistItemStructureComponents")
                     .where(activeItemStructureFilters)
-                    .orderBy({ Sequence: "asc" })
             );
 
             if (!Array.isArray(rows) || rows.length === 0) {
                 return [];
             }
 
-            await mergeCategoryTerms(rows);
+            const aSortedRows = rows.map((oRow, iOriginalIndex) => ({
+                row: oRow,
+                originalIndex: iOriginalIndex
+            })).sort((oEntryA, oEntryB) => {
+                const iSequenceComparison = compareItemStructureSequence(oEntryA.row.Sequence,oEntryB.row.Sequence);
 
-            return rows;
+                if (iSequenceComparison !== 0) {
+                    return iSequenceComparison;
+                }
+
+                return oEntryA.originalIndex - oEntryB.originalIndex;
+            }).map((oEntry) => oEntry.row);
+
+            await mergeCategoryTerms(aSortedRows);
+
+            return aSortedRows;
         };
 
         const resolvedPlant = await resolvePlantFromHeader();

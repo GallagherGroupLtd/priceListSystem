@@ -1286,6 +1286,55 @@ sap.ui.define([
 			return aRoots;
 		},
 
+		_compareItemStructureSequence: function (vSequenceA, vSequenceB) {
+			const sSequenceA = String(vSequenceA ?? "").trim();
+			const sSequenceB = String(vSequenceB ?? "").trim();
+
+			const bBlankA = sSequenceA === "";
+			const bBlankB = sSequenceB === "";
+
+			if (bBlankA && bBlankB) {
+				return 0;
+			}
+
+			if (bBlankA) {
+				return 1;
+			}
+
+			if (bBlankB) {
+				return -1;
+			}
+
+			const bNumericA = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/.test(sSequenceA) && Number.isFinite(Number(sSequenceA));
+			const bNumericB = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/.test(sSequenceB) && Number.isFinite(Number(sSequenceB));
+
+			if (bNumericA && bNumericB) {
+				const iNumericComparison = Number(sSequenceA) - Number(sSequenceB);
+
+				if (iNumericComparison !== 0) {
+					return iNumericComparison;
+				}
+
+				return sSequenceA.localeCompare(sSequenceB, undefined, {
+					numeric: true,
+					sensitivity: "base"
+				});
+			}
+
+			if (bNumericA) {
+				return -1;
+			}
+
+			if (bNumericB) {
+				return 1;
+			}
+
+			return sSequenceA.localeCompare(sSequenceB, undefined, {
+				numeric: true,
+				sensitivity: "base"
+			});
+		},
+
 		/**
 		 * Transforms a flat array of product rows into a nested Category / Product tree.
 		 * Category nodes at each level are deduplicated by path key; product nodes are
@@ -1357,6 +1406,10 @@ sap.ui.define([
 						}
 					} else {
 						const oExisting = nodeMap[currentPath];
+						if (this._compareItemStructureSequence(row.Sequence,oExisting.Sequence) < 0) {
+							oExisting.Sequence = row.Sequence;
+						}
+
 						Object.entries(oLevelConfig.extraFields).forEach(([sNodeField, sSourceField]) => {
 							const vCurrent = oExisting[sNodeField];
 							if ((vCurrent === null || vCurrent === undefined || vCurrent === "") && row[sSourceField]) {
@@ -1416,6 +1469,67 @@ sap.ui.define([
 					}
 				}
 			});
+
+			const sortGeneratedTreeBySequence = (aNodes) => {
+				if (!Array.isArray(aNodes) || !aNodes.length) {
+					return;
+				}
+
+				aNodes.forEach((oNode) => {
+					if (Array.isArray(oNode.children) && oNode.children.length) {
+						sortGeneratedTreeBySequence(oNode.children);
+					}
+				});
+
+				const aCategoryNodes = [];
+				const aProductNodes = [];
+
+				aNodes.forEach((oNode, iOriginalIndex) => {
+					const oEntry = {
+						node: oNode,
+						originalIndex: iOriginalIndex
+					};
+
+					if (oNode.Kind === "Category") {
+						aCategoryNodes.push(oEntry);
+					} else {
+						aProductNodes.push(oEntry);
+					}
+				});
+
+				aCategoryNodes.sort((oEntryA, oEntryB) => {
+					const iSequenceComparison = this._compareItemStructureSequence(oEntryA.node.Sequence,oEntryB.node.Sequence);
+
+					if (iSequenceComparison !== 0) {
+						return iSequenceComparison;
+					}
+
+					const iTitleComparison = String(oEntryA.node.Title || "").localeCompare(String(oEntryB.node.Title || ""),undefined,{
+							numeric: true,
+							sensitivity: "base"
+						}
+					);
+
+					if (iTitleComparison !== 0) {
+						return iTitleComparison;
+					}
+
+					return oEntryA.originalIndex - oEntryB.originalIndex;
+				});
+
+				const aOrderedNodes = [
+					...aCategoryNodes.map((oEntry) => oEntry.node),
+					...aProductNodes.map((oEntry) => oEntry.node)
+				];
+
+				aNodes.splice(0, aNodes.length, ...aOrderedNodes);
+
+				aNodes.forEach((oNode, iIndex) => {
+					oNode.OrderIndex = iIndex;
+				});
+			};
+
+			sortGeneratedTreeBySequence(tree);
 
 			return tree;
 		},
