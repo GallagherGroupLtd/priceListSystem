@@ -33,6 +33,34 @@ function normalize(value) {
     return notEmpty(value) ? String(value).trim() : '';
 }
 
+function toDateOnlyTimestamp(value) {
+    if (!value) {
+        return null;
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    return Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate());
+}
+
+function getPricingReferenceDate(effectiveDate) {
+    const today = new Date();
+
+    const currentDateTimestamp = Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),today.getUTCDate());
+
+    const effectiveDateTimestamp = toDateOnlyTimestamp(effectiveDate);
+
+    if (effectiveDateTimestamp !== null && effectiveDateTimestamp > currentDateTimestamp) {
+        return effectiveDateTimestamp;
+    }
+
+    return currentDateTimestamp;
+}
+
 function getAccessColumns(accessSequence) {
     return {
         conditionType: `${accessSequence}_CONDITION_TYPE`,
@@ -84,17 +112,17 @@ function pickBestHeader(headers, context) {
 
 function pickBestByDate(records, targetDate) {
     if (!records?.length) return null;
-    if (!targetDate) return records[0];
+    const targetTimestamp = typeof targetDate === 'number' ? targetDate : toDateOnlyTimestamp(targetDate);
+    if (targetTimestamp === null) {
+        return records[0];
+    }
 
-    const t = new Date(targetDate).getTime();
+    return records.filter(record => {
+        const validFromTimestamp = record.VALID_FROM ? toDateOnlyTimestamp(record.VALID_FROM) : -Infinity;
+        const validToTimestamp = record.VALID_TO ? toDateOnlyTimestamp(record.VALID_TO) : Infinity;
 
-    return records
-        .filter(r => {
-            const from = r.VALID_FROM ? new Date(r.VALID_FROM).getTime() : -Infinity;
-            const to = r.VALID_TO ? new Date(r.VALID_TO).getTime() : Infinity;
-            return from <= t && t <= to;
-        })
-        .sort((a, b) => Number(a.PRIORITY || 999) - Number(b.PRIORITY || 999))[0] || null;
+        return (validFromTimestamp !== null && validToTimestamp !== null && validFromTimestamp <= targetTimestamp && targetTimestamp <= validToTimestamp);
+    }).sort((a, b) => Number(a.PRIORITY || 999) - Number(b.PRIORITY || 999))[0] || null;
 }
 
 function pickNextAfterCurrent(records, currentRecord) {
@@ -234,7 +262,7 @@ async function resolvePricingParameters({db,extdb,context,materialIds = [],param
     }
 
     const result = [];
-
+    const pricingReferenceDate = parameterType === 'P' ? getPricingReferenceDate(effectiveDate) : effectiveDate;
     for (const [key, recordsForKey] of grouped.entries()) {
         let best = null;
         // const best = pickBestByDate(recordsForKey, effectiveDate);
@@ -243,7 +271,7 @@ async function resolvePricingParameters({db,extdb,context,materialIds = [],param
             const currentRecord = currentRowsByMaterial?.get(key) || null;
             best = pickNextAfterCurrent(recordsForKey,currentRecord);
         } else {
-            best = pickBestByDate(recordsForKey,effectiveDate);
+            best = pickBestByDate(recordsForKey,pricingReferenceDate);
         }
 
         if (!best) {
