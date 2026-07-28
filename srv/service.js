@@ -154,6 +154,110 @@ function andAllXpr(xprs) {
     return out;
 }
 
+const PRICELIST_TERMS_APPLICABILITY_FIELDS = [
+    "PricelistType",
+    "MarketScopeRegion",
+    "MarketScopeCountry",
+    "SalesOrg",
+    "DistChannel",
+    "CustPriceList",
+    "CustGroup1",
+    "ErpCustomer",
+    "DeliveringPlant"
+];
+
+const normalizePricelistTermsValue = value => {
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    return String(value).trim();
+};
+
+const isGenericPricelistTermsRecord = record => {
+    return PRICELIST_TERMS_APPLICABILITY_FIELDS.every(field => {
+        return normalizePricelistTermsValue(record[field]) === "";
+    });
+};
+
+const isApplicableSpecificPricelistTermsRecord = (record, header) => {
+    if (isGenericPricelistTermsRecord(record)) {
+        return false;
+    }
+
+    return PRICELIST_TERMS_APPLICABILITY_FIELDS.every(field => {
+        const maintainedValue = normalizePricelistTermsValue(record[field]);
+        const headerValue = normalizePricelistTermsValue(header[field]);
+
+        if (maintainedValue === "*") {
+            return true;
+        }
+
+        return maintainedValue !== "" && maintainedValue === headerValue;
+    });
+};
+
+const getPricelistTermsSpecificity = (record, header) => {
+    return PRICELIST_TERMS_APPLICABILITY_FIELDS.reduce(
+        (score, field) => {
+            const maintainedValue = normalizePricelistTermsValue(record[field]);
+            const headerValue = normalizePricelistTermsValue(header[field]);
+
+            const isExactMatch = maintainedValue !== "" && maintainedValue !== "*" && maintainedValue === headerValue;
+
+            return score + (isExactMatch ? 1 : 0);
+        },
+        0
+    );
+};
+
+const sortPricelistTermsCandidates = (records, header) => {
+    return [...records].sort((left, right) => {
+        const specificityDifference = getPricelistTermsSpecificity(right, header) - getPricelistTermsSpecificity(left, header);
+
+        if (specificityDifference !== 0) {
+            return specificityDifference;
+        }
+
+        const rightModifiedAt = right.modifiedAt ? new Date(right.modifiedAt).getTime() : 0;
+        const leftModifiedAt = left.modifiedAt ? new Date(left.modifiedAt).getTime() : 0;
+
+        if (rightModifiedAt !== leftModifiedAt) {
+            return rightModifiedAt - leftModifiedAt;
+        }
+
+        return String(left.ID || "").localeCompare(String(right.ID || ""));
+    });
+};
+
+const resolvePricelistTermsAndConditions = (records, header) => {
+    const specificMatches = sortPricelistTermsCandidates(
+        records.filter(record =>
+            isApplicableSpecificPricelistTermsRecord(record, header)
+        ),
+        header
+    );
+
+    if (specificMatches.length > 0) {
+        return specificMatches[0];
+    }
+
+    const genericMatches = [...records]
+        .filter(isGenericPricelistTermsRecord)
+        .sort((left, right) => {
+            const rightModifiedAt = right.modifiedAt ? new Date(right.modifiedAt).getTime() : 0;
+            const leftModifiedAt = left.modifiedAt ? new Date(left.modifiedAt).getTime() : 0;
+
+            if (rightModifiedAt !== leftModifiedAt) {
+                return rightModifiedAt - leftModifiedAt;
+            }
+
+            return String(left.ID || "").localeCompare(String(right.ID || ""));
+        });
+
+    return genericMatches[0] || null;
+};
+
 function specificityScore(term, header) {
     const fields = [
         "PricelistType",
@@ -3537,6 +3641,33 @@ module.exports = cds.service.impl(async function () {
     });
 
     this.on('saveProductPriceList', saveProductPriceList(this));
+
+    this.on("resolvePricelistTermsAndConditions", async req => {
+        const tx = cds.transaction(req);
+
+        const headerCriteria = {
+            PricelistType: req.data.PricelistType,
+            MarketScopeRegion: req.data.MarketScopeRegion,
+            MarketScopeCountry: req.data.MarketScopeCountry,
+            SalesOrg: req.data.SalesOrg,
+            DistChannel: req.data.DistChannel,
+            CustPriceList: req.data.CustPriceList,
+            CustGroup1: req.data.CustGroup1,
+            ErpCustomer: req.data.ErpCustomer,
+            DeliveringPlant: req.data.DeliveringPlant
+        };
+
+        const candidates = await tx.run(
+            SELECT.from(TermsAndConditions).where({
+                PricelistDataLevel: "Header",
+                PricelistFieldName: "TermsAndConditions"
+            })
+        );
+
+        const resolvedRecord = resolvePricelistTermsAndConditions(candidates,headerCriteria);
+
+        return resolvedRecord?.TermsAndConditionContent ?? null;
+    });
 
     //PDF Export
     this.on("exportTermsPdf", async (req) => {

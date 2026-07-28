@@ -628,6 +628,18 @@ service PriceListService {
                                 originalHeaderData: LargeString,
                                 treeData: LargeString)               returns String;
 
+    action resolvePricelistTermsAndConditions(
+        PricelistType      : String,
+        MarketScopeRegion  : String,
+        MarketScopeCountry : String,
+        SalesOrg           : String,
+        DistChannel        : String,
+        CustPriceList      : String,
+        CustGroup1         : String,
+        ErpCustomer        : String,
+        DeliveringPlant    : String
+    ) returns LargeString;
+
     entity PricelistChangeLog as projection on my.PricelistChangeLog;
 
     // entity ProductPricelistTree    as

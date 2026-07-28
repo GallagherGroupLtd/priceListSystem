@@ -179,7 +179,7 @@ sap.ui.define([
 			 * Runs after the Object Page is ready and all controls are rendered.
 			 * Caches control references and performs the initial state sync.
 			 */
-			onPageReady: function () {
+			onPageReady: async function () {
 				this._productTreeSection = this._getTreeControl("ProductTreeFragment_ID");
 				this._productTreeTable = this._getTreeControl("ProductPriceListTreeTable");
 
@@ -196,6 +196,8 @@ sap.ui.define([
 					deleteMode: false,
 					reorderMode: false
 				});
+
+				await this._loadDefaultPricelistTermsAndConditions();
 
 				this._syncProductTreeToolbarState();
 				this._updateModeToggleEnabled();
@@ -341,6 +343,73 @@ sap.ui.define([
 			}
 
 			setTimeout(fnExpand, 0);
+		},
+
+		_loadDefaultPricelistTermsAndConditions: async function () {
+			const oView = this.base.getView();
+			const oModel = oView.getModel();
+			const oContext = oView.getBindingContext();
+
+			if (!oModel || !oContext) {
+				return;
+			}
+
+			const sContextPath = oContext.getPath();
+
+			if (this._termsResolutionContextPath === sContextPath && this._termsResolutionCompleted) {
+				return;
+			}
+
+			this._termsResolutionContextPath = sContextPath;
+			this._termsResolutionCompleted = false;
+
+			const oHeader = await oModel.bindContext(sContextPath, null, {
+				$select: [
+					"TermsAndConditions",
+					"PricelistType",
+					"MarketScopeRegion",
+					"MarketScopeCountry",
+					"SalesOrg",
+					"DistChannel",
+					"CustPriceList",
+					"CustGroup1",
+					"ErpCustomer",
+					"DeliveringPlant"
+				].join(",")
+			}).requestObject();
+
+			if (!oHeader) {
+				return;
+			}
+
+			const sCurrentTerms = oHeader.TermsAndConditions === null || oHeader.TermsAndConditions === undefined ? "" : String(oHeader.TermsAndConditions).trim();
+
+			if (sCurrentTerms) {
+				this._termsResolutionCompleted = true;
+				return;
+			}
+
+			const oAction = oModel.bindContext("/resolvePricelistTermsAndConditions(...)");
+			oAction.setParameter("PricelistType",oHeader.PricelistType ?? null);
+			oAction.setParameter("MarketScopeRegion",oHeader.MarketScopeRegion ?? null);
+			oAction.setParameter("MarketScopeCountry",oHeader.MarketScopeCountry ?? null);
+			oAction.setParameter("SalesOrg",oHeader.SalesOrg ?? null);
+			oAction.setParameter("DistChannel",oHeader.DistChannel ?? null);
+			oAction.setParameter("CustPriceList",oHeader.CustPriceList ?? null);
+			oAction.setParameter("CustGroup1",oHeader.CustGroup1 ?? null);
+			oAction.setParameter("ErpCustomer",oHeader.ErpCustomer ?? null);
+			oAction.setParameter("DeliveringPlant",oHeader.DeliveringPlant ?? null);
+
+			await oAction.execute();
+
+			const oResult = oAction.getBoundContext()?.getObject();
+			const sResolvedTerms = oResult?.value ?? "";
+
+			if (String(sResolvedTerms).trim()) {
+				oContext.setProperty("TermsAndConditions",sResolvedTerms);
+			}
+
+			this._termsResolutionCompleted = true;
 		},
 
 		// ── Product list toolbar handlers ─────────────────────────────────────────
