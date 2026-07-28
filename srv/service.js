@@ -360,7 +360,7 @@ function getPricingParameterTypeFilter(req) {
 
 module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
-    const { User, TradeScenarios, ItemStructure, PriceProductMaintenance, TermsAndConditions, PricingParameters, TileContent, ContactInfo, AccountAssignment, AccountAssignmentScope, PricingCondType,
+    const { User, TradeScenarios, ItemStructure, PriceProductMaintenance, TermsAndConditions, TermsAndConditionPartNumbers, PricingParameters, TileContent, ContactInfo, AccountAssignment, AccountAssignmentScope, PricingCondType,
         PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest, PriceListTreeLayout, ProductPriceList } = this.entities;
 
     //Selection of Materials
@@ -2593,6 +2593,180 @@ module.exports = cds.service.impl(async function () {
         const getCategoryKey = (obj, fieldMap) =>
             fieldMap.map(([matField, rowField]) => obj[matField] ?? obj[rowField] ?? '').join('|');
 
+        const PART_NUMBER_TERMS_APPLICABILITY_FIELDS = [
+            "PricelistType",
+            "MarketScopeRegion",
+            "MarketScopeCountry",
+            "SalesOrg",
+            "DistChannel",
+            "CustPriceList",
+            "CustGroup1",
+            "ErpCustomer",
+            "DeliveringPlant"
+        ];
+
+        const normalizePartNumberTermsValue = value => value === undefined || value === null ? "" : String(value).trim();
+
+        const isPartNumberTermsWildcard = value => {
+            const normalizedValue = normalizePartNumberTermsValue(value);
+            return normalizedValue === "" || normalizedValue === "*";
+        };
+
+        const partNumberTermsContext = {
+            PricelistType,
+            MarketScopeRegion,
+            MarketScopeCountry,
+            SalesOrg,
+            DistChannel,
+            CustPriceList,
+            CustGroup1,
+            ErpCustomer,
+            DeliveringPlant
+        };
+
+        const buildPartNumberTermsHeaderWhere = () => {
+            const conditions = [];
+
+            PART_NUMBER_TERMS_APPLICABILITY_FIELDS.forEach(
+                field => {
+                    const contextValue = normalizePartNumberTermsValue(partNumberTermsContext[field]);
+                    const fieldConditions = [];
+
+                    if (contextValue) {
+                        fieldConditions.push({ ref: [field] },"=",{ val: contextValue },"or");
+                    }
+
+                    fieldConditions.push({ ref: [field] },"=",{ val: "" },"or",{ ref: [field] },"is",{ val: null },"or",{ ref: [field] },"=",{ val: "*" });
+
+                    if (conditions.length) {
+                        conditions.push("and");
+                    }
+
+                    conditions.push({
+                        xpr: fieldConditions
+                    });
+                }
+            );
+
+            return conditions;
+        };
+
+        const getPartNumberTermsSpecificity = header => {
+            return PART_NUMBER_TERMS_APPLICABILITY_FIELDS
+                .reduce((score, field) => {
+                    const maintainedValue = normalizePartNumberTermsValue(header[field]);
+                    const contextValue = normalizePartNumberTermsValue(partNumberTermsContext[field]);
+
+                    const isExactMatch = maintainedValue !== "" && maintainedValue !== "*" && maintainedValue === contextValue;
+
+                    return score + (isExactMatch ? 1 : 0);
+                }, 0);
+        };
+
+        const sortPartNumberTermsHeaders = headers => {
+            return [...headers].sort((left, right) => {
+                const specificityDifference = getPartNumberTermsSpecificity(right) - getPartNumberTermsSpecificity(left);
+
+                if (specificityDifference !== 0) {
+                    return specificityDifference;
+                }
+
+                const rightModifiedAt = right.modifiedAt ? new Date(right.modifiedAt).getTime() : 0;
+                const leftModifiedAt = left.modifiedAt ? new Date(left.modifiedAt).getTime() : 0;
+
+                if (rightModifiedAt !== leftModifiedAt) {
+                    return rightModifiedAt - leftModifiedAt;
+                }
+
+                return String(left.ID || "").localeCompare(String(right.ID || ""));
+            });
+        };
+
+        const loadApplicablePartNumberTerms = async () => {
+            const applicableHeaders = sortPartNumberTermsHeaders(
+                await db.run(
+                    SELECT
+                        .from(TermsAndConditions)
+                        .where(buildPartNumberTermsHeaderWhere())
+                )
+            );
+
+            if (!applicableHeaders.length) {
+                return [];
+            }
+
+            const headerIds = applicableHeaders.map(header => header.ID).filter(Boolean);
+
+            if (!headerIds.length) {
+                return [];
+            }
+
+            const childWhere = [
+                { ref: ["parent_ID"] },
+                "in",
+                {
+                    list: headerIds.map(ID => ({
+                        val: ID
+                    }))
+                }
+            ];
+
+            const partNumberRows = await db.run(
+                SELECT
+                    .from(TermsAndConditionPartNumbers)
+                    .where(childWhere)
+            );
+
+            const headerRankById = new Map(applicableHeaders.map((header, index) => [String(header.ID),index]));
+
+            return partNumberRows
+                .map(row => ({
+                    ...row,
+                    _headerRank:
+                        headerRankById.get(String(row.parent_ID)) ?? Number.MAX_SAFE_INTEGER}))
+                .sort((left, right) =>
+                    left._headerRank - right._headerRank
+                );
+        };
+
+        const mergePartNumberTerms = async rows => {
+            if (!Array.isArray(rows) || rows.length === 0) {
+                return;
+            }
+
+            const partNumberTerms = await loadApplicablePartNumberTerms();
+
+            if (!partNumberTerms.length) {
+                return;
+            }
+
+            const termsByProductId = new Map();
+
+            for (const item of partNumberTerms) {
+                const productId = normalizePartNumberTermsValue(item.ProductID);
+
+                if (!productId) {
+                    continue;
+                }
+
+                if (!termsByProductId.has(productId)) {
+                    termsByProductId.set(productId,item.PartNumberTermsandConditions ?? null);
+                }
+            }
+
+            rows.forEach(row => {
+                const material = normalizePartNumberTermsValue(row.Material);
+
+                if (!material) {
+                    return;
+                }
+
+                if (termsByProductId.has(material)) {
+                    row.PartNumberTermsandCond = termsByProductId.get(material);
+                }
+            });
+        };
+
         // ── step 1 / 1.1: item structure + terms ───────────────
         const mergeCategoryTerms = async (itemStructureDatas) => {
             const MAP = [
@@ -3269,6 +3443,8 @@ module.exports = cds.service.impl(async function () {
 
         const materials = await loadMaterials(itemStructure);
         let rows = buildMaterialRows(itemStructure, materials);   // material only
+
+        await mergePartNumberTerms(rows);
 
         if (include.price || include.future || include.discount) {
             const pricingIndex = await loadPricingIndex(materials);

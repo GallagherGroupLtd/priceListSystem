@@ -509,7 +509,7 @@ sap.ui.define([
 
 				[
 					"Description",
-					"TermsAndConditions",
+					// "TermsAndConditions",
 					"Notes",
 					"PublishedName",
 					"IsTACDisableExt",
@@ -1252,7 +1252,13 @@ sap.ui.define([
 			const aRoots = [];
 
 			aFlatRows.forEach((oRow) => {
-				mById[oRow.ID] = Object.assign({}, oRow, { children: [] });
+				const oNode = Object.assign({},oRow,{ children: [] });
+
+				if (oNode.Kind === "Product") {
+					oNode.PartNumberTermsandCond = oNode.TermsAndConditions ?? null;
+				}
+
+				mById[oRow.ID] = oNode;
 			});
 
 			aFlatRows.forEach((oRow) => {
@@ -1377,6 +1383,7 @@ sap.ui.define([
 						Title: row.Material,
 						Description: row.MaterialDescription,
 						CountryOfOrigin: row.CountryOfOrigin || null,
+						PartNumberTermsandCond: row.PartNumberTermsandCond ?? null,
 
 						AccessSequence: row.AccessSequence,
 						ConditionType: row.ConditionType,
@@ -2879,6 +2886,10 @@ sap.ui.define([
 						oPayloadNode[sField] = vValue;
 					}
 				});
+
+				if (oNode.Kind === "Product" && oNode.TermsAndConditions === "") {
+					oPayloadNode.TermsAndConditions = "";
+				}
 
 				// Preserving explicit false values because these are meaningful for boolean fields and would otherwise be omitted by generic cleaning.
 				[

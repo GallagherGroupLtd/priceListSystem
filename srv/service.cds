@@ -48,10 +48,15 @@ service PriceListService {
 
     annotate PriceProductMaintenance with @odata.draft.enabled;
 
-    entity TermsAndConditions         as projection on my.TermsAndConditionDetermination
-        actions {
-            action copyRow() returns TermsAndConditions;
-        };
+    entity TermsAndConditions as projection on my.TermsAndConditionDetermination {
+        *,
+        partNumberTermsAndConditions
+    }
+    actions {
+        action copyRow() returns TermsAndConditions;
+    };
+
+    entity TermsAndConditionPartNumbers as projection on my.TermsAndConditionPartNumber;
 
     annotate TermsAndConditions with @odata.draft.enabled;
 

@@ -98,6 +98,15 @@ entity TermsAndConditionDetermination : managed, cuid {
     SubCategory3TermsandConditions : String(999) @title: 'SubCategory 3 Terms and Condition';
     SubCategory4TermsandConditions : String(999) @title: 'SubCategory 4 Terms and Condition';
     SubCategory5TermsandConditions : String(999) @title: 'SubCategory 5 Terms and Condition';
+
+    partNumberTermsAndConditions : Composition of many TermsAndConditionPartNumber
+        on partNumberTermsAndConditions.parent = $self;
+}
+
+entity TermsAndConditionPartNumber : managed, cuid {
+    parent                       : Association to one TermsAndConditionDetermination;
+    ProductID                    : String(30)  @title: 'Product ID';
+    PartNumberTermsandConditions : String(999) @title: 'Part Number Terms and Conditions';
 }
 
 // /** Pricing Parameter Determination **/
