@@ -49,7 +49,15 @@
                 id="ProductListHierarchyFilterBtn"
                 icon="sap-icon://filter"
                 tooltip="Filter"
+                text="{= ${jsonModel>/productFilterCount} > 0 ? 'Filter (' + ${jsonModel>/productFilterCount} + ')' : 'Filter' }"
+                type="{= ${jsonModel>/productFilterCount} > 0 ? 'Emphasized' : 'Default' }"
                 press="handler.onOpenHierarchyFilter"/>
+            <Button
+                id="ProductListClearFilterBtn"
+                icon="sap-icon://clear-filter"
+                text="Clear Filter"
+                visible="{= ${jsonModel>/productFilterCount} > 0 }"
+                press="handler.onClearHierarchyFilter" />
             <Button
                 id="ProductListColumnSettingsBtn"
                 icon="sap-icon://action-settings"

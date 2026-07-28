@@ -4,6 +4,7 @@ const { getUserEmail } = require("./lib/account-assignment-authorization");
 const { resolvePricingParameters } = require('./lib/pricing-parameter-resolver');
 const { getPricelistDisplayColumns } = require("./lib/pricelist-display-columns");
 const buildVersionHistoryComparison = require("./pricelist-display_srv-code/version-history-comparison");
+const { pruneTreeRows } = require("./pricelist-display_srv-code/product-tree-authorization");
 
 const { SELECT } = cds.ql;
 
@@ -104,13 +105,20 @@ module.exports = cds.service.impl(async function () {
         } = this.entities;
 
         if (isInternal && !customerNumber) {
-            return db.run(SELECT.from(ProductPriceList).where({
+            const rows = await db.run(SELECT.from(ProductPriceList).where({
                     pricelist_ID: pricelistId,
                     IsDeleted: {
                         "!=": true
                     }
                 }).orderBy("OrderIndex")
             );
+
+            const productIdsWithPrice = new Set(rows.filter((row) => String(row.Kind || "").trim() === "Product" && String(row.Price ?? "").trim() !== "")
+                .map((row) => String(row.ID || "").trim())
+                .filter(Boolean)
+            );
+
+            return pruneTreeRows(rows, productIdsWithPrice);
         }
 
         if (!customerNumber) {

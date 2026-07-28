@@ -3193,20 +3193,29 @@ module.exports = cds.service.impl(async function () {
                 effectiveDate: EffectiveDate
             });
 
+            const priceByMaterial = new Map(priceRows.map(row => [
+                    String(row.Material || '').trim(), row
+                ])
+            );
+
             const futureRows = await resolvePricingParameters({
                 db,
                 extdb,
                 context,
                 materialIds,
                 parameterType: 'P',
-                effectiveDate: PublishedDate
-                    ? new Date(new Date(PublishedDate).getTime() + 30 * 24 * 60 * 60 * 1000)
-                    : null
+                resolutionMode: 'nextAfterCurrent',
+                currentRowsByMaterial: priceByMaterial
             });
 
             return {
-                priceByMaterial: new Map(priceRows.map(r => [r.Material, r])),
-                futureByMaterial: new Map(futureRows.map(r => [r.Material, r]))
+                priceByMaterial,
+                futureByMaterial: new Map(
+                    futureRows.map(row => [
+                        String(row.Material || '').trim(),
+                        row
+                    ])
+                )
             };
         };
 
@@ -3214,26 +3223,25 @@ module.exports = cds.service.impl(async function () {
         const applyPricing = (rows, idx, opts) => {
             rows.forEach(row => {
                 if (opts.price) {
-                    const price = idx.priceByMaterial.get(row.Material);
+                    const materialKey = String(row.Material || '').trim();
+                    const price = idx.priceByMaterial.get(materialKey);
 
                     if (price) {
-                        row.Price = price.Rate || null;
-                        row.PriceUnit = price.RateUnit || null;
-                        row.PriceValidFrom = price.ValidFrom || null;
-                        row.PriceValidTo = price.ValidTo || null;
-                        row.AccessSequence = price.AccessSequence || null;
-                        row.ConditionType = price.ConditionType || null;
+                        row.Price = price.Rate ?? null;
+                        row.PriceUnit = price.RateUnit ?? null;
+                        row.PriceValidFrom = price.ValidFrom ?? null;
+                        row.PriceValidTo = price.ValidTo ?? null;
+                        row.AccessSequence = price.AccessSequence ?? null;
+                        row.ConditionType = price.ConditionType ?? null;
                     }
                 }
 
                 if (opts.future) {
-                    const future = idx.futureByMaterial.get(row.Material);
-
-                    if (future) {
-                        row.FuturePrice = future.Rate || null;
-                        row.FuturePriceValidFrom = future.ValidFrom || null;
-                        row.FuturePriceValidTo = future.ValidTo || null;
-                    }
+                    const materialKey = String(row.Material || '').trim();
+                    const future = idx.futureByMaterial.get(materialKey);
+                    row.FuturePrice = future?.Rate ?? null;
+                    row.FuturePriceValidFrom = future?.ValidFrom ?? null;
+                    row.FuturePriceValidTo = future?.ValidTo ?? null;
                 }
 
                 // Discount is intentionally not resolved in Maintain because internal users do not have a customer account-assignment context.
@@ -3271,6 +3279,10 @@ module.exports = cds.service.impl(async function () {
         }
 
         await mergePOAFOCFallback(rows);
+
+        rows = rows.filter((row) => {
+            return String(row.Price ?? "").trim() !== "";
+        });
 
         return sortResults(rows);
     });

@@ -209,7 +209,13 @@ async function getAuthorizedProductTree({db,extdb,ProductPriceList,PricelistData
         };
     }
 
-    const productRows = rows.filter((row) => normalize(row.Kind) === "Product");
+    const productRows = rows.filter((row) => {
+        if (normalize(row.Kind) !== "Product") {
+            return false;
+        }
+
+        return String(row.Price ?? "").trim() !== "";
+    });
     const materialIds = productRows.map((row) => normalize(row.Title)).filter(Boolean);
     const authorizationByMaterial = await getMaterialAuthorization({extdb,materialIds,salesOrg: pricelist.SalesOrg,distChannel: pricelist.DistChannel});
 
@@ -236,5 +242,6 @@ async function getAuthorizedProductTree({db,extdb,ProductPriceList,PricelistData
 }
 
 module.exports = {
-    getAuthorizedProductTree
+    getAuthorizedProductTree,
+    pruneTreeRows
 };

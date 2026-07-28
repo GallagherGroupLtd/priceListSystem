@@ -97,7 +97,40 @@ function pickBestByDate(records, targetDate) {
         .sort((a, b) => Number(a.PRIORITY || 999) - Number(b.PRIORITY || 999))[0] || null;
 }
 
-async function resolvePricingParameters({db,extdb,context,materialIds = [],parameterType,effectiveDate}) {
+function pickNextAfterCurrent(records, currentRecord) {
+    if (!records?.length || !currentRecord?.ValidTo) {
+        return null;
+    }
+
+    const currentValidTo = new Date(currentRecord.ValidTo).getTime();
+
+    if (Number.isNaN(currentValidTo)) {
+        return null;
+    }
+
+    const nextValidFrom = records
+        .map(record => {
+            if (!record.VALID_FROM) {
+                return null;
+            }
+
+            const validFrom = new Date(record.VALID_FROM).getTime();
+
+            return Number.isNaN(validFrom) ? null : validFrom;
+        })
+        .filter(validFrom => validFrom !== null && validFrom > currentValidTo).sort((a, b) => a - b)[0];
+
+    if (nextValidFrom === undefined) {
+        return null;
+    }
+
+    return pickBestByDate(
+        records,
+        new Date(nextValidFrom)
+    );
+}
+
+async function resolvePricingParameters({db,extdb,context,materialIds = [],parameterType,effectiveDate,resolutionMode = 'effectiveDate',currentRowsByMaterial = null}) {
     const headers = await db.run(
         SELECT.from("PricingParameterDetermination")
             .columns(
@@ -170,17 +203,9 @@ async function resolvePricingParameters({db,extdb,context,materialIds = [],param
             }
         }
 
-        const materialExpr = availableCols.has(cols.material)
-            ? quoted(cols.material)
-            : 'CAST(NULL AS NVARCHAR(100))';
-
-        const validFromExpr = availableCols.has(cols.validFrom)
-            ? quoted(cols.validFrom)
-            : 'CAST(NULL AS NVARCHAR(50))';
-
-        const validToExpr = availableCols.has(cols.validTo)
-            ? quoted(cols.validTo)
-            : 'CAST(NULL AS NVARCHAR(50))';
+        const materialExpr = availableCols.has(cols.material) ? quoted(cols.material) : 'CAST(NULL AS NVARCHAR(100))';
+        const validFromExpr = availableCols.has(cols.validFrom) ? quoted(cols.validFrom) : 'CAST(NULL AS NVARCHAR(50))';
+        const validToExpr = availableCols.has(cols.validTo) ? quoted(cols.validTo) : 'CAST(NULL AS NVARCHAR(50))';
 
         return `
             SELECT
@@ -197,16 +222,12 @@ async function resolvePricingParameters({db,extdb,context,materialIds = [],param
         `;
     }).filter(Boolean);
 
-    const records = sqlParts.length
-        ? await extdb.run(sqlParts.join(' UNION ALL '))
-        : [];
+    const records = sqlParts.length ? await extdb.run(sqlParts.join(' UNION ALL ')) : [];
 
     const grouped = new Map();
 
     for (const record of records || []) {
-        const key = parameterType === 'P'
-            ? normalize(record.MATERIAL)
-            : '__DISCOUNT__';
+        const key = parameterType === 'P' ? normalize(record.MATERIAL) : '__DISCOUNT__';
 
         if (!grouped.has(key)) grouped.set(key, []);
         grouped.get(key).push(record);
@@ -215,8 +236,19 @@ async function resolvePricingParameters({db,extdb,context,materialIds = [],param
     const result = [];
 
     for (const [key, recordsForKey] of grouped.entries()) {
-        const best = pickBestByDate(recordsForKey, effectiveDate);
-        if (!best) continue;
+        let best = null;
+        // const best = pickBestByDate(recordsForKey, effectiveDate);
+        // if (!best) continue;
+        if (resolutionMode === 'nextAfterCurrent') {
+            const currentRecord = currentRowsByMaterial?.get(key) || null;
+            best = pickNextAfterCurrent(recordsForKey,currentRecord);
+        } else {
+            best = pickBestByDate(recordsForKey,effectiveDate);
+        }
+
+        if (!best) {
+            continue;
+        }
 
         result.push({
             Material: key === '__DISCOUNT__' ? null : key,

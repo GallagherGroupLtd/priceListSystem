@@ -71,10 +71,15 @@ sap.ui.define([
 			},
 
 			currentPricelist: [],
+			currentPricelistFull: [],
 			pricelistUpdates: [],
+			pricelistUpdatesFull: [],
 			upcomingPrices: [],
+			upcomingPricesFull: [],
 			addedRemovedProducts: [],
-			termsNotesUpdates: []
+			addedRemovedProductsFull: [],
+			termsNotesUpdates: [],
+			termsNotesUpdatesFull: []
 		};
 	}
 
@@ -98,7 +103,26 @@ sap.ui.define([
 
 				if (oJson) {
 					oJson.setProperty("/productPriceList", oJson.getProperty("/productPriceList") || []);
+					oJson.setProperty("/productPriceListFull",oJson.getProperty("/productPriceListFull") || []);
 					oJson.setProperty("/originalProductPriceList", oJson.getProperty("/originalProductPriceList") || []);
+					oJson.setProperty("/productFilter", {
+						mainCategory: "",
+						subCategory1: "",
+						subCategory2: "",
+						subCategory3: "",
+						subCategory4: "",
+						subCategory5: "",
+
+						material: "",
+						description: "",
+						supplier: "",
+						status: "",
+
+						priceUnit: "",
+						hasPrice: "All",
+						hasDiscount: "All"
+					});
+					oJson.setProperty("/productFilterCount", 0);
 					oJson.setProperty("/selectedKeys", []);
 					oJson.setProperty("/discountUserContext", {
 						IsInternalUser: false,
@@ -499,6 +523,252 @@ sap.ui.define([
 			setTimeout(fnExpand, 0);
 		},
 
+		onOpenHierarchyFilter: function () {
+			const oView = this.base.getView();
+			const oJsonModel = oView.getModel("jsonModel");
+
+			if (this._oProductFilterDialog) {
+				this._oProductFilterDialog.setModel(oJsonModel,"jsonModel");
+				this._oProductFilterDialog.open();
+				return;
+			}
+
+			if (!this._pProductFilterDialog) {
+				this._pProductFilterDialog = Fragment.load({
+					id: oView.getId(),
+					name: "pricelistapp.pricelistdisplay.ext.fragment.ProductListFilterDialog",
+					controller: this
+				}).then((oDialog) => {
+					const oRealDialog = Array.isArray(oDialog) ? oDialog[0] : oDialog;
+					this._oProductFilterDialog = oRealDialog;
+					oView.addDependent(oRealDialog);
+
+					return oRealDialog;
+				});
+			}
+
+			this._pProductFilterDialog.then((oDialog) => {
+				oDialog.setModel(oJsonModel, "jsonModel");
+				oDialog.open();
+			});
+		},
+
+		onCloseHierarchyFilterDialog: function () {
+			this._oProductFilterDialog?.close();
+		},
+
+		onResetHierarchyFilter: function () {
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+			oJsonModel.setProperty("/productFilter", {
+				mainCategory: "",
+				subCategory1: "",
+				subCategory2: "",
+				subCategory3: "",
+				subCategory4: "",
+				subCategory5: "",
+
+				material: "",
+				description: "",
+				supplier: "",
+				status: "",
+
+				priceUnit: "",
+				hasPrice: "All",
+				hasDiscount: "All"
+			});
+		},
+
+		onApplyHierarchyFilter: function () {
+			this._applyProductTreeFilter();
+			this._oProductFilterDialog?.close();
+		},
+
+		onClearHierarchyFilter: function () {
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+			const aFullTree = oJsonModel.getProperty("/productPriceListFull") || [];
+			oJsonModel.setProperty("/productFilter", {
+				mainCategory: "",
+				subCategory1: "",
+				subCategory2: "",
+				subCategory3: "",
+				subCategory4: "",
+				subCategory5: "",
+
+				material: "",
+				description: "",
+				supplier: "",
+				status: "",
+
+				priceUnit: "",
+				hasPrice: "All",
+				hasDiscount: "All"
+			});
+			oJsonModel.setProperty("/productFilterCount", 0);
+			oJsonModel.setProperty("/productPriceList",JSON.parse(JSON.stringify(aFullTree)));
+
+			oJsonModel.updateBindings(true);
+			this._oProductFilterDialog?.close();
+
+			this._refreshProductTreeAfterFilter();
+		},
+
+		_applyProductTreeFilter: function () {
+			const oJsonModel = this.base.getView().getModel("jsonModel");
+			const aFullTree = oJsonModel.getProperty("/productPriceListFull") || [];
+			const oFilter = oJsonModel.getProperty("/productFilter") || {};
+			const normalize = function (vValue) {
+				return String(vValue ?? "").trim().toLowerCase();
+			};
+
+			const contains = function (vActual, vExpected) {
+				const sExpected = normalize(vExpected);
+
+				if (!sExpected) {
+					return true;
+				}
+
+				return normalize(vActual).includes(sExpected);
+			};
+
+			const hasValue = function (vValue) {
+				return (vValue !== null && vValue !== undefined && String(vValue).trim() !== "");
+			};
+
+			const categoryFilters = [
+				normalize(oFilter.mainCategory),
+				normalize(oFilter.subCategory1),
+				normalize(oFilter.subCategory2),
+				normalize(oFilter.subCategory3),
+				normalize(oFilter.subCategory4),
+				normalize(oFilter.subCategory5)
+			];
+
+			const sMaterial = normalize(oFilter.material);
+			const sDescription = normalize(oFilter.description);
+			const sSupplier = normalize(oFilter.supplier);
+			const sStatus = normalize(oFilter.status);
+			const sPriceUnit = normalize(oFilter.priceUnit);
+
+			const sHasPrice = oFilter.hasPrice || "All";
+			const sHasDiscount = oFilter.hasDiscount || "All";
+
+			const productMatches = function (oNode) {
+				const bMaterialMatch = !sMaterial || contains(oNode.Material, sMaterial) || contains(oNode.MaterialKey, sMaterial) || contains(oNode.Title, sMaterial);
+				const bDescriptionMatch = contains(oNode.Description, sDescription);
+				const bSupplierMatch = contains(oNode.Supplier, sSupplier);
+				const bStatusMatch = contains(oNode.Status, sStatus);
+				const bPriceUnitMatch = contains(oNode.PriceUnit, sPriceUnit);
+				const bHasPrice = hasValue(oNode.Price);
+				const bHasPriceMatch = sHasPrice === "All" || (sHasPrice === "Yes" && bHasPrice) || (sHasPrice === "No" && !bHasPrice);
+				const bHasDiscount = hasValue(oNode.DiscountRate);
+				const bHasDiscountMatch = sHasDiscount === "All" || (sHasDiscount === "Yes" && bHasDiscount) || (sHasDiscount === "No" && !bHasDiscount);
+
+				return (bMaterialMatch && bDescriptionMatch && bSupplierMatch && bStatusMatch && bPriceUnitMatch && bHasPriceMatch && bHasDiscountMatch);
+			};
+
+			const categoryMatchesLevel = function (oNode,iCategoryLevel) {
+				const sExpected = categoryFilters[iCategoryLevel - 1] || "";
+
+				if (!sExpected) {
+					return true;
+				}
+
+				return (contains(oNode.Title, sExpected) || contains(oNode.Description, sExpected));
+			};
+
+			const filterRecursive = function (aNodes,aAncestorCategoryMatches) {
+				return (aNodes || []).reduce(
+					function (aResult, oNode) {
+						const bIsProduct = oNode.Kind === "Product";
+						const iCategoryLevel = Number(oNode.CategoryLevel || 0);
+						let aNextAncestorMatches = aAncestorCategoryMatches;
+
+						if (!bIsProduct && iCategoryLevel > 0) {
+							const bCurrentCategoryMatches = categoryMatchesLevel(oNode,iCategoryLevel);
+
+							aNextAncestorMatches = [
+								...aAncestorCategoryMatches,
+								{
+									level: iCategoryLevel,
+									matches: bCurrentCategoryMatches
+								}
+							];
+						}
+
+						const aFilteredChildren = filterRecursive(oNode.children || [],aNextAncestorMatches);
+
+						if (bIsProduct) {
+							const bCategoryPathMatches = aAncestorCategoryMatches.every(
+								function (oCategoryMatch) {
+									return oCategoryMatch.matches;
+								}
+							);
+
+							if (bCategoryPathMatches && productMatches(oNode)) {
+								aResult.push({...oNode,children: []});
+							}
+
+							return aResult;
+						}
+
+						if (aFilteredChildren.length > 0) {
+							aResult.push({
+								...oNode,
+								children: aFilteredChildren
+							});
+						}
+
+						return aResult;
+					},
+					[]
+				);
+			};
+
+			const aFilteredTree = filterRecursive(aFullTree, []);
+
+			const iFilterCount = [
+				oFilter.mainCategory,
+				oFilter.subCategory1,
+				oFilter.subCategory2,
+				oFilter.subCategory3,
+				oFilter.subCategory4,
+				oFilter.subCategory5,
+				oFilter.material,
+				oFilter.description,
+				oFilter.supplier,
+				oFilter.status,
+				oFilter.priceUnit
+			].filter(function (vValue) {
+				return normalize(vValue) !== "";
+			}).length +
+				(sHasPrice !== "All" ? 1 : 0) +
+				(sHasDiscount !== "All" ? 1 : 0);
+
+			oJsonModel.setProperty("/productPriceList",aFilteredTree);
+			oJsonModel.setProperty("/productFilterCount",iFilterCount);
+
+			oJsonModel.updateBindings(true);
+
+			this._refreshProductTreeAfterFilter();
+		},
+
+		_refreshProductTreeAfterFilter: function () {
+			const oTable = this._productTreeTable || sap.ui.getCore().byId(idTreePrefix + "ProductPriceListTreeTable");
+
+			if (!oTable) {
+				return;
+			}
+
+			const oBinding = oTable.getBinding("rows");
+
+			oBinding?.refresh?.(true);
+			oTable.clearSelection?.();
+
+			setTimeout(function () {
+				oTable.expandToLevel?.(99);
+			}, 0);
+		},
+
 		_loadProductPriceListOnEnter: function () {
 			const oView = this.base.getView();
 			const oContext = oView.getBindingContext();
@@ -531,6 +801,7 @@ sap.ui.define([
 					const aTreeCopy = JSON.parse(JSON.stringify(aSafeTree));
 
 					oJsonModel.setProperty("/productPriceList",aTreeCopy);
+					oJsonModel.setProperty("/productPriceListFull",JSON.parse(JSON.stringify(aSafeTree)));
 					oJsonModel.setProperty("/originalProductPriceList",JSON.parse(JSON.stringify(aSafeTree)));
 					oJsonModel.setProperty("/selectedKeys",[]);
 
@@ -541,6 +812,7 @@ sap.ui.define([
 				.catch((oError) => {
 					console.error("Failed to load persisted ProductPriceList tree:",oError);
 					oJsonModel.setProperty("/productPriceList",[]);
+					oJsonModel.setProperty("/productPriceListFull",[]);
 					oJsonModel.setProperty("/originalProductPriceList",[]);
 					oJsonModel.updateBindings(true);
 					MessageToast.show("Failed to load the product list.");
@@ -720,6 +992,7 @@ sap.ui.define([
 			const aTreeData = Array.isArray(aData) && aData.length ? this._buildTreeFromFlatData(aData) : [];
 
 			oJsonModel.setProperty("/productPriceList", aTreeData);
+			oJsonModel.setProperty("/productPriceListFull",JSON.parse(JSON.stringify(aTreeData)));
 			oJsonModel.setProperty("/originalProductPriceList", JSON.parse(JSON.stringify(aTreeData)));
 			oJsonModel.setProperty("/selectedKeys", []);
 			this._applyCachedDiscountsToProductTree();
@@ -1580,6 +1853,17 @@ sap.ui.define([
 					loadError: ""
 				}
 			);
+			const oUpdates = oJson.getProperty("/pricelistUpdates") || {};
+			const cloneUpdatesArray = function (aRows) {
+				return JSON.parse(JSON.stringify(aRows || []));
+			};
+
+			oJson.setProperty("/pricelistUpdates/currentPricelistFull",cloneUpdatesArray(oUpdates.currentPricelist));
+			oJson.setProperty("/pricelistUpdates/pricelistUpdatesFull",cloneUpdatesArray(oUpdates.pricelistUpdates));
+			oJson.setProperty("/pricelistUpdates/upcomingPricesFull",cloneUpdatesArray(oUpdates.upcomingPrices));
+			oJson.setProperty("/pricelistUpdates/addedRemovedProductsFull",cloneUpdatesArray(oUpdates.addedRemovedProducts));
+			oJson.setProperty("/pricelistUpdates/termsNotesUpdatesFull",cloneUpdatesArray(oUpdates.termsNotesUpdates));
+
 			const oAction = oView.getModel().bindContext("/getPricelistUpdates(...)");
 			oAction.setParameter("pricelistId", sPricelistId);
 
@@ -1588,6 +1872,14 @@ sap.ui.define([
 					const oBoundContext = oAction.getBoundContext();
 					const oResult = oBoundContext ? oBoundContext.getObject() : {};
 					const oNormalizedResult = this._normalizePricelistUpdatesResult(oResult || {});
+					const cloneUpdatesArray = function (aRows) {
+						return JSON.parse(JSON.stringify(aRows || []));
+					};
+					oNormalizedResult.currentPricelistFull = cloneUpdatesArray(oNormalizedResult.currentPricelist);
+					oNormalizedResult.pricelistUpdatesFull = cloneUpdatesArray(oNormalizedResult.pricelistUpdates);
+					oNormalizedResult.upcomingPricesFull = cloneUpdatesArray(oNormalizedResult.upcomingPrices);
+					oNormalizedResult.addedRemovedProductsFull = cloneUpdatesArray(oNormalizedResult.addedRemovedProducts);
+					oNormalizedResult.termsNotesUpdatesFull = cloneUpdatesArray(oNormalizedResult.termsNotesUpdates);
 					oJson.setProperty("/pricelistUpdates",oNormalizedResult);
 				}).catch(oError => {
 					console.error("Error loading Version History:",oError);

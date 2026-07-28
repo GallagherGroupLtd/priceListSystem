@@ -189,6 +189,14 @@ sap.ui.define([
             MessageToast.show('Product list sorted by description.');
         },
 
+        onOpenHierarchyFilter: function () {
+            ExtController.getInstance().onOpenHierarchyFilter();
+        },
+
+        onClearHierarchyFilter: function () {
+            ExtController.getInstance().onClearHierarchyFilter();
+        },
+
         onExpandAll: function (oEvent) {
             const oButton = oEvent.getSource();
             const oTreeTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
