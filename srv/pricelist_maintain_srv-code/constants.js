@@ -20,6 +20,8 @@ const STORED_FIELDS = [
     "PriceUnit",
     "PriceValidFrom",
     "PriceValidTo",
+    "ConditionType",
+    "AccessSequence",
 
     "DiscountRate",
     "DiscountValidFrom",

@@ -74,7 +74,7 @@ sap.ui.define([
 		"OrderIndex", "Kind", "CategoryLevel", "Title", "Description", "CountryOfOrigin",
 		"PublishedName", "TermsAndConditions", "IsTACDisableExt", "IsTACDisableInt",
 		"Notes", "IsNotesDisableExt", "IsNotesDisableInt",
-		"Price", "PriceUnit", "PriceValidFrom", "PriceValidTo",
+		"Price", "PriceUnit", "PriceValidFrom", "PriceValidTo", "ConditionType", "AccessSequence",
 		"DiscountRate", "DiscountValidFrom", "DiscountValidTo", "PriceChangeIndicator",
 		"FuturePrice", "FuturePriceValidFrom", "FuturePriceValidTo",
 		"Status", "StatusValidFromDate", "StatusValidToDate",
@@ -95,7 +95,7 @@ sap.ui.define([
 	const PRODUCT_PRICE_SAVE_FIELDS = [
 		"ID", "OrderIndex", "Kind", "CategoryLevel", "Title", "Description", "CountryOfOrigin", "MaterialKey",
 		"PublishedName", "TermsAndConditions", "IsTACDisableExt", "IsTACDisableInt", "Notes", "IsNotesDisableExt", "IsNotesDisableInt", 
-		"Price", "PriceUnit", "PriceValidFrom", "PriceValidTo", "DiscountRate","DiscountValidFrom", "DiscountValidTo", "PriceChangeIndicator",
+		"Price", "PriceUnit", "PriceValidFrom", "PriceValidTo", "ConditionType", "AccessSequence", "DiscountRate","DiscountValidFrom", "DiscountValidTo", "PriceChangeIndicator",
 		"FuturePrice", "FuturePriceValidFrom", "FuturePriceValidTo", "Status", "StatusValidFromDate", "StatusValidToDate", "Supplier", "SupplierSKU"
 	];
 

@@ -3211,6 +3211,17 @@ module.exports = cds.service.impl(async function () {
             return materialsMaster;
         };
 
+        const resolveMaterialDescription = (material) => {
+            const productDescription1 = String(material.ProductDescription1 ?? "").trim();
+            const productDescription2 = String(material.ProductDescription2 ?? "").trim();
+
+            if (productDescription1) {
+                return productDescription2 ? `${productDescription1} ${productDescription2}` : productDescription1;
+            }
+
+            return material.MATERIAL_DESCRIPTION ?? null;
+        };
+
         // ── step 8: material-only flat rows ────────────────────
         const buildMaterialRows = (itemStructureDatas, materialsMaster) => {
             const byCategory = new Map();
@@ -3225,7 +3236,7 @@ module.exports = cds.service.impl(async function () {
                     ...row,
                     MaterialKey: mat.MATERIAL_KEY,
                     Material: mat.MATERIAL,
-                    MaterialDescription: mat.MATERIAL_DESCRIPTION,
+                    MaterialDescription: resolveMaterialDescription(mat),
                     CountryOfOrigin: mat.CountryOfOrigin || null,
                     Status: mat.ProductStatus || null,
                     StatusValidFromDate: mat.StatusValidity || null,

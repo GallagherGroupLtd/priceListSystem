@@ -76,16 +76,10 @@
                         editable="{ui>/isEditable}"/>
                 </smartForm:GroupElement>
                 <smartForm:GroupElement id="ProductAccessSequenceGroupElement" label="Access Sequence">
-                    <Input
-                        id="ProductAccessSequenceInput"
-                        value="{jsonModel>/selectedProduct/AccessSequence}" 
-                        editable="{ui>/isEditable}"/>
+                    <Input id="ProductAccessSequenceInput" value="{jsonModel>/selectedProduct/AccessSequence}" editable="false"/>
                 </smartForm:GroupElement>
                 <smartForm:GroupElement id="ProductConditionTypeGroupElement" label="Condition Type">
-                    <Input
-                        id="ProductConditionTypeInput"
-                        value="{jsonModel>/selectedProduct/ConditionType}" 
-                        editable="{ui>/isEditable}"/>
+                    <Input id="ProductConditionTypeInput" value="{jsonModel>/selectedProduct/ConditionType}" editable="false"/>
                 </smartForm:GroupElement>
             </smartForm:Group>
             <smartForm:Group id="ProductDiscountGroup" title="Discount">

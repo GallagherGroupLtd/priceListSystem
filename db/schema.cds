@@ -410,6 +410,8 @@ entity ProductPriceList : managed, cuid {
     PriceUnit                 : String(3);
     PriceValidFrom            : Date;
     PriceValidTo              : Date;
+    ConditionType             : String(4);
+    AccessSequence            : String(20);
     DiscountRate              : String(100);
     DiscountValidFrom         : Date;
     DiscountValidTo           : Date;
