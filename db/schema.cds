@@ -92,12 +92,12 @@ entity TermsAndConditionDetermination : managed, cuid {
     SubCategory3                   : String(999) @title: 'SubCategory 3';
     SubCategory4                   : String(999) @title: 'SubCategory 4';
     SubCategory5                   : String(999) @title: 'SubCategory 5';
-    MainCategoryTermsandConditions : String(999) @title: 'Main Category Terms and Condition';
-    SubCategory1TermsandConditions : String(999) @title: 'SubCategory 1 Terms and Condition';
-    SubCategory2TermsandConditions : String(999) @title: 'SubCategory 2 Terms and Condition';
-    SubCategory3TermsandConditions : String(999) @title: 'SubCategory 3 Terms and Condition';
-    SubCategory4TermsandConditions : String(999) @title: 'SubCategory 4 Terms and Condition';
-    SubCategory5TermsandConditions : String(999) @title: 'SubCategory 5 Terms and Condition';
+    MainCategoryTermsandConditions : LargeString @title: 'Main Category Terms and Condition';
+    SubCategory1TermsandConditions : LargeString @title: 'SubCategory 1 Terms and Condition';
+    SubCategory2TermsandConditions : LargeString @title: 'SubCategory 2 Terms and Condition';
+    SubCategory3TermsandConditions : LargeString @title: 'SubCategory 3 Terms and Condition';
+    SubCategory4TermsandConditions : LargeString @title: 'SubCategory 4 Terms and Condition';
+    SubCategory5TermsandConditions : LargeString @title: 'SubCategory 5 Terms and Condition';
 
     partNumberTermsAndConditions : Composition of many TermsAndConditionPartNumber
         on partNumberTermsAndConditions.parent = $self;
@@ -106,7 +106,7 @@ entity TermsAndConditionDetermination : managed, cuid {
 entity TermsAndConditionPartNumber : managed, cuid {
     parent                       : Association to one TermsAndConditionDetermination;
     ProductID                    : String(30)  @title: 'Product ID';
-    PartNumberTermsandConditions : String(999) @title: 'Part Number Terms and Conditions';
+    PartNumberTermsandConditions : LargeString @title: 'Part Number Terms and Conditions';
 }
 
 // /** Pricing Parameter Determination **/

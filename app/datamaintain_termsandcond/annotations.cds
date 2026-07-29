@@ -530,4 +530,6 @@ annotate service.TermsAndConditionPartNumbers with {
             ]
         }
     );
+
+    PartNumberTermsandConditions @UI.MultiLineText;
 };
