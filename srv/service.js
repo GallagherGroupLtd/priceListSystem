@@ -3328,15 +3328,24 @@ module.exports = cds.service.impl(async function () {
             return materialsMaster;
         };
 
-        const resolveMaterialDescription = (material) => {
-            const productDescription1 = String(material.ProductDescription1 ?? "").trim();
-            const productDescription2 = String(material.ProductDescription2 ?? "").trim();
+        const toProperCase = value => {
+            const description = String(value ?? "").trim();
 
-            if (productDescription1) {
-                return productDescription2 ? `${productDescription1} ${productDescription2}` : productDescription1;
+            if (!description) {
+                return null;
             }
 
-            return material.MATERIAL_DESCRIPTION ?? null;
+            return description.toLowerCase().replace(/\b[a-z]/g, character => character.toUpperCase());
+        };
+
+        const resolveMaterialDescription = material => {
+            const pricelistProductDescription = String(material.ProductDescription1 ?? "").trim();
+
+            if (pricelistProductDescription) {
+                return toProperCase(pricelistProductDescription);
+            }
+
+            return toProperCase(material.MATERIAL_DESCRIPTION);
         };
 
         // ── step 8: material-only flat rows ────────────────────
