@@ -1,11 +1,58 @@
 sap.ui.define([
     "sap/m/MessageToast",
-    "sap/m/MessageBox"
-], function (MessageToast, MessageBox) {
+    "sap/m/MessageBox",
+    "sap/m/Dialog",
+    "sap/m/Button",
+    "sap/m/Text"
+], function (MessageToast, MessageBox, Dialog, Button, Text) {
     'use strict';
 
     const ExtController = pricelistapp.pricelistdisplay.ext.controller.PricelistDisplayObjectPageExt.prototype;
     const idPrefix = "pricelistapp.pricelistdisplay::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--";
+
+    function openReadOnlyRowTextDialog(oSource, sPropertyName, sDialogTitle) {
+        const oBindingContext = oSource.getBindingContext("jsonModel");
+        const oRowData = oBindingContext && oBindingContext.getObject();
+
+        if (!oRowData) {
+            MessageToast.show("Unable to determine the selected product tree row.");
+            return;
+        }
+
+        const sContent = String(oRowData[sPropertyName] || "").trim();
+
+        if (!sContent) {
+            MessageToast.show(`No ${sDialogTitle.toLowerCase()} are maintained for this row.`);
+            return;
+        }
+
+        const oDialog = new Dialog({
+            title: sDialogTitle,
+            contentWidth: "40rem",
+            horizontalScrolling: false,
+            verticalScrolling: true,
+            content: [
+                new Text({
+                    text: sContent,
+                    wrapping: true,
+                    renderWhitespace: true,
+                    selectable: true
+                }).addStyleClass("sapUiSmallMargin")
+            ],
+            endButton: new Button({
+                text: "Close",
+                press: function () {
+                    oDialog.close();
+                }
+            }),
+            afterClose: function () {
+                oDialog.destroy();
+            }
+        });
+
+        oDialog.addStyleClass("sapUiContentPadding");
+        oDialog.open();
+    }
 
     function removeNodeFromTree(aNodes, sMaterialKey) {
         for (let i = 0; i < aNodes.length; i++) {
@@ -223,6 +270,14 @@ sap.ui.define([
 
         onRetrieveDiscounts: function () {
             ExtController.getInstance().onRetrieveDiscounts();
+        },
+
+        onOpenTermsAndConditions: function (oEvent) {
+            openReadOnlyRowTextDialog(oEvent.getSource(),"TermsAndConditions","Terms and Conditions");
+        },
+
+        onOpenNotes: function (oEvent) {
+            openReadOnlyRowTextDialog(oEvent.getSource(),"Notes","Notes");
         },
 
         onSelectionChange: function (oEvent) {

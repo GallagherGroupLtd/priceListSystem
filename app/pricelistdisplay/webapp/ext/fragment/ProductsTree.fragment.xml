@@ -109,7 +109,22 @@
                 <t:Column id="ColCategoriesAndProducts" width="30%" >
                     <Label id="LblCategoriesAndProducts" text="Categories and Products" textAlign="Center" width="100%"/>
                     <t:template>
-                        <Text id="TxtCategoriesAndProducts" text="{jsonModel>Title}" wrapping="false" />
+                        <HBox id="CategoriesAndProductsHBox" alignItems="Center" width="100%">
+                            <Text id="TxtCategoriesAndProducts" text="{jsonModel>Title}" wrapping="false" />
+                            <Button id="ProductTreeTermsAndConditionsBtn" icon="sap-icon://document-text" type="Transparent"
+                                tooltip="View Terms and Conditions" visible="{= !!${jsonModel>TermsAndConditions} }"
+                                press="handler.onOpenTermsAndConditions">
+                                <customData>
+                                    <core:CustomData key="dialogTitle" value="Terms and Conditions" />
+                                </customData>
+                            </Button>
+                            <Button id="ProductTreeNotesBtn" icon="sap-icon://notes" type="Transparent" tooltip="View Notes" 
+                                visible="{= !!${jsonModel>Notes} }" press="handler.onOpenNotes">
+                                <customData>
+                                    <core:CustomData key="dialogTitle" value="Notes" />
+                                </customData>
+                            </Button>
+                        </HBox>
                     </t:template>
                 </t:Column>
 

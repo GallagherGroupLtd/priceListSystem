@@ -2728,33 +2728,6 @@ module.exports = cds.service.impl(async function () {
             DeliveringPlant
         };
 
-        const buildPartNumberTermsHeaderWhere = () => {
-            const conditions = [];
-
-            PART_NUMBER_TERMS_APPLICABILITY_FIELDS.forEach(
-                field => {
-                    const contextValue = normalizePartNumberTermsValue(partNumberTermsContext[field]);
-                    const fieldConditions = [];
-
-                    if (contextValue) {
-                        fieldConditions.push({ ref: [field] },"=",{ val: contextValue },"or");
-                    }
-
-                    fieldConditions.push({ ref: [field] },"=",{ val: "" },"or",{ ref: [field] },"is",{ val: null },"or",{ ref: [field] },"=",{ val: "*" });
-
-                    if (conditions.length) {
-                        conditions.push("and");
-                    }
-
-                    conditions.push({
-                        xpr: fieldConditions
-                    });
-                }
-            );
-
-            return conditions;
-        };
-
         const getPartNumberTermsSpecificity = header => {
             return PART_NUMBER_TERMS_APPLICABILITY_FIELDS
                 .reduce((score, field) => {
@@ -2787,13 +2760,20 @@ module.exports = cds.service.impl(async function () {
         };
 
         const loadApplicablePartNumberTerms = async () => {
-            const applicableHeaders = sortPartNumberTermsHeaders(
-                await db.run(
-                    SELECT
-                        .from(TermsAndConditions)
-                        .where(buildPartNumberTermsHeaderWhere())
-                )
+            const allHeaders = await db.run(
+                SELECT.from(TermsAndConditions)
             );
+
+            const applicableHeadersunSorted = allHeaders.filter(header => {
+                    return PART_NUMBER_TERMS_APPLICABILITY_FIELDS.every(field => {
+                        const maintainedValue = normalizePartNumberTermsValue(header[field]);
+                        const contextValue = normalizePartNumberTermsValue(partNumberTermsContext[field]);
+
+                        return (maintainedValue === "" || maintainedValue === "*" || maintainedValue === contextValue);
+                    });
+                });
+
+            const applicableHeaders = sortPartNumberTermsHeaders(applicableHeadersunSorted);
 
             if (!applicableHeaders.length) {
                 return [];
@@ -2881,12 +2861,45 @@ module.exports = cds.service.impl(async function () {
                 { source: "SubCategory4TermsandConditions", target: "SubCategory4TermsandCond" },
                 { source: "SubCategory5TermsandConditions", target: "SubCategory5TermsandCond" },
             ];
-            const pathKey = (r) => CATEGORY_PATH_FIELDS.map((f) => r[f] || "").join("|");
-            const termsRows = await db.run(SELECT.from(TermsAndConditions).where({
-                PricelistType, MarketScopeRegion, MarketScopeCountry, SalesOrg, DistChannel,
-                CustPriceList, ErpCustomer, CustGroup1, DeliveringPlant
-            }));
-            const termsByPath = new Map(termsRows.map((r) => [pathKey(r), r]));
+            const pathKey = (r) => CATEGORY_PATH_FIELDS.map(field => normalizePricelistTermsValue(r[field])).join("|");
+            const headerCriteria = {
+                PricelistType,
+                MarketScopeRegion,
+                MarketScopeCountry,
+                SalesOrg,
+                DistChannel,
+                CustPriceList,
+                CustGroup1,
+                ErpCustomer,
+                DeliveringPlant
+            };
+
+            const allTermsRows = await db.run(
+                SELECT.from(TermsAndConditions)
+            );
+
+            const termsRowsByPath = new Map();
+
+            allTermsRows.forEach(row => {
+                const key = pathKey(row);
+
+                if (!termsRowsByPath.has(key)) {
+                    termsRowsByPath.set(key, []);
+                }
+
+                termsRowsByPath.get(key).push(row);
+            });
+
+            const termsByPath = new Map();
+
+            termsRowsByPath.forEach((candidateRows, key) => {
+                const resolvedRow = resolvePricelistTermsAndConditions(candidateRows,headerCriteria);
+
+                if (resolvedRow) {
+                    termsByPath.set(key, resolvedRow);
+                }
+            });
+
             itemStructureDatas.forEach((row) => {
                 const m = termsByPath.get(pathKey(row));
                 if (!m) return;
@@ -3687,10 +3700,15 @@ module.exports = cds.service.impl(async function () {
         };
 
         const headerCandidates = await tx.run(
-            SELECT.from(TermsAndConditions).where(headerCriteria)
+            SELECT.from(TermsAndConditions).where({
+                PricelistDataLevel: "Header",
+                PricelistFieldName: "TermsAndConditions"
+            })
         );
-        const headerTerms = resolveSpecificOverWildcard(headerCandidates, headerCriteria)
-            .filter(r => r.PricelistDataLevel === "Header");
+
+        const resolvedHeaderRecord = resolvePricelistTermsAndConditions(headerCandidates,headerCriteria);
+
+        const headerTerms = resolvedHeaderRecord ? [resolvedHeaderRecord] : [];
 
         //Item Level
         const pricelistId = req.data.ID;
