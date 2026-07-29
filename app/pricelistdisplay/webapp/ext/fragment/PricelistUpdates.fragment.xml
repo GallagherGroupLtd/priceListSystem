@@ -139,13 +139,13 @@
                         <t:Column width="13rem">
                             <Label text="Price Effective Date" />
                             <t:template>
-                                <Text text="{jsonModel>updatedPriceValidFrom}" />
+                                <Text text="{path: 'jsonModel>updatedPriceValidFrom',formatter: 'handler.formatTreeDate'}"/>
                             </t:template>
                         </t:Column>
                         <t:Column width="13rem">
                             <Label text="Price Expiry Date" />
                             <t:template>
-                                <Text text="{jsonModel>updatedPriceValidTo}" />
+                                <Text text="{path: 'jsonModel>updatedPriceValidTo',formatter: 'handler.formatTreeDate'}"/>
                             </t:template>
                         </t:Column>
                         <t:Column width="9rem">
@@ -163,13 +163,13 @@
                         <t:Column width="14rem">
                             <Label text="Discount Effective Date" />
                             <t:template>
-                                <Text text="{jsonModel>updatedDiscountValidFrom}" />
+                                <Text text="{path: 'jsonModel>updatedDiscountValidFrom',formatter: 'handler.formatTreeDate'}"/>
                             </t:template>
                         </t:Column>
                         <t:Column width="14rem">
                             <Label text="Discount Expiry Date" />
                             <t:template>
-                                <Text text="{jsonModel>updatedDiscountValidTo}" />
+                                <Text text="{path: 'jsonModel>updatedDiscountValidTo',formatter: 'handler.formatTreeDate'}"/>
                             </t:template>
                         </t:Column>
                         <t:Column width="12rem">
@@ -181,13 +181,13 @@
                         <t:Column width="15rem">
                             <Label text="Upcoming Effective Date" />
                             <t:template>
-                                <Text text="{jsonModel>updatedFuturePriceValidFrom}" />
+                                <Text text="{path: 'jsonModel>updatedFuturePriceValidFrom',formatter: 'handler.formatTreeDate'}"/>
                             </t:template>
                         </t:Column>
                         <t:Column width="14rem">
                             <Label text="Upcoming Expiry Date" />
                             <t:template>
-                                <Text text="{jsonModel>updatedFuturePriceValidTo}" />
+                                <Text text="{path: 'jsonModel>updatedFuturePriceValidTo',formatter: 'handler.formatTreeDate'}"/>
                             </t:template>
                         </t:Column>
                     </t:columns>
@@ -282,13 +282,13 @@
                         <t:Column width="13rem">
                             <Label text="Previous Price From" />
                             <t:template>
-                                <Text text="{jsonModel>previousPriceValidFrom}" />
+                                <Text text="{path: 'jsonModel>previousPriceValidFrom',formatter: 'handler.formatTreeDate'}"/>
                             </t:template>
                         </t:Column>
                         <t:Column width="13rem">
                             <Label text="Updated Price From" />
                             <t:template>
-                                <Text text="{jsonModel>updatedPriceValidFrom}" />
+                                <Text text="{path: 'jsonModel>updatedPriceValidFrom',formatter: 'handler.formatTreeDate'}"/>
                             </t:template>
                         </t:Column>
                         <t:Column width="12rem">
@@ -390,13 +390,13 @@
                         <t:Column width="15rem">
                             <Label text="Effective Date" />
                             <t:template>
-                                <Text text="{jsonModel>updatedFuturePriceValidFrom}" />
+                                <Text text="{path: 'jsonModel>updatedFuturePriceValidFrom',formatter: 'handler.formatTreeDate'}"/>
                             </t:template>
                         </t:Column>
                         <t:Column width="14rem">
                             <Label text="Expiry Date" />
                             <t:template>
-                                <Text text="{jsonModel>updatedFuturePriceValidTo}" />
+                                <Text text="{path: 'jsonModel>updatedFuturePriceValidTo',formatter: 'handler.formatTreeDate'}"/>
                             </t:template>
                         </t:Column>
                     </t:columns>

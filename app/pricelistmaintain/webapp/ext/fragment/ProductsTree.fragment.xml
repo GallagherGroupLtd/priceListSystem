@@ -286,7 +286,7 @@
                 <t:Column id="ColValidity" width="8%" hAlign="Center">
                     <Label id="LblValidity" text="Price Validity" textAlign="Center" width="100%"/>
                     <t:template>
-                        <Text id="TxtValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>PriceValidFrom} || '') : '' }"/>
+                        <Text id="TxtValidity" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>PriceValidFrom' }],formatter: 'handler.formatTreeDateForProduct'}"/>
                     </t:template>
                 </t:Column>
 
@@ -300,14 +300,14 @@
                 <t:Column id="ColDiscountValidity" width="7%" hAlign="Center">
                     <Label id="LblDiscountValidity" text="Discount Validity" textAlign="Center" width="100%"/>
                     <t:template>
-                        <Text id="TxtDiscountValidity" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountValidFrom} || '') : '' }" />
+                        <Text id="TxtDiscountValidity" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>DiscountValidFrom' }],formatter: 'handler.formatTreeDateForProduct'}"/>
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColDiscountExpiry" width="7%" hAlign="Center">
                     <Label id="LblDiscountExpiry" text="Discount Expiry" textAlign="Center" width="100%"/>
                     <t:template>
-                        <Text id="TxtDiscountExpiry" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountValidTo} || '') : '' }" />
+                        <Text id="TxtDiscountExpiry" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>DiscountValidTo' }],formatter: 'handler.formatTreeDateForProduct'}"/>
                     </t:template>
                 </t:Column>
 
@@ -342,17 +342,16 @@
                 <t:Column id="ColStatusValidFrom" width="8%" hAlign="Center">
                     <Label id="LblStatusValidFrom" text="Status Valid From" textAlign="Center" width="100%"/>
                     <t:template>
-                        <Text id="TxtStatusValidFrom" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>StatusValidFromDate} || '') : '' }" />
+                        <Text id="TxtStatusValidFrom" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>StatusValidFromDate' }],formatter: 'handler.formatTreeDateForProduct'}"/>
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColStatusValidTo" width="8%" hAlign="Center">
                     <Label id="LblStatusValidTo" text="Status Valid To" textAlign="Center" width="100%"/>
                     <t:template>
-                        <Text id="TxtStatusValidTo" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>StatusValidToDate} || '') : '' }" />
+                        <Text id="TxtStatusValidTo" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>StatusValidToDate' }],formatter: 'handler.formatTreeDateForProduct'}"/>
                     </t:template>
                 </t:Column>
-
 
                 <t:Column id="ColSupplier" width="8%" hAlign="Center">
                     <Label id="LblSupplier" text="Supplier" textAlign="Center" width="100%"/>

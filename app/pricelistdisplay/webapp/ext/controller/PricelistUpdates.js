@@ -3,8 +3,9 @@ sap.ui.define([
     "sap/m/Dialog",
     "sap/m/SearchField",
     "sap/m/Button",
-    "sap/m/VBox"
-], function (MessageToast,Dialog,SearchField,Button,VBox) {
+    "sap/m/VBox",
+    "../util/formatter"
+], function (MessageToast,Dialog,SearchField,Button,VBox,Formatter) {
     "use strict";
     const TABLE_CONFIG = {
         CurrentPricelistTable: {
@@ -193,6 +194,7 @@ sap.ui.define([
     }
 
     return {
+        formatTreeDate: Formatter.formatTreeDate,
         onExpand: function (oEvent) {
             const oTable = getTargetTable(oEvent);
 

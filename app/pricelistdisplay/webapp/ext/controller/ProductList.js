@@ -3,8 +3,9 @@ sap.ui.define([
     "sap/m/MessageBox",
     "sap/m/Dialog",
     "sap/m/Button",
-    "sap/m/Text"
-], function (MessageToast, MessageBox, Dialog, Button, Text) {
+    "sap/m/Text",
+    "../util/formatter"
+], function (MessageToast, MessageBox, Dialog, Button, Text, Formatter) {
     'use strict';
 
     const ExtController = pricelistapp.pricelistdisplay.ext.controller.PricelistDisplayObjectPageExt.prototype;
@@ -115,6 +116,18 @@ sap.ui.define([
          *
          * @param oEvent the event object provided by the event provider.
          */
+        formatTreeDate: Formatter.formatTreeDate,
+
+        formatTreeDateRange: Formatter.formatTreeDateRange,
+
+        formatTreeDateForProduct: function (sKind, vDate) {
+            return sKind === "Product" ? Formatter.formatTreeDate(vDate) : "";
+        },
+        
+        formatTreeDateRangeForProduct: function (sKind, vDateFrom, vDateTo) {
+            return sKind === "Product" ? Formatter.formatTreeDateRange(vDateFrom, vDateTo) : "";
+        },
+
         onPress: function (oEvent) {
             MessageToast.show("Custom handler invoked.");
         },
