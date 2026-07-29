@@ -2829,12 +2829,14 @@ module.exports = cds.service.impl(async function () {
             for (const item of partNumberTerms) {
                 const productId = normalizePartNumberTermsValue(item.ProductID);
 
-                if (!productId) {
+                const partNumberTermsValue = normalizePartNumberTermsValue(item.PartNumberTermsandConditions);
+
+                if (!productId || !partNumberTermsValue) {
                     continue;
                 }
 
                 if (!termsByProductId.has(productId)) {
-                    termsByProductId.set(productId,item.PartNumberTermsandConditions ?? null);
+                    termsByProductId.set(productId,partNumberTermsValue);
                 }
             }
 
@@ -3644,6 +3646,10 @@ module.exports = cds.service.impl(async function () {
         let rows = buildMaterialRows(itemStructure, materials);   // material only
 
         await mergePartNumberTerms(rows);
+
+        rows.forEach(row => {
+            row.Notes = row.PartNumberTermsandCond ?? null;
+        });
 
         if (include.price || include.future || include.discount) {
             const pricingIndex = await loadPricingIndex(materials);
