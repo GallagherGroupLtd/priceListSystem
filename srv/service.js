@@ -3697,6 +3697,57 @@ module.exports = cds.service.impl(async function () {
         return resolvedRecord?.TermsAndConditionContent ?? null;
     });
 
+    // Added for Pricelist header-level defaults.
+    this.on("resolvePricelistHeaderDefaults", async req => {
+        const tx = cds.transaction(req);
+
+        const headerCriteria = {
+            PricelistType: req.data.PricelistType,
+            MarketScopeRegion: req.data.MarketScopeRegion,
+            MarketScopeCountry: req.data.MarketScopeCountry,
+            SalesOrg: req.data.SalesOrg,
+            DistChannel: req.data.DistChannel,
+            CustPriceList: req.data.CustPriceList,
+            CustGroup1: req.data.CustGroup1,
+            ErpCustomer: req.data.ErpCustomer,
+            DeliveringPlant: req.data.DeliveringPlant
+        };
+
+        const candidates = await tx.run(
+            SELECT.from(TermsAndConditions).columns(
+                "ID",
+                "modifiedAt",
+                "PricelistType",
+                "MarketScopeRegion",
+                "MarketScopeCountry",
+                "SalesOrg",
+                "DistChannel",
+                "CustPriceList",
+                "CustGroup1",
+                "ErpCustomer",
+                "DeliveringPlant",
+                "HeaderTermsAndConditions",
+                "HeaderNotes"
+            )
+        );
+
+        const termsCandidates = candidates.filter(record => {
+            return record.HeaderTermsAndConditions !== null && record.HeaderTermsAndConditions !== undefined && String(record.HeaderTermsAndConditions).trim() !== "";
+        });
+
+        const notesCandidates = candidates.filter(record => {
+            return record.HeaderNotes !== null && record.HeaderNotes !== undefined && String(record.HeaderNotes).trim() !== "";
+        });
+
+        const resolvedTermsRecord = resolvePricelistTermsAndConditions(termsCandidates,headerCriteria);
+        const resolvedNotesRecord = resolvePricelistTermsAndConditions(notesCandidates,headerCriteria);
+
+        return {
+            TermsAndConditions: resolvedTermsRecord?.HeaderTermsAndConditions ?? null,
+            Notes: resolvedNotesRecord?.HeaderNotes ?? null
+        };
+    });
+
     //PDF Export
     this.on("exportTermsPdf", async (req) => {
         const tx = cds.transaction(req);

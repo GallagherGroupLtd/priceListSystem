@@ -640,6 +640,23 @@ service PriceListService {
         DeliveringPlant    : String
     ) returns LargeString;
 
+    type PricelistHeaderDefaults {
+        TermsAndConditions : LargeString;
+        Notes              : LargeString;
+    }
+
+    action resolvePricelistHeaderDefaults(
+        PricelistType      : String,
+        MarketScopeRegion  : String,
+        MarketScopeCountry : String,
+        SalesOrg           : String,
+        DistChannel        : String,
+        CustPriceList      : String,
+        CustGroup1         : String,
+        ErpCustomer        : String,
+        DeliveringPlant    : String
+    ) returns PricelistHeaderDefaults;
+
     entity PricelistChangeLog as projection on my.PricelistChangeLog;
 
     // entity ProductPricelistTree    as

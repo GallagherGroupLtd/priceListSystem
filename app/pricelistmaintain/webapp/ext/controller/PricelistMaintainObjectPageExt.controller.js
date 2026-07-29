@@ -345,6 +345,7 @@ sap.ui.define([
 			setTimeout(fnExpand, 0);
 		},
 
+		// Enhanced to load both default Pricelist header Terms and Conditions and default Pricelist header Notes from Data Maintenance.
 		_loadDefaultPricelistTermsAndConditions: async function () {
 			const oView = this.base.getView();
 			const oModel = oView.getModel();
@@ -366,6 +367,7 @@ sap.ui.define([
 			const oHeader = await oModel.bindContext(sContextPath, null, {
 				$select: [
 					"TermsAndConditions",
+					"Notes",
 					"PricelistType",
 					"MarketScopeRegion",
 					"MarketScopeCountry",
@@ -383,13 +385,15 @@ sap.ui.define([
 			}
 
 			const sCurrentTerms = oHeader.TermsAndConditions === null || oHeader.TermsAndConditions === undefined ? "" : String(oHeader.TermsAndConditions).trim();
+			const sCurrentNotes = oHeader.Notes === null || oHeader.Notes === undefined ? "" : String(oHeader.Notes).trim();
 
-			if (sCurrentTerms) {
+			if (sCurrentTerms && sCurrentNotes) {
 				this._termsResolutionCompleted = true;
 				return;
 			}
 
-			const oAction = oModel.bindContext("/resolvePricelistTermsAndConditions(...)");
+			// const oAction = oModel.bindContext("/resolvePricelistTermsAndConditions(...)");
+			const oAction = oModel.bindContext("/resolvePricelistHeaderDefaults(...)");
 			oAction.setParameter("PricelistType",oHeader.PricelistType ?? null);
 			oAction.setParameter("MarketScopeRegion",oHeader.MarketScopeRegion ?? null);
 			oAction.setParameter("MarketScopeCountry",oHeader.MarketScopeCountry ?? null);
@@ -403,10 +407,15 @@ sap.ui.define([
 			await oAction.execute();
 
 			const oResult = oAction.getBoundContext()?.getObject();
-			const sResolvedTerms = oResult?.value ?? "";
+			const sResolvedTerms = oResult?.TermsAndConditions ?? "";
+			const sResolvedNotes = oResult?.Notes ?? "";
 
-			if (String(sResolvedTerms).trim()) {
+			if (!sCurrentTerms && String(sResolvedTerms).trim() !== "") {
 				oContext.setProperty("TermsAndConditions",sResolvedTerms);
+			}
+
+			if (!sCurrentNotes && String(sResolvedNotes).trim() !== "") {
+				oContext.setProperty("Notes",sResolvedNotes);
 			}
 
 			this._termsResolutionCompleted = true;

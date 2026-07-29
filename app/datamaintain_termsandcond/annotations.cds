@@ -188,6 +188,12 @@ annotate service.TermsAndConditions with @(
             Target: '@UI.FieldGroup#ERPData'
         },
         {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'FacetHeaderTermsAndNotes',
+            Label : 'Pricelist Header Terms and Notes',
+            Target: '@UI.FieldGroup#HeaderTermsAndNotes'
+        },
+        {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet3',
             Label  : 'Main Category',
@@ -493,6 +499,8 @@ annotate service.TermsAndConditions with {
         }        
     ); 
     
+    HeaderTermsAndConditions        @UI.MultiLineText;
+    HeaderNotes                     @UI.MultiLineText;
     MainCategoryTermsandConditions  @UI.MultiLineText;
     SubCategory1TermsandConditions  @UI.MultiLineText;
     SubCategory2TermsandConditions  @UI.MultiLineText;

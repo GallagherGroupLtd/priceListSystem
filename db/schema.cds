@@ -86,6 +86,8 @@ entity TermsAndConditionDetermination : managed, cuid {
     CustGroup1                     : String(255) @title: 'Customer Group 1';
     ErpCustomer                    : String(255) @title: 'ERP Customer';
     DeliveringPlant                : String(255) @title: 'Plant';
+    HeaderTermsAndConditions       : LargeString @title: 'Header Terms and Conditions';
+    HeaderNotes                    : LargeString @title: 'Header Notes';
     MainCategory                   : String(255) @title: 'Main Category';
     SubCategory1                   : String(999) @title: 'SubCategory 1';
     SubCategory2                   : String(999) @title: 'SubCategory 2';
