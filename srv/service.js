@@ -3341,7 +3341,7 @@ module.exports = cds.service.impl(async function () {
         };
 
         const resolveMaterialDescription = material => {
-            const pricelistProductDescription = String(material.ProductDescription1 ?? "").trim();
+            const pricelistProductDescription = String(material.ProductDescription2 ?? "").trim();
 
             if (pricelistProductDescription) {
                 return toProperCase(pricelistProductDescription);
