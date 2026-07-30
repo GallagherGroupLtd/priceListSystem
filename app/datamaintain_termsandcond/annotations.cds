@@ -102,6 +102,21 @@ annotate service.TermsAndConditions with @(
         ]
     },
 
+    UI.FieldGroup #HeaderTermsAndNotes : {
+        Data: [
+            {
+                $Type : 'UI.DataField',
+                Value : HeaderTermsAndConditions,
+                Label : 'Header Terms and Conditions'
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : HeaderNotes,
+                Label : 'Header Notes'
+            }
+        ]
+    },
+
     UI.FieldGroup #MainCategory : {
         Data: [
             { $Type : 'UI.DataField', Value : MainCategory }

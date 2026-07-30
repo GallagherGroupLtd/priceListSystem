@@ -24,10 +24,10 @@ sap.ui.define([
 	 * Object-Page binding context. Must stay in sync with the backend action signature.
 	 */
 	const HEADER_FIELDS = [
-		"ID", "PricelistType", "MarketScopeRegion", "MarketScopeCountry",
-		"SalesOrg", "DistChannel", "CustPriceList",
-		"CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey",
-		"Status", "Version", "PricelistGroupID", "DisplayLayoutConfig", "DisplayLayoutMaintainedBy", "DisplayLayoutMaintainedAt"
+		"ID", "PricelistType", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg", "DistChannel", "CustPriceList",
+		"CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey", "Status", "Version", "PricelistGroupID", 
+		"TermsAndConditions", "TACDisableExtUser", "TACDisableIntUser", "Notes", "NotesDisableExtUser", "NotesDisableIntUser",
+		"DisplayLayoutConfig", "DisplayLayoutMaintainedBy", "DisplayLayoutMaintainedAt"
 	];
 
 	/**
@@ -588,17 +588,29 @@ sap.ui.define([
 				[
 					"Description",
 					// "TermsAndConditions",
-					"Notes",
+					// "Notes",
 					"PublishedName",
-					"IsTACDisableExt",
-					"IsTACDisableInt",
-					"IsNotesDisableExt",
-					"IsNotesDisableInt"
+					// "IsTACDisableExt",
+					// "IsTACDisableInt",
+					// "IsNotesDisableExt",
+					// "IsNotesDisableInt"
 				].forEach(function (sField) {
 					if (oFreshNode[sField] !== undefined) {
 						oExistingNode[sField] = oFreshNode[sField];
 					}
 				});
+				
+				if (oExistingNode.Kind === "Product" && oFreshNode.Kind === "Product") {
+					[
+						"Notes",
+						"IsNotesDisableExt",
+						"IsNotesDisableInt"
+					].forEach(function (sField) {
+						if (oFreshNode[sField] !== undefined) {
+							oExistingNode[sField] = oFreshNode[sField];
+						}
+					});
+				}
 			};
 
 			const mergeChildren = function (aExistingChildren, aFreshChildren, sParentPath) {
@@ -1459,6 +1471,11 @@ sap.ui.define([
 							Title: title,
 							Description: row[oLevelConfig.descField] || null,
 							...oExtraFields,
+
+							//Categories should not carry over Product notes. Category specific notes would have to be explicitly updated by the user as per current setup
+							Notes: null,
+							IsNotesDisableExt: null,
+							IsNotesDisableInt: null,
 
 							// Categories carry no price or discount data.
 							Price: null, PriceUnit: null,
