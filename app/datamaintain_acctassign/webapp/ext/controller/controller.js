@@ -83,8 +83,6 @@ sap.ui.define([
                         { label: "Price View", property: "ControlPriceView" },
                         { label: "Discount Indicator", property: "ControlDiscountIndicator" },
                         { label: "Discount Rate", property: "ControlDiscountRate" },
-                        { label: "Workflow Tile", property: "ControlWorkflowTile" },
-                        { label: "Pricelist Review Schedule Tile", property: "ControlPriceListReviewScheduleTile" },
                         { label: "Pricelist Maintenance", property: "ControlPricelistMaintenance" },
                         { label: "Data Maintenance", property: "ControlDataMaintenance" },
                         { label: "My Requests Tile", property: "ControlMyRequestTile" },

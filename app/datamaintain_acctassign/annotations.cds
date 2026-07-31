@@ -122,8 +122,6 @@ annotate service.AccountAssignment with @(
             { $Type : 'UI.DataField', Value: ControlPriceView, Label: 'Price View' },
             { $Type : 'UI.DataField', Value: ControlDiscountIndicator, Label: 'Discount Indicator' },
             { $Type : 'UI.DataField', Value: ControlDiscountRate, Label: 'Discount Rate' },
-            { $Type : 'UI.DataField', Value: ControlWorkflowTile, Label: 'Workflow Tile' },
-            { $Type : 'UI.DataField', Value: ControlPriceListReviewScheduleTile, Label: 'Pricelist Review Schedule Tile' },
             { $Type : 'UI.DataField', Value: ControlPricelistMaintenance, Label: 'Pricelist Maintenance' },
             { $Type : 'UI.DataField', Value: ControlDataMaintenance, Label: 'Data Maintenance' },
             { $Type : 'UI.DataField', Value: ControlMyRequestTile, Label: 'My Request Tile' },
@@ -216,8 +214,6 @@ annotate service.AccountAssignment with {
     ControlPriceView                   @Common.FieldControl : #Editable;
     ControlDiscountIndicator           @Common.FieldControl : #Editable;
     ControlDiscountRate                @Common.FieldControl : #Editable;
-    ControlWorkflowTile                @Common.FieldControl : #Editable;
-    ControlPriceListReviewScheduleTile @Common.FieldControl : #Editable;
     ControlPricelistMaintenance        @Common.FieldControl : #Editable;
     ControlDataMaintenance             @Common.FieldControl : #Editable;
     ControlMyRequestTile               @Common.FieldControl : #Editable;

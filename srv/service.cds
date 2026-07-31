@@ -854,8 +854,6 @@ service PriceListService {
         ControlPriceView                   : Boolean;
         ControlDiscountIndicator           : Boolean;
         ControlDiscountRate                : Boolean;
-        ControlWorkflowTile                : Boolean;
-        ControlPriceListReviewScheduleTile : Boolean;
         ControlPricelistMaintenance        : Boolean;
         ControlDataMaintenance             : Boolean;
         ControlMyRequestTile               : Boolean;

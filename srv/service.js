@@ -3995,23 +3995,23 @@ module.exports = cds.service.impl(async function () {
         console.log("Logged-in Email:", email);
         console.log("req.user:", JSON.stringify(req.user, null, 2));
 
-        // Temporary bypass for all users except Pom
-        if (email !== "smanpoom.thiratanapan@gallagher.com") {
-            console.log("Non-Pom user detected. Granting full authorization.");
+        // // Temporary bypass for all users except Pom
+        // if (email !== "smanpoom.thiratanapan@gallagher.com") {
+        //     console.log("Non-Pom user detected. Granting full authorization.");
 
-            return {
-                ControlPriceListView: true,
-                ControlPriceView: true,
-                ControlDiscountIndicator: true,
-                ControlDiscountRate: true,
-                ControlWorkflowTile: true,
-                ControlPriceListReviewScheduleTile: true,
-                ControlPricelistMaintenance: true,
-                ControlDataMaintenance: true,
-                ControlMyRequestTile: true,
-                ControlApplicationLogTile: true
-            };
-        }
+        //     return {
+        //         ControlPriceListView: true,
+        //         ControlPriceView: true,
+        //         ControlDiscountIndicator: true,
+        //         ControlDiscountRate: true,
+        //         ControlWorkflowTile: true,
+        //         ControlPriceListReviewScheduleTile: true,
+        //         ControlPricelistMaintenance: true,
+        //         ControlDataMaintenance: true,
+        //         ControlMyRequestTile: true,
+        //         ControlApplicationLogTile: true
+        //     };
+        // }
 
         const auth = await SELECT.one
             .from(cds.entities.AccountAssignment)
@@ -4020,8 +4020,6 @@ module.exports = cds.service.impl(async function () {
                 'ControlPriceView',
                 'ControlDiscountIndicator',
                 'ControlDiscountRate',
-                'ControlWorkflowTile',
-                'ControlPriceListReviewScheduleTile',
                 'ControlPricelistMaintenance',
                 'ControlDataMaintenance',
                 'ControlMyRequestTile',
@@ -4042,8 +4040,6 @@ module.exports = cds.service.impl(async function () {
                 ControlPriceView: false,
                 ControlDiscountIndicator: false,
                 ControlDiscountRate: false,
-                ControlWorkflowTile: false,
-                ControlPriceListReviewScheduleTile: false,
                 ControlPricelistMaintenance: false,
                 ControlDataMaintenance: false,
                 ControlMyRequestTile: false,
@@ -4060,8 +4056,6 @@ module.exports = cds.service.impl(async function () {
             ControlPriceView:                   auth.ControlPriceView ?? false,
             ControlDiscountIndicator:           auth.ControlDiscountIndicator ?? false,
             ControlDiscountRate:                auth.ControlDiscountRate ?? false,
-            ControlWorkflowTile:                auth.ControlWorkflowTile ?? false,
-            ControlPriceListReviewScheduleTile: auth.ControlPriceListReviewScheduleTile ?? false,
             ControlPricelistMaintenance:        auth.ControlPricelistMaintenance ?? false,
             ControlDataMaintenance:             auth.ControlDataMaintenance ?? false,
             ControlMyRequestTile:               auth.ControlMyRequestTile ?? false,
