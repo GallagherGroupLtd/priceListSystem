@@ -659,6 +659,20 @@ service PriceListService {
 
     entity PricelistChangeLog as projection on my.PricelistChangeLog;
 
+    entity PricelistNotificationEvent as projection on my.PricelistNotificationEvent;
+
+    entity PricelistNotificationDelivery as projection on my.PricelistNotificationDelivery;
+
+    type NotificationRetryResult {
+        selected : Integer;
+        sent     : Integer;
+        failed   : Integer;
+    }
+
+    action retryPricelistNotificationDeliveries(
+        maximumAttempts : Integer
+    ) returns NotificationRetryResult;
+
     // entity ProductPricelistTree    as
     //     select from my.PricelistItemStructureComponents {
     //         key PricelistType,

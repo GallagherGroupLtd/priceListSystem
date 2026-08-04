@@ -11,6 +11,8 @@ const saveProductPriceList = require('./pricelist_maintain_srv-code/save-product
 // const logHeaderChanges = require('./code/log-header-changes');
 const versionService = require('./pricelist_maintain_srv-code/version-service');
 
+const notificationService = require("./pricelist_notification_srv-code/notification-service");
+
 const { resolvePricingParameters } = require('./lib/pricing-parameter-resolver');
 const { getPricelistDisplayColumns } = require("./lib/pricelist-display-columns");
 const { DISCOUNT_CONDITION_TYPE_WHITELIST } = require('./pricing_parameter_srv-code/constants');
@@ -465,7 +467,8 @@ function getPricingParameterTypeFilter(req) {
 module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
     const { User, TradeScenarios, ItemStructure, PriceProductMaintenance, TermsAndConditions, TermsAndConditionPartNumbers, PricingParameters, TileContent, ContactInfo, AccountAssignment, AccountAssignmentScope, PricingCondType,
-        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest, PriceListTreeLayout, ProductPriceList } = this.entities;
+        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest, PriceListTreeLayout, ProductPriceList,
+        PricelistNotificationEvent, PricelistNotificationDelivery } = this.entities;
 
     //Selection of Materials
     async function resolveItems(filters, db, extdb) {
@@ -2030,6 +2033,20 @@ module.exports = cds.service.impl(async function () {
         if (saveLog) {
             req._headerSaveLog = saveLog;
         }
+
+        req.on("succeeded",async () => {
+            const eventIds = req._publicationNotificationEventIds || [];
+
+            if (!eventIds.length) {
+                return;
+            }
+
+            try {
+                await notificationService.deliverPendingNotifications({service: this,eventIds});
+            } catch (notificationError) {
+                console.error("[PricelistPublish] Notification delivery failed:",notificationError);
+            }
+        });
     });
 
     this.after('SAVE', PricelistData, async (result, req) => {
@@ -2037,6 +2054,7 @@ module.exports = cds.service.impl(async function () {
 
         const { id, isCreate, oldData, newData } = req._headerSaveLog;
         const changeType = isCreate ? 'CREATE' : 'UPDATE';
+        const isPublication = newData.Status === "Published" && oldData.Status !== "Published";
 
         try {
             const entries = [];
@@ -2070,18 +2088,28 @@ module.exports = cds.service.impl(async function () {
 
             if (entries.length === 0) {
                 console.log('[logHeaderSave] no changes detected, skipping log');
-                return;
+                // return;
+            }else{
+                try{
+                    // Batch insert all changed fields in one query
+                    await cds.run(INSERT.into("com.sap.pricelistsystem.PricelistChangeLog").entries(entries));
+
+                    console.log(`[logHeaderSave] ${entries.length} ${changeType} change(s) logged for ${id}`);
+                }catch(e1){
+                    console.error('[logHeaderSave] INSERT failed:',JSON.stringify(e1, null, 2));
+                    console.error('[logHeaderSave] stack:',e1.stack);
+                }
             }
 
-            // Batch insert all changed fields in one query
-            await cds.run(
-                INSERT.into('com.sap.pricelistsystem.PricelistChangeLog').entries(entries)
-            );
 
-            console.log(`[logHeaderSave] ${entries.length} ${changeType} change(s) logged for ${id}`);
+            if (isPublication) {
+                const publicationEvents = await notificationService.createPublishedNotifications({service: this,req,pricelistId: id});
+
+                req._publicationNotificationEventIds = publicationEvents.map((event) => event.ID);
+            }
         } catch (e) {
-            console.error('[logHeaderSave] INSERT failed:', JSON.stringify(e, null, 2));
-            console.error('[logHeaderSave] stack:', e.stack);
+            console.error("[PricelistSave] Header logging or publication notification generation failed:",JSON.stringify(e,null,2));
+            console.error("[PricelistSave] stack:",e.stack);
         }
     });
 
@@ -2101,6 +2129,86 @@ module.exports = cds.service.impl(async function () {
     //         req.data.TechnicalFilter = pricingCondType.TechnicalFilter;
     //     }
     // });
+
+    this.on("retryPricelistNotificationDeliveries",async (req) => {
+        const maximumAttempts = Number(req.data.maximumAttempts || 3);
+        const tx = cds.tx(req);
+
+        const failedDeliveries = await tx.run(
+            SELECT.from(PricelistNotificationDelivery)
+            .columns("ID","NotificationEvent_ID")
+            .where([
+                {
+                    ref: [
+                        "DeliveryStatus"
+                    ]
+                },
+                "=",
+                {
+                    val: "FAILED"
+                },
+                "and",
+                {
+                    ref: [
+                        "DeliveryAttempts"
+                    ]
+                },
+                "<",
+                {
+                    val: maximumAttempts
+                }
+            ])
+        );
+
+        if (!failedDeliveries.length) {
+            return {selected: 0,sent: 0,failed: 0};
+        }
+
+        const deliveryIds = failedDeliveries.map((delivery) => delivery.ID);
+
+        const eventIds = [...new Set(failedDeliveries.map((delivery) => delivery.NotificationEvent_ID))];
+
+        await tx.run(
+            UPDATE(PricelistNotificationDelivery)
+            .set({
+                DeliveryStatus:"PENDING"
+            })
+            .where({
+                ID: {
+                    in: deliveryIds
+                }
+            })
+        );
+
+        await tx.commit();
+
+        await notificationService.deliverPendingNotifications({service: this,eventIds});
+
+        const resultTx = cds.tx();
+
+        try {
+            const refreshedDeliveries = await resultTx.run(
+                SELECT.from(PricelistNotificationDelivery)
+                    .columns("DeliveryStatus")
+                    .where({
+                        ID: {
+                            in: deliveryIds
+                        }
+                    })
+            );
+
+            await resultTx.commit();
+
+            return {
+                selected: refreshedDeliveries.length,
+                sent: refreshedDeliveries.filter((delivery) => delivery.DeliveryStatus === "SENT").length,
+                failed: refreshedDeliveries.filter((delivery) => delivery.DeliveryStatus === "FAILED").length
+            };
+        } catch (error) {
+            await resultTx.rollback();
+            throw error;
+        }
+    });
 
     //Rebuild of Tree Table for Pircelist Table Maintenance
     this.before(["CREATE", "UPDATE"], PricelistItemData, async (req) => {

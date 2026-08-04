@@ -456,6 +456,63 @@ entity PricelistChangeLog : cuid {
     newValue   : String(1000);
 }
 
+/**
+ * SAVE_EVENT:
+ * One row for every successful Maintain save that produced actual changes. This is intended for Internal Admin recipients.
+ * PUBLISH_COMPARISON:
+ * Rows generated when a pricelist becomes Published, based on comparison with the previous Published version. This is intended for Internal Regional and External recipients.
+ */
+entity PricelistNotificationEvent : managed, cuid {
+    Pricelist                  : Association to one PricelistData;
+    PricelistGroupID           : UUID        @title: 'Pricelist Group ID';
+    PricelistVersion           : String(20)  @title: 'Pricelist Version';
+
+    EventSource                : String(30)  @title: 'Event Source';
+    // SAVE_EVENT | PUBLISH_COMPARISON | FIRST_PUBLISH
+    NotificationType           : String(30)  @title: 'Notification Type';
+    // SAVE_CHANGES | PRICELIST_UPDATE | UPCOMING_PRICE | PRODUCT_CHANGE | TERMS_NOTES | NEW_PUBLISH
+
+    EventBatchID               : UUID        @title: 'Event Batch ID';
+    Title                      : String(255) @title: 'Notification Title';
+    Message                    : String(1000) @title: 'Notification Message';
+
+    TargetSection              : String(100) @title: 'Target Section';
+    // PricelistUpdatesVBox | PricelistUpdatesPanel | UpcomingPricesPanel | AddedRemovedProductsPanel | TermsNotesUpdatesPanel
+
+    ChangeCount                : Integer      @title: 'Change Count';
+
+    EventCreatedBy             : String(255)  @title: 'Event Created By';
+    EventCreatedAt             : DateTime     @title: 'Event Created At';
+
+    PublishedAt                : DateTime     @title: 'Published At';
+
+    PricelistType              : String(255)  @title: 'Pricelist Type';
+    MarketScopeRegion          : String(255)  @title: 'Region';
+    MarketScopeCountry         : String(255)  @title: 'Country';
+    SalesOrg                   : String(4)    @title: 'Sales Organization';
+    DistChannel                : String(2)    @title: 'Distribution Channel';
+}
+
+
+// One delivery row per notification event and recipient. The event is shared business data. Delivery and read state are user-specific.
+entity PricelistNotificationDelivery : managed, cuid {
+    NotificationEvent          : Association to one PricelistNotificationEvent;
+    RecipientEmail             : String(255) @title: 'Recipient Email';
+    RecipientAccountType       : String(255) @title: 'Recipient Account Type';
+    RecipientAccountScope      : String(255) @title: 'Recipient Account Scope';
+    DeliveryChannel            : String(30)  @title: 'Delivery Channel';
+    // WORKZONE
+    DeliveryStatus             : String(20)  @title: 'Delivery Status';
+    // PENDING | SENT | FAILED | SKIPPED
+    DeliveryAttempts           : Integer default 0;
+    LastDeliveryAttemptAt      : DateTime;
+    DeliveredAt                : DateTime;
+    ExternalNotificationID     : String(255);
+    DeliveryError              : LargeString;
+    IsRead                     : Boolean default false;
+    ReadAt                     : DateTime;
+}
+
 /* -------------------------------------- Value Help -------------------------------------- */
 
 /* Sales Org Table */

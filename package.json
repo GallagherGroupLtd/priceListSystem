@@ -6,6 +6,8 @@
     "@cap-js/hana": "^2",
     "@sap/cds": "^9.9.1",
     "@sap/xssec": "^4.12.2",
+    "@sap-cloud-sdk/connectivity": "^4",
+    "@sap-cloud-sdk/http-client": "^4",
     "express": "^4",
     "pdfkit": "^0.18.0",
     "ui5-tooling-modules": "^3.34.6",

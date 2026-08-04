@@ -42,5 +42,9 @@ module.exports = async function logHeaderChanges(srv, tx, req, originalHeader, n
         });
     }
 
-    if (logs.length) await tx.run(INSERT.into(PricelistChangeLog).entries(logs));
+    if (logs.length) {
+        await tx.run(INSERT.into(PricelistChangeLog).entries(logs));
+    }
+
+    return logs;
 };

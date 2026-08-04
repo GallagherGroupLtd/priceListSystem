@@ -1,0 +1,41 @@
+const EVENT_SOURCE = Object.freeze({
+    SAVE_EVENT: "SAVE_EVENT",
+    PUBLISH_COMPARISON: "PUBLISH_COMPARISON",
+    FIRST_PUBLISH: "FIRST_PUBLISH"
+});
+
+const NOTIFICATION_TYPE = Object.freeze({
+    SAVE_CHANGES: "SAVE_CHANGES",
+    PRICELIST_UPDATE: "PRICELIST_UPDATE",
+    UPCOMING_PRICE: "UPCOMING_PRICE",
+    PRODUCT_CHANGE: "PRODUCT_CHANGE",
+    TERMS_NOTES: "TERMS_NOTES",
+    NEW_PUBLISH: "NEW_PUBLISH"
+});
+
+const TARGET_SECTION = Object.freeze({
+    CHANGES_SECTION: "PricelistUpdatesVBox",
+    PRICELIST_UPDATES: "PricelistUpdatesPanel",
+    UPCOMING_PRICES: "UpcomingPricesPanel",
+    PRODUCT_CHANGES: "AddedRemovedProductsPanel",
+    TERMS_NOTES: "TermsNotesUpdatesPanel"
+});
+
+const DELIVERY_CHANNEL = Object.freeze({
+    WORKZONE: "WORKZONE"
+});
+
+const DELIVERY_STATUS = Object.freeze({
+    PENDING: "PENDING",
+    SENT: "SENT",
+    FAILED: "FAILED",
+    SKIPPED: "SKIPPED"
+});
+
+module.exports = {
+    EVENT_SOURCE,
+    NOTIFICATION_TYPE,
+    TARGET_SECTION,
+    DELIVERY_CHANNEL,
+    DELIVERY_STATUS
+};

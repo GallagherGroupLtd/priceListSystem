@@ -68,5 +68,9 @@ module.exports = async function logTreeChanges(srv, tx, req, originalRows, newRo
         });
     }
 
-    if (logs.length) await tx.run(INSERT.into(PricelistChangeLog).entries(logs));
+    if (logs.length) {
+        await tx.run(INSERT.into(PricelistChangeLog).entries(logs));
+    }
+
+    return logs;
 };

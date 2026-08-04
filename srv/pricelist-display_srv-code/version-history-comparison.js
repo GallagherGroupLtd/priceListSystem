@@ -3,9 +3,9 @@ const { getVersionNumber } = require("../pricelist_maintain_srv-code/version-hel
 
 const { SELECT } = cds.ql;
 
-module.exports = async function buildVersionHistoryComparison(service, req) {
+module.exports = async function buildVersionHistoryComparison(service, req, pricelistIdOverride) {
     // comparison implementation
-    const { pricelistId } = req.data || {};
+    const pricelistId = pricelistIdOverride || req.data?.pricelistId;
 
     if (!pricelistId) {
         return req.error(400, "Pricelist ID is required.");
