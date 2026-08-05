@@ -25,7 +25,7 @@ sap.ui.define([
 	 */
 	const HEADER_FIELDS = [
 		"ID", "PricelistType", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg", "DistChannel", "CustPriceList",
-		"CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey", "Status", "Version", "PricelistGroupID", 
+		"CustGroup1", "ErpCustomer", "DeliveringPlant", "Status", "Version", "PricelistGroupID", 
 		"TermsAndConditions", "TACDisableExtUser", "TACDisableIntUser", "Notes", "NotesDisableExtUser", "NotesDisableIntUser",
 		"DisplayLayoutConfig", "DisplayLayoutMaintainedBy", "DisplayLayoutMaintainedAt"
 	];
@@ -186,7 +186,7 @@ sap.ui.define([
 				_oInstance = this;
 
 				this._bindProductDetailSubSections();
-				this._syncEditModeState();
+				await this._syncEditModeState();
 				this._captureOriginalSnapshotWhenEnteringEditMode();
 				this._resetProductDetailState();
 				this._attachEditModeListener();
@@ -224,7 +224,7 @@ sap.ui.define([
 					const aTree = oJsonModel.getProperty("/productPriceList") || [];
 					const aPendingDeletedIds = oJsonModel.getProperty("/pendingDeletedIds") || [];
 
-					const oHeader = this._getCurrentHeaderData();
+					const oHeader = await this._getCurrentHeaderData();
 					const oOriginalHeader = this._originalHeaderSnapshot || oHeader;
 
 					const bIsPublication = oHeader.Status === "Published" && oOriginalHeader.Status !== "Published";
@@ -244,7 +244,7 @@ sap.ui.define([
 						await this._writeDisplayLayoutToDraft(oDisplayLayout);
 
 						// Refresh the locally captured header after writing the layout to the draft context so saveProductPriceList receives the latest values.
-						Object.assign(oHeader,this._getCurrentHeaderData());
+						Object.assign(oHeader,await this._getCurrentHeaderData());
 					}
 
 					if (!aTree.length && !aPendingDeletedIds.length) {
@@ -3149,12 +3149,21 @@ sap.ui.define([
 		},
 
 		/** Reads the current header field values from the Object-Page binding context. */
-		_getCurrentHeaderData: function () {
+		_getCurrentHeaderData: async function () {
 			const oContext = this.base.getView().getBindingContext();
 			if (!oContext) return {};
 
+		    const oModel = oContext.getModel();
+			const sContextPath = oContext.getPath();
+
+			const oHeaderBinding = oModel.bindContext(sContextPath, null, {
+				$select: HEADER_FIELDS.join(",")
+			});
+
+			const oHeaderContext = await oHeaderBinding.requestObject();
+
 			return HEADER_FIELDS.reduce((oAcc, sField) => {
-				oAcc[sField] = oContext.getProperty(sField);
+				oAcc[sField] = oHeaderContext?.[sField];
 				return oAcc;
 			}, {});
 		},
@@ -3163,7 +3172,7 @@ sap.ui.define([
 		 * Syncs controller state to the current Object-Page edit / display mode.
 		 * Captures the header snapshot when a draft is open; clears it on activation.
 		 */
-		_syncEditModeState: function () {
+		_syncEditModeState: async function () {
 			const oContext = this.base.getView().getBindingContext();
 			if (!oContext) return;
 
@@ -3172,7 +3181,7 @@ sap.ui.define([
 
 			if (bIsDraft) {
 				if (!this._originalHeaderSnapshot) {
-					this._originalHeaderSnapshot = this._getCurrentHeaderData();
+					this._originalHeaderSnapshot = await this._getCurrentHeaderData();
 				}
 			} else {
 				// Returned to display mode (after Save or Cancel) – clear staged state.
@@ -3205,8 +3214,8 @@ sap.ui.define([
 		 * any leftover delete/reorder buffers so neither mode nor selection survives
 		 * across edit sessions (Bug fix: selection was not cleared on Display→Edit).
 		 */
-		_onEditModeChanged: function () {
-			this._syncEditModeState();
+		_onEditModeChanged: async function () {
+			await this._syncEditModeState();
 			this._captureOriginalSnapshotWhenEnteringEditMode();
 			this._clearProductTreeBufferAndSelection();
 		},

@@ -3070,19 +3070,41 @@ module.exports = cds.service.impl(async function () {
         const loadItemStructure = async () => {
             const itemStructureFilters = {PricelistType,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer,DeliveringPlant};
 
-            const activeItemStructureFilters = Object.fromEntries(
-                Object.entries(itemStructureFilters).filter(([, value]) => {
-                    if (value === undefined || value === null) {
-                        return false;
-                    }
+            const activeItemStructureFilters = [];
 
-                    if (typeof value === "string" && value.trim() === "") {
-                        return false;
-                    }
+            Object.entries(itemStructureFilters).forEach(([field,value],index) => {
+                if (index > 0) {
+                    activeItemStructureFilters.push("and");
+                }
 
-                    return true;
-                })
-            );
+                const fieldFilters = [
+                    {ref: [field]},
+                    "is",
+                    {val: null},
+                    "or",
+                    {ref: [field]},
+                    "=",
+                    {val: ""},
+                    "or",
+                    {ref: [field]},
+                    "=",
+                    {val: "*"}
+                ];
+
+                const normalizedValue = value === undefined || value === null ? "" : String(value).trim();
+                if (normalizedValue !== "" && normalizedValue !== "*") {
+                    fieldFilters.push(
+                        "or",
+                        {ref: [field]},
+                        "=",
+                        {val: normalizedValue}
+                    );
+                }
+
+                activeItemStructureFilters.push({
+                    xpr: fieldFilters
+                });
+            });
 
             const rows = await db.run(
                 SELECT.from("PricelistItemStructureComponents")
