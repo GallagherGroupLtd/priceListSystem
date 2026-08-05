@@ -105,12 +105,15 @@
                 parameters: { arrayNames: ['children'] } 
             }">
             <t:columns>
-
-                <t:Column id="ColCategoriesAndProducts" width="30%" >
-                    <Label id="LblCategoriesAndProducts" text="Categories and Products" textAlign="Center" width="100%"/>
+                <t:Column id="ColCategoriesAndProducts" width="18rem" >
+                    <Text id="LblCategoriesAndProducts" text="Categories and Products" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
-                        <HBox id="CategoriesAndProductsHBox" alignItems="Center" width="100%">
-                            <Text id="TxtCategoriesAndProducts" text="{jsonModel>Title}" wrapping="false" />
+                        <HBox id="CategoriesAndProductsHBox" alignItems="Center" width="100%" wrap="NoWrap">
+                            <Text id="TxtCategoriesAndProducts" text="{jsonModel>Title}" wrapping="true">
+                                <layoutData>
+                                    <FlexItemData growFactor="1" shrinkFactor="1" />
+                                </layoutData>
+                            </Text>
                             <Button id="ProductTreeTermsAndConditionsBtn" icon="sap-icon://document-text" type="Transparent"
                                 tooltip="View Terms and Conditions" visible="{= !!${jsonModel>TermsAndConditions} }"
                                 press="handler.onOpenTermsAndConditions">
@@ -128,87 +131,87 @@
                     </t:template>
                 </t:Column>
 
-                <t:Column id="ColDescription" width="20%">
-                    <Label id="LblDescription" text="Description" textAlign="Center" width="100%"/>
+                <t:Column id="ColDescription" width="16rem">
+                    <Text id="LblDescription" text="Description" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
-                        <Text id="TxtDescription" text="{= ${jsonModel>Kind} === 'Product' ? ${jsonModel>Description} : '' }" wrapping="false" />
+                        <Text id="TxtDescription" text="{= ${jsonModel>Kind} === 'Product' ? ${jsonModel>Description} : '' }" wrapping="true" width="100%"/>
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColCountryOfOrigin" width="7%" hAlign="Center">
-                    <Label id="LblCountryOfOrigin" text="Country of Origin" textAlign="Center" width="100%"/>
+                    <Text id="LblCountryOfOrigin" text="Country of Origin" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
-                        <Text id="TxtCountryOfOrigin" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>CountryOfOrigin} || '') : '' }" wrapping="false"/>
+                        <Text id="TxtCountryOfOrigin" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>CountryOfOrigin} || '') : '' }" wrapping="true" width="100%"/>
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColPriceCurrency" width="7%" hAlign="Center">
-                    <Label id="LblPriceCurrency" text="Price (Currency)" textAlign="Center" width="100%"/>
+                    <Text id="LblPriceCurrency" text="Price (Currency)" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
-                        <Text id="TxtPriceCurrency" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>Price} || '') + ' ' + (${jsonModel>PriceUnit} || '') : '' }" />
+                        <Text id="TxtPriceCurrency" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>Price} || '') + ' ' + (${jsonModel>PriceUnit} || '') : '' }" wrapping="true" width="100%"/>
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColValidity" width="8%" hAlign="Center">
-                    <Label id="LblValidity" text="Price Validity" textAlign="Center" width="100%"/>
+                    <Text id="LblValidity" text="Price Validity" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
-                        <Text id="TxtValidity" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>PriceValidFrom' }],formatter: 'handler.formatTreeDateForProduct'}"/>
+                        <Text id="TxtValidity" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>PriceValidFrom' }],formatter: 'handler.formatTreeDateForProduct'}" wrapping="true" width="100%"/>
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColDiscountRate" width="8%" hAlign="Center">
-                    <Label id="LblDiscountRate" text="Discount" textAlign="Center" width="100%" />
+                    <Text id="LblDiscountRate" text="Discount" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
-                        <Text id="TxtDiscountRate" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountRate} || '') : '' }" />
+                        <Text id="TxtDiscountRate" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>DiscountRate} || '') : '' }" wrapping="true" width="100%"/>
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColDiscountEffectiveDate" width="9%" hAlign="Center">
-                    <Label id="LblDiscountEffectiveDate" text="Discount Effective Date" textAlign="Center" width="100%" />
+                    <Text id="LblDiscountEffectiveDate" text="Discount Effective Date" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
-                        <Text id="TxtDiscountEffectiveDate" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>DiscountValidFrom' }],formatter: 'handler.formatTreeDateForProduct'}"/>
+                        <Text id="TxtDiscountEffectiveDate" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>DiscountValidFrom' }],formatter: 'handler.formatTreeDateForProduct'}" wrapping="true" width="100%"/>
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColDiscountExpiryDate" width="9%" hAlign="Center">
-                    <Label id="LblDiscountExpiryDate" text="Discount Expiry Date" textAlign="Center" width="100%" />
+                    <Text id="LblDiscountExpiryDate" text="Discount Expiry Date" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
-                        <Text id="TxtDiscountExpiryDate" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>DiscountValidTo' }],formatter: 'handler.formatTreeDateForProduct'}"/>
+                        <Text id="TxtDiscountExpiryDate" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>DiscountValidTo' }],formatter: 'handler.formatTreeDateForProduct'}" wrapping="true" width="100%"/>
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColPriceChangeIndicator" width="5%" hAlign="Center">
-                    <Label id="LblPriceChangeIndicator" text="Price Change Indicator" textAlign="Center" width="100%"/>
+                    <Text id="LblPriceChangeIndicator" text="Price Change Indicator" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
                         <Switch id="SwitchPriceChangeIndicator" type="AcceptReject" state="{jsonModel>PriceChangeIndicator}" enabled="false" visible="{= ${jsonModel>Kind} === 'Product' }" />
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColStatus" width="6%" hAlign="Center">
-                    <Label id="LblStatus" text="Status" textAlign="Center" width="100%"/>
+                    <Text id="LblStatus" text="Status" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
-                        <Text id="TxtStatus" text="{= ${jsonModel>Kind} === 'Product' ? ${jsonModel>Status} : '' }" />
+                        <Text id="TxtStatus" text="{= ${jsonModel>Kind} === 'Product' ? ${jsonModel>Status} : '' }" wrapping="true" width="100%"/>
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColStatusValidity" width="8%" hAlign="Center">
-                    <Label id="LblStatusValidity" text="Status Validity" textAlign="Center" width="100%"/>
+                    <Text id="LblStatusValidity" text="Status Validity" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
-                        <Text id="TxtStatusValidity" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>StatusValidFromDate' },{ path: 'jsonModel>StatusValidToDate' }],formatter: 'handler.formatTreeDateRangeForProduct'}"/>
+                        <Text id="TxtStatusValidity" text="{parts: [{ path: 'jsonModel>Kind' },{ path: 'jsonModel>StatusValidFromDate' },{ path: 'jsonModel>StatusValidToDate' }],formatter: 'handler.formatTreeDateRangeForProduct'}" wrapping="true" width="100%"/>
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColSupplier" width="8%" hAlign="Center">
-                    <Label id="LblSupplier" text="Supplier" textAlign="Center" width="100%"/>
+                    <Text id="LblSupplier" text="Supplier" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
-                        <Text id="TxtSupplier" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>Supplier} || '') : '' }" wrapping="false" />
+                        <Text id="TxtSupplier" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>Supplier} || '') : '' }" wrapping="true" width="100%"/>
                     </t:template>
                 </t:Column>
 
                 <t:Column id="ColSupplierSKU" width="6%" hAlign="Center">
-                    <Label id="LblSupplierSKU" text="Supplier SKU" textAlign="Center" width="100%"/>
+                    <Text id="LblSupplierSKU" text="Supplier SKU" textAlign="Center" width="100%" wrapping="true"/>
                     <t:template>
-                        <Text id="TxtSupplierSKU" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>SupplierSKU} || '') : '' }" wrapping="false" />
+                        <Text id="TxtSupplierSKU" text="{= ${jsonModel>Kind} === 'Product' ? (${jsonModel>SupplierSKU} || '') : '' }" wrapping="true" width="100%"/>
                     </t:template>
                 </t:Column>
 

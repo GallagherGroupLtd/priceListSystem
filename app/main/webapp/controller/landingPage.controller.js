@@ -91,7 +91,7 @@ sap.ui.define([
                 const oAccountBinding = oModel.bindList("/AccountAssignment", undefined, undefined, undefined, {
                     $filter: `Email eq '${userEmail}'`,
                     $select: ["CustomerNumber","Email","FirstName","HasActiveEntity","HasDraftEntity","ID","IsActiveEntity","LastName","AccountType","AccountScope"].join(","),
-                    $expand: ["scopes($select=","ID,","PricelistType,","MarketScopeRegion,","MarketScopeCountry",")"].join("")
+                    $expand: ["scopes($select=","ID,","PricelistType,","MarketScopeRegion,","MarketScopeCountry,","SalesOrg",")"].join("")
                 });
 
                 //Reading data from models
