@@ -11,9 +11,9 @@ function buildWorkzonePayload({recipientEmail,title,message,navigationTargetObje
         NotificationTypeKey: NOTIFICATION_TYPE_KEY,
         NotificationTypeVersion: NOTIFICATION_TYPE_VERSION,
         Priority: "Medium",
-        NavigationTargetObject: navigationTargetObject,
-        NavigationTargetAction: navigationTargetAction,
-        NavigationTargetParams: navigationTargetParameters,
+        // NavigationTargetObject: navigationTargetObject,
+        // NavigationTargetAction: navigationTargetAction,
+        // NavigationTargetParams: navigationTargetParameters,
         Properties: [
             {
                 Key: "title",
@@ -52,10 +52,11 @@ async function sendNotification(notification) {
         },
         {
             method: "POST",
-            url: "/Notification.svc/Notifications",
+            url: "/v2/Notification.svc/Notifications",
             data: buildWorkzonePayload(notification),
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                Accept: "application/json"
             }
         }
     );

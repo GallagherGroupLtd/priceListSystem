@@ -36,6 +36,16 @@ function getChangedBy(req) {
     return (req.user?.id || req.user?.email || "unknown");
 }
 
+function getDeliveryError(error) {
+    const responseData = error?.response?.data;
+
+    if (responseData !== undefined) {
+        return typeof responseData === "string" ? responseData : JSON.stringify(responseData);
+    }
+
+    return String(error?.message || error);
+}
+
 function buildNavigationTarget({pricelistId,targetSection}) {
     return {
         navigationTargetObject: "PriceMaintain",
@@ -390,14 +400,19 @@ async function deliverPendingNotifications({service,eventIds}) {
                         DeliveryStatus: DELIVERY_STATUS.FAILED,
                         DeliveryAttempts: Number(delivery.DeliveryAttempts || 0) + 1,
                         LastDeliveryAttemptAt: attemptAt,
-                        DeliveryError: String(error.message || error)
+                        DeliveryError: getDeliveryError(error)
                     })
                     .where({
                         ID: delivery.ID
                     })
                 );
 
-                console.error("[PricelistNotification] " + "Delivery failed:", delivery.ID,error);
+                console.error("[PricelistNotification] Delivery failed:",{
+                    deliveryId: delivery.ID,
+                    status: error?.response?.status,
+                    responseData: error?.response?.data,
+                    message: error?.message
+                });
             }
         }
 
