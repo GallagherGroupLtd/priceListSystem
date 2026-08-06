@@ -3070,46 +3070,18 @@ module.exports = cds.service.impl(async function () {
         const loadItemStructure = async () => {
             const itemStructureFilters = {PricelistType,MarketScopeRegion,MarketScopeCountry,SalesOrg,DistChannel,CustPriceList,CustGroup1,ErpCustomer,DeliveringPlant};
 
-            const activeItemStructureFilters = [];
+            const activeItemStructureFilters = Object.entries(itemStructureFilters);
 
-            Object.entries(itemStructureFilters).forEach(([field,value],index) => {
-                if (index > 0) {
-                    activeItemStructureFilters.push("and");
-                }
+            let rows = await db.run(SELECT.from("PricelistItemStructureComponents"));
 
-                const fieldFilters = [
-                    {ref: [field]},
-                    "is",
-                    {val: null},
-                    "or",
-                    {ref: [field]},
-                    "=",
-                    {val: ""},
-                    "or",
-                    {ref: [field]},
-                    "=",
-                    {val: "*"}
-                ];
+            rows = (Array.isArray(rows) ? rows : []).filter((row) => {
+                return activeItemStructureFilters.every(([field,value]) => {
+                    const maintainedValue = row[field] === undefined || row[field] === null ? "" : String(row[field]).trim();
+                    const pricelistValue = value === undefined || value === null ? "" : String(value).trim();
 
-                const normalizedValue = value === undefined || value === null ? "" : String(value).trim();
-                if (normalizedValue !== "" && normalizedValue !== "*") {
-                    fieldFilters.push(
-                        "or",
-                        {ref: [field]},
-                        "=",
-                        {val: normalizedValue}
-                    );
-                }
-
-                activeItemStructureFilters.push({
-                    xpr: fieldFilters
+                    return (maintainedValue === "" || maintainedValue === "*" || maintainedValue === pricelistValue);
                 });
             });
-
-            const rows = await db.run(
-                SELECT.from("PricelistItemStructureComponents")
-                    .where(activeItemStructureFilters)
-            );
 
             if (!Array.isArray(rows) || rows.length === 0) {
                 return [];
