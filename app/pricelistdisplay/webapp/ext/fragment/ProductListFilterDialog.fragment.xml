@@ -1,0 +1,232 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:f="sap.ui.layout.form">
+
+    <Dialog
+        id="ProductListFilterDialog"
+        contentWidth="600px"
+        contentHeight="620px"
+        draggable="true"
+        resizable="true"
+        verticalScrolling="true"
+        horizontalScrolling="false">
+
+        <customHeader>
+            <Bar>
+                <contentLeft>
+                    <Title
+                        text="Product List Filter"
+                        level="H2" />
+                </contentLeft>
+
+                <contentRight>
+                    <Button
+                        icon="sap-icon://reset"
+                        text="Reset"
+                        tooltip="Reset filter fields"
+                        type="Transparent"
+                        press=".onResetHierarchyFilter" />
+                </contentRight>
+            </Bar>
+        </customHeader>
+
+        <content>
+            <VBox width="100%" class="sapUiMediumMargin">
+
+                <!-- Category -->
+                <Panel
+                    headerText="Category"
+                    expandable="true"
+                    expanded="true"
+                    backgroundDesign="Transparent"
+                    class="sapUiNoContentPadding sapUiSmallMarginBottom">
+
+                    <content>
+                        <f:SimpleForm
+                            editable="true"
+                            layout="ResponsiveGridLayout"
+                            labelSpanXL="3"
+                            labelSpanL="3"
+                            labelSpanM="4"
+                            labelSpanS="12"
+                            emptySpanXL="1"
+                            emptySpanL="1"
+                            emptySpanM="0"
+                            emptySpanS="0"
+                            columnsXL="1"
+                            columnsL="1"
+                            columnsM="1"
+                            singleContainerFullSize="false">
+
+                            <f:content>
+                                <Label text="Main Category" />
+                                <Input
+                                    width="22rem"
+                                    value="{jsonModel>/productFilter/mainCategory}"
+                                    placeholder="Main Category" />
+
+                                <Label text="Sub Category 1" />
+                                <Input
+                                    width="22rem"
+                                    value="{jsonModel>/productFilter/subCategory1}"
+                                    placeholder="Sub Category 1" />
+
+                                <Label text="Sub Category 2" />
+                                <Input
+                                    width="22rem"
+                                    value="{jsonModel>/productFilter/subCategory2}"
+                                    placeholder="Sub Category 2" />
+
+                                <Label text="Sub Category 3" />
+                                <Input
+                                    width="22rem"
+                                    value="{jsonModel>/productFilter/subCategory3}"
+                                    placeholder="Sub Category 3" />
+
+                                <Label text="Sub Category 4" />
+                                <Input
+                                    width="22rem"
+                                    value="{jsonModel>/productFilter/subCategory4}"
+                                    placeholder="Sub Category 4" />
+
+                                <Label text="Sub Category 5" />
+                                <Input
+                                    width="22rem"
+                                    value="{jsonModel>/productFilter/subCategory5}"
+                                    placeholder="Sub Category 5" />
+                            </f:content>
+                        </f:SimpleForm>
+                    </content>
+                </Panel>
+
+                <!-- Product -->
+                <Panel
+                    headerText="Product"
+                    expandable="true"
+                    expanded="true"
+                    backgroundDesign="Transparent"
+                    class="sapUiNoContentPadding sapUiSmallMarginBottom">
+
+                    <content>
+                        <f:SimpleForm
+                            editable="true"
+                            layout="ResponsiveGridLayout"
+                            labelSpanXL="3"
+                            labelSpanL="3"
+                            labelSpanM="4"
+                            labelSpanS="12"
+                            emptySpanXL="1"
+                            emptySpanL="1"
+                            emptySpanM="0"
+                            emptySpanS="0"
+                            columnsXL="1"
+                            columnsL="1"
+                            columnsM="1"
+                            singleContainerFullSize="false">
+
+                            <f:content>
+                                <Label text="Material" />
+                                <Input
+                                    width="22rem"
+                                    value="{jsonModel>/productFilter/material}"
+                                    placeholder="Material / Material Key" />
+
+                                <Label text="Description" />
+                                <Input
+                                    width="22rem"
+                                    value="{jsonModel>/productFilter/description}"
+                                    placeholder="Product Description" />
+
+                                <Label text="Supplier" />
+                                <Input
+                                    width="22rem"
+                                    value="{jsonModel>/productFilter/supplier}"
+                                    placeholder="Supplier" />
+
+                                <Label text="Status" />
+                                <Input
+                                    width="22rem"
+                                    value="{jsonModel>/productFilter/status}"
+                                    placeholder="Status" />
+                            </f:content>
+                        </f:SimpleForm>
+                    </content>
+                </Panel>
+
+                <!-- Pricing -->
+                <Panel
+                    headerText="Pricing"
+                    expandable="true"
+                    expanded="true"
+                    backgroundDesign="Transparent"
+                    class="sapUiNoContentPadding">
+
+                    <content>
+                        <f:SimpleForm
+                            editable="true"
+                            layout="ResponsiveGridLayout"
+                            labelSpanXL="3"
+                            labelSpanL="3"
+                            labelSpanM="4"
+                            labelSpanS="12"
+                            emptySpanXL="1"
+                            emptySpanL="1"
+                            emptySpanM="0"
+                            emptySpanS="0"
+                            columnsXL="1"
+                            columnsL="1"
+                            columnsM="1"
+                            singleContainerFullSize="false">
+
+                            <f:content>
+                                <Label text="Price Unit" />
+                                <Input
+                                    width="22rem"
+                                    value="{jsonModel>/productFilter/priceUnit}"
+                                    placeholder="Currency / Price Unit" />
+
+                                <Label text="Has Price" />
+                                <Select
+                                    width="22rem"
+                                    selectedKey="{jsonModel>/productFilter/hasPrice}">
+                                    <items>
+                                        <core:Item key="All" text="All" />
+                                        <core:Item key="Yes" text="With Price" />
+                                        <core:Item key="No" text="Without Price" />
+                                    </items>
+                                </Select>
+
+                                <Label text="Has Discount" />
+                                <Select
+                                    width="22rem"
+                                    selectedKey="{jsonModel>/productFilter/hasDiscount}">
+                                    <items>
+                                        <core:Item key="All" text="All" />
+                                        <core:Item key="Yes" text="With Discount" />
+                                        <core:Item key="No" text="Without Discount" />
+                                    </items>
+                                </Select>
+                            </f:content>
+                        </f:SimpleForm>
+                    </content>
+                </Panel>
+
+            </VBox>
+        </content>
+
+        <buttons>
+            <Button
+                text="Cancel"
+                press=".onCloseHierarchyFilterDialog" />
+
+            <Button
+                text="Apply"
+                type="Emphasized"
+                press=".onApplyHierarchyFilter" />
+        </buttons>
+
+    </Dialog>
+
+</core:FragmentDefinition>

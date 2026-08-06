@@ -88,10 +88,10 @@ sap.ui.define([
                 const oModel = this.getOwnerComponent().getModel(); //v4 model
                 
                 //Added select query to fetch specific details required for further use.
-                // const srcPath = "/AccountAssignment?$filter=Email eq '" + userEmail + "'&$select=CustomerNumber,Email,FirstName,HasActiveEntity,HasDraftEntity,ID,IsActiveEntity,LastName,MarketScopeCountry,MarketScopeRegion,PricelistType,SalesOrg";
                 const oAccountBinding = oModel.bindList("/AccountAssignment", undefined, undefined, undefined, {
                     $filter: `Email eq '${userEmail}'`,
-                    $select: "CustomerNumber,Email,FirstName,HasActiveEntity,HasDraftEntity,ID,IsActiveEntity,LastName,MarketScopeCountry,MarketScopeRegion,PricelistType,SalesOrg"
+                    $select: ["CustomerNumber","Email","FirstName","HasActiveEntity","HasDraftEntity","ID","IsActiveEntity","LastName","AccountType","AccountScope"].join(","),
+                    $expand: ["scopes($select=","ID,","PricelistType,","MarketScopeRegion,","MarketScopeCountry,","SalesOrg",")"].join("")
                 });
 
                 //Reading data from models
@@ -107,10 +107,13 @@ sap.ui.define([
 
                 const {
                     ID: userGUID,
+                    AccountType,
+                    AccountScope,
                     MarketScopeCountry,
                     MarketScopeRegion,
                     PricelistType,
-                    SalesOrg
+                    SalesOrg,
+                    scopes: aPricelistHeaderScopes = []
                 } = oAccount;
 
                 // storing in JSON model
@@ -151,16 +154,99 @@ sap.ui.define([
                     MessageToast.show("No tile content found for the user's market scope."); //Will change to console log if required after testing, to avoid showing technical messages to end users.
                 }
 
-                //Fetching data from Contact Info to populate the contact details on the landing page based on user's market scope and trade scenario.
-                const oContactBinding = oModel.bindList("/ContactInfo", undefined, undefined, undefined, {
-                    $filter:
-                        `MarketScopeCountry eq '${MarketScopeCountry}' and ` +
-                        `MarketScopeRegion eq '${MarketScopeRegion}' and ` +
-                        `PricelistType eq '${PricelistType}'`,
-                    $select: "ContactEmail,ContactNumber,ExternalAccount,HasActiveEntity,HasDraftEntity,ID,InternalAccount,IsActiveEntity"
+                // Build Contact Information lookup using all assigned pricelist header combinations.
+                const escapeODataValue = function (value) {
+                    return String(value || "").replace(/'/g, "''");
+                };
+
+                // Identify the user category from Account Assignment.
+                const bInternalAdminUser = AccountType === "Internal" && AccountScope === "Admin";
+                const bInternalRegionalUser = AccountType === "Internal" && AccountScope === "Regional";
+                const bInternalUser = bInternalAdminUser || bInternalRegionalUser;
+
+                const bExternalUser = AccountType === "External";
+
+                const aHeaderFilters = [];
+                const oUniqueHeaderFilters = {};
+
+                aPricelistHeaderScopes.forEach(function (oHeader) {
+                    const sPricelistType = String(oHeader.PricelistType || "").trim();
+                    const sMarketScopeRegion = String(oHeader.MarketScopeRegion || "").trim();
+                    const sMarketScopeCountry = String(oHeader.MarketScopeCountry || "").trim();
+
+                    if (!sPricelistType || !sMarketScopeRegion || !sMarketScopeCountry) {
+                        return;
+                    }
+
+                    const sHeaderKey = [sPricelistType.toUpperCase(),sMarketScopeRegion.toUpperCase(),sMarketScopeCountry.toUpperCase()].join("|");
+
+                    if (oUniqueHeaderFilters[sHeaderKey]) {
+                        return;
+                    }
+
+                    oUniqueHeaderFilters[sHeaderKey] = true;
+
+                    aHeaderFilters.push(
+                        "(" +
+                            `PricelistType eq '${escapeODataValue(sPricelistType)}' and ` +
+                            `MarketScopeRegion eq '${escapeODataValue(sMarketScopeRegion)}' and ` +
+                            `MarketScopeCountry eq '${escapeODataValue(sMarketScopeCountry)}'` +
+                        ")"
+                    );
                 });
 
-                const aContactCtx = await oContactBinding.requestContexts();
+                let sAccountContactFilter = "";
+
+                if (bInternalUser) {
+                    sAccountContactFilter = "InternalAccount eq true";
+                } else if (bExternalUser) {
+                    sAccountContactFilter = "ExternalAccount eq true";
+                }
+
+                let sContactFilter = "";
+
+                if (aHeaderFilters.length && sAccountContactFilter) {
+                    sContactFilter = "(" + aHeaderFilters.join(" or ") + ") and " + sAccountContactFilter + " and IsActiveEntity eq true";
+                }
+
+                //Fetching data from Contact Info to populate the contact details on the landing page based on user's market scope and trade scenario.
+                let oContactBinding;
+                let aContactCtx = [];
+
+                if (sContactFilter) {
+                    oContactBinding = oModel.bindList("/ContactInfo",undefined,undefined,undefined,{
+                        $filter: sContactFilter,
+                        $select: "ContactEmail,ContactNumber,ExternalAccount," + "HasActiveEntity,HasDraftEntity,ID,InternalAccount," + "IsActiveEntity,PricelistType,MarketScopeRegion," + "MarketScopeCountry"
+                    });
+
+                    aContactCtx = await oContactBinding.requestContexts();
+                }
+
+                if (!aContactCtx.length && bInternalUser) {
+                    const sGenericContactFilter =
+                        "(" +
+                            "(PricelistType eq null or PricelistType eq '') and " +
+                            "(MarketScopeRegion eq null or MarketScopeRegion eq '') and " +
+                            "(MarketScopeCountry eq null or MarketScopeCountry eq '')" +
+                        ") and " +
+                        "InternalAccount eq true and " +
+                        "IsActiveEntity eq true";
+
+                    oContactBinding = oModel.bindList("/ContactInfo",undefined,undefined,undefined,{
+                            $filter: sGenericContactFilter,
+                            $select:
+                                "ContactEmail,ContactNumber,ExternalAccount," +
+                                "HasActiveEntity,HasDraftEntity,ID,InternalAccount," +
+                                "IsActiveEntity,PricelistType,MarketScopeRegion," +
+                                "MarketScopeCountry"
+                        }
+                    );
+
+                    aContactCtx = await oContactBinding.requestContexts();
+                }
+
+                const oVBox = this.getView().byId("contactBox");
+                oVBox.removeAllItems();
 
                 if (aContactCtx.length) {
                     //Checking maximum lenth of contact details. so that padding remains consistent.
@@ -175,44 +261,59 @@ sap.ui.define([
 
 
                     //If multiple contact records are found, all of them have to be displayed vertically.
-                    const oVBox = this.getView().byId("contactBox");
                     for(let i=0; i<aContactCtx.length; i++){
                         const oContact = aContactCtx[i].getObject();
-                        const contactNumber = oContact.ContactNumber.padEnd(maxLength, " "); //Padding the contact number to ensure consistent alignment of email links, even if contact numbers have different lengths.
-                        const oPhoneIcon = new Icon({src: "sap-icon://headset", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
-                        const oEmailIcon = new Icon({src: "sap-icon://email", size: "1rem", class: "sapUiTinyMarginEnd", color: "#333333"});
-                        const oPhoneLink = new Link({text: contactNumber, href: "tel:" + oContact.ContactNumber, width: "100%"});
-                        const oEmailLink = new Link({text: oContact.ContactEmail, href: "mailto:" + oContact.ContactEmail, width: "100%"});
-                        
-                        const oInnerHBoxPhone = new sap.m.HBox({
-                           wrap: "Wrap",
-                           class: "innerHBox",
-                           columnGap: "0.5rem",
-                           items: [oPhoneIcon, oPhoneLink]});
+                        const contactNumber = oContact.ContactNumber ? oContact.ContactNumber.padEnd(maxLength, " ") : ""; //Padding the contact number to ensure consistent alignment of email links, even if contact numbers have different lengths.
 
-                        const oInnerHBoxEmail = new sap.m.HBox({
-                           wrap: "Wrap",
-                           class: "innerHBox",
-                           columnGap: "0.5rem",
-                           items: [oEmailIcon, oEmailLink]});
+                        const aOuterItems = [];
+                        if (oContact.ContactNumber) {
+                            const oPhoneIcon = new Icon({src: "sap-icon://headset",size: "1rem",class: "sapUiTinyMarginEnd",color: "#333333"});
+                            const oPhoneLink = new Link({text: contactNumber,href: "tel:" + oContact.ContactNumber,width: "100%"});
 
-                       const oOuterHBox = new sap.m.HBox({
-                           wrap: "Wrap",
-                           width: "100%",
-                           class: "outerHBox",
-                           columnGap: "10rem",
-                           items: [oInnerHBoxPhone, oInnerHBoxEmail]});
+                            const oInnerHBoxPhone = new sap.m.HBox({
+                                wrap: "Wrap",
+                                class: "innerHBox",
+                                columnGap: "0.5rem",
+                                items: [
+                                    oPhoneIcon,
+                                    oPhoneLink
+                                ]
+                            });
+
+                            aOuterItems.push(oInnerHBoxPhone);
+                        }
+
+                        if (oContact.ContactEmail) {
+                            const oEmailIcon = new Icon({src: "sap-icon://email",size: "1rem",class: "sapUiTinyMarginEnd",color: "#333333"});
+                            const oEmailLink = new Link({text: oContact.ContactEmail,href: "mailto:" + oContact.ContactEmail,width: "100%"});
+
+                            const oInnerHBoxEmail = new sap.m.HBox({
+                                wrap: "Wrap",
+                                class: "innerHBox",
+                                columnGap: "0.5rem",
+                                items: [
+                                    oEmailIcon,
+                                    oEmailLink
+                                ]
+                            });
+
+                            aOuterItems.push(oInnerHBoxEmail);
+                        }
+
+                        if (!aOuterItems.length) {
+                            continue;
+                        }
+
+                        const oOuterHBox = new sap.m.HBox({
+                            wrap: "Wrap",
+                            width: "100%",
+                            class: "outerHBox",
+                            columnGap: "10rem",
+                            items: aOuterItems
+                        });
 
                         oVBox.addItem(oOuterHBox);
                     }
-                    // const oContact = aContactCtx[0].getObject();
-
-                    // const oContactModel = new JSONModel({
-                    //     contactEmail: oContact.ContactEmail,
-                    //     contactNumber: oContact.ContactNumber
-                    // });
-
-                    // this.getView().setModel(oContactModel, "contactModel");
                 } else {
                     MessageToast.show("No contact information found for the user's market scope.");  //Will change to console log if required after testing, to avoid showing technical messages to end users.
                 }

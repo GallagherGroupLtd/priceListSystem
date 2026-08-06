@@ -1,0 +1,24 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+    <Dialog id="DisplayColumnSettingsDialog" title="Column Settings" contentWidth="32rem" draggable="true" resizable="true">
+        <content>
+            <VBox class="sapUiSmallMargin" width="100%">
+                <MessageStrip text="Changes apply only to the current session and do not update the published pricelist layout."
+                    type="Information" showIcon="true" showCloseButton="false" class="sapUiSmallMarginBottom" />
+                <List items="{jsonModel>/displayLayout/workingColumns}">
+                    <CustomListItem>
+                        <HBox width="100%" alignItems="Center">
+                            <CheckBox selected="{jsonModel>visible}" enabled="{= !${jsonModel>mandatory} }" select=".onTemporaryDisplayColumnSelectionChange" />
+                            <Text text="{jsonModel>label}" class="sapUiTinyMarginBegin" />
+                        </HBox>
+                    </CustomListItem>
+                </List>
+            </VBox>
+        </content>
+        <beginButton>
+            <Button text="Apply" type="Emphasized" press=".onApplyTemporaryDisplayColumns" />
+        </beginButton>
+        <endButton>
+            <Button text="Reset to Published Layout" press=".onResetTemporaryDisplayColumns" />
+        </endButton>
+    </Dialog>
+</core:FragmentDefinition>

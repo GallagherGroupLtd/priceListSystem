@@ -55,6 +55,9 @@ annotate service.PricelistData with @(
         }
     ],
 
+    // Display app must not inherit maintenance Object Page actions.
+    UI.Identification : [],
+
     // --- OBJECT PAGE HEADER ---
     UI.HeaderInfo       : {
         TypeName        : 'Pricelist',
@@ -121,13 +124,15 @@ annotate service.PricelistData with @(
         ID    : 'PricelistInfoFacet',
         Facets: [
         ]
-    },
-    {
-        $Type : 'UI.CollectionFacet',
-        Label : 'Category and Product Details',
-        ID    : 'ProductPricelistFacet',
-        Facets: [
+    }
+    // ,
+    // {
+    //     $Type : 'UI.CollectionFacet',
+    //     Label : 'Category and Product Details',
+    //     ID    : 'ProductPricelistFacet',
+    //     Facets: [
             
-        ]
-    }]
+    //     ]
+    // }
+    ]
 );

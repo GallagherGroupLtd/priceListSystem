@@ -6,6 +6,8 @@ const logTreeChanges = require('./log-tree-changes');
 
 const { STORED_FIELDS } = require('./constants');
 
+const notificationService = require("../pricelist_notification_srv-code/notification-service");
+
 module.exports = (srv) => async function saveProductPriceList(req) {
 
     const { ProductPriceList } = srv.entities;
@@ -162,10 +164,26 @@ module.exports = (srv) => async function saveProductPriceList(req) {
             );
         }
 
-        await logHeaderChanges(srv, tx, req, originalHeader, header, headerId);
-        await logTreeChanges(srv, tx, req, existingRows, flatRows, idsToDelete);
+        const headerLogs = await logHeaderChanges(srv, tx, req, originalHeader, header, headerId);
+        const treeLogs = await logTreeChanges(srv, tx, req, existingRows, flatRows, idsToDelete);
+        const changeLogs = [...headerLogs,...treeLogs];
+
+        //Generating event for admin notifications in case there are any changes
+        let adminNotificationEvent = null;
+
+        if (changeLogs.length > 0) {
+            adminNotificationEvent = await notificationService.createAdminSaveNotification({service: srv,req,pricelistId: headerId,changeLogs});
+        }
 
         await tx.commit();
+
+        if (adminNotificationEvent) {
+            try {
+                await notificationService.deliverPendingNotifications({service: srv,eventIds: [adminNotificationEvent.ID]});
+            } catch (notificationError) {
+                console.error("[saveProductPriceList] Admin notification delivery failed:",notificationError);
+            }
+        }
 
         console.log("[saveProductPriceList] save completed");
         return "Successfully Saved.";

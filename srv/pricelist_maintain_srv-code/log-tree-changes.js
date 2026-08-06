@@ -2,6 +2,26 @@ const { TREE_TRACKED_FIELDS, LARGE_TEXT_FIELDS, LARGE_TEXT_CHANGE_MARKER } = req
 
 const LARGE_TEXT_FIELD_SET = new Set(LARGE_TEXT_FIELDS);
 
+const BOOLEAN_FIELDS = new Set([
+    "IsTACDisableExt",
+    "IsTACDisableInt",
+    "IsNotesDisableExt",
+    "IsNotesDisableInt",
+    "PriceChangeIndicator"
+]);
+
+function normalizeBoolean(value) {
+    return (value === true || value === "true" || value === 1 || value === "1");
+}
+
+function normalizeTrackedValue(field,value) {
+    if (BOOLEAN_FIELDS.has(field)) {
+        return String(normalizeBoolean(value));
+    }
+
+    return String(value ?? "");
+}
+
 module.exports = async function logTreeChanges(srv, tx, req, originalRows, newRows, deletedIds) {
     const { PricelistChangeLog } = srv.entities;
     const user = req.user?.id || 'unknown';
@@ -36,8 +56,8 @@ module.exports = async function logTreeChanges(srv, tx, req, originalRows, newRo
         // }
 
         for (const field of TREE_TRACKED_FIELDS) {
-            const rawOldVal = String(orig[field] ?? '');
-            const rawNewVal = String(row[field] ?? '');
+            const rawOldVal = normalizeTrackedValue(field,orig[field]);
+            const rawNewVal = normalizeTrackedValue(field,row[field]);
 
             if (rawOldVal === rawNewVal) continue;
 
@@ -68,5 +88,9 @@ module.exports = async function logTreeChanges(srv, tx, req, originalRows, newRo
         });
     }
 
-    if (logs.length) await tx.run(INSERT.into(PricelistChangeLog).entries(logs));
+    if (logs.length) {
+        await tx.run(INSERT.into(PricelistChangeLog).entries(logs));
+    }
+
+    return logs;
 };

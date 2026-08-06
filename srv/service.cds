@@ -48,17 +48,46 @@ service PriceListService {
 
     annotate PriceProductMaintenance with @odata.draft.enabled;
 
-    entity TermsAndConditions         as projection on my.TermsAndConditionDetermination
-        actions {
-            action copyRow() returns TermsAndConditions;
-        };
+    entity TermsAndConditions as projection on my.TermsAndConditionDetermination {
+        *,
+        partNumberTermsAndConditions
+    }
+    actions {
+        action copyRow() returns TermsAndConditions;
+    };
+
+    entity TermsAndConditionPartNumbers as projection on my.TermsAndConditionPartNumber;
 
     annotate TermsAndConditions with @odata.draft.enabled;
 
-    entity PricingParameters          as projection on my.PricingParameterDetermination
-        actions {
-            action copyRow() returns PricingParameters;
-        };
+    entity PricingParameters as projection on my.PricingParameterDetermination {
+        *,
+        entries
+    }
+    actions {
+        action copyRow() returns PricingParameters;
+    };
+
+    entity PricingParameterEntries as projection on my.PricingParameterDeterminationEntry;
+
+    entity PricingParameterTypeVH {
+        key Code : String(1);
+            Text : String(50);
+    }
+
+    @cds.persistence.skip
+    entity PricingConditionTypeVH {
+        key ParameterType : String(1);
+        key Code          : String(4);
+            Description   : String(255);
+    }
+
+    @cds.persistence.skip
+    entity PricingAccessSequenceVH {
+        key ParameterType : String(1);
+        key Code          : String(255);
+            Description   : String(255);
+    }
 
     annotate PricingParameters with @odata.draft.enabled;
 
@@ -76,10 +105,15 @@ service PriceListService {
 
     annotate ContactInfo with @odata.draft.enabled;
 
-    entity AccountAssignment          as projection on my.AccountAssignment
-        actions {
-            action copyRow() returns AccountAssignment;
-        };
+    entity AccountAssignment          as projection on my.AccountAssignment {
+        *,
+            scopes
+    }
+    actions {
+        action copyRow() returns AccountAssignment;
+    };
+    
+    entity AccountAssignmentScope     as projection on my.AccountAssignmentScope;
 
     annotate AccountAssignment with @odata.draft.enabled;
 
@@ -182,7 +216,11 @@ service PriceListService {
             MarketScopeRegion || ' (' || MarketScopeCountry || ')' as MarketDisplay : String,
             Status @(Common.FieldControl: #Mandatory),
 
-            items                                                                   : redirected to PricelistItemData
+            items : redirected to PricelistItemData
+        }
+    
+        actions {
+            action moveToForRevision() returns PricelistData;
         };
 
     type MassDuplicateResult {
@@ -224,6 +262,18 @@ service PriceListService {
     action getAvailableLayouts(tableId: String) returns array of LayoutInfo;
     action saveTreeLayout(ID: UUID, tableId: String, layoutName: String, defaultLayout: Boolean, masterDefault: Boolean, config: String) returns LayoutInfo;
     action deleteTreeLayout(ID: UUID) returns Boolean;
+
+    // Code-level configuration for columns supported by the Pricelist Display Product tree. No database persistence is involved.
+    type PricelistDisplayColumnConfiguration {
+        id             : String(100);
+        label          : String(255);
+        mandatory      : Boolean;
+        defaultVisible : Boolean;
+        order          : Integer;
+    }
+
+    action getPricelistDisplayColumnConfiguration()
+        returns array of PricelistDisplayColumnConfiguration;
 
     type UploadValidatedItem {
         PricelistPartNumber      : String;
@@ -550,11 +600,17 @@ service PriceListService {
             SubCategory5             : String(255) @title: 'Subcategory 5';
             Material                 : String(100) @title: 'Material Number';
             MaterialDescription      : String(100) @title: 'Material Description';
+            CountryOfOrigin          : String(100) @title: 'Country of Origin';
             Price                    : String(100);
             PriceUnit                : String(100);
             DiscountRate             : String(100);
             DiscountValidFrom        : String(100);
             DiscountValidTo          : String(100);
+            Status                   : String(100);
+            StatusValidFromDate      : String(100);
+            StatusValidToDate        : String(100);
+            Supplier                 : String(255);
+            SupplierSKU              : String(255);
             PartNumberTermsandCond   : String;
             MainCategoryTermsandCond : String;
             SubCategory1TermsandCond : String;
@@ -572,7 +628,50 @@ service PriceListService {
                                 originalHeaderData: LargeString,
                                 treeData: LargeString)               returns String;
 
+    action resolvePricelistTermsAndConditions(
+        PricelistType      : String,
+        MarketScopeRegion  : String,
+        MarketScopeCountry : String,
+        SalesOrg           : String,
+        DistChannel        : String,
+        CustPriceList      : String,
+        CustGroup1         : String,
+        ErpCustomer        : String,
+        DeliveringPlant    : String
+    ) returns LargeString;
+
+    type PricelistHeaderDefaults {
+        TermsAndConditions : LargeString;
+        Notes              : LargeString;
+    }
+
+    action resolvePricelistHeaderDefaults(
+        PricelistType      : String,
+        MarketScopeRegion  : String,
+        MarketScopeCountry : String,
+        SalesOrg           : String,
+        DistChannel        : String,
+        CustPriceList      : String,
+        CustGroup1         : String,
+        ErpCustomer        : String,
+        DeliveringPlant    : String
+    ) returns PricelistHeaderDefaults;
+
     entity PricelistChangeLog as projection on my.PricelistChangeLog;
+
+    entity PricelistNotificationEvent as projection on my.PricelistNotificationEvent;
+
+    entity PricelistNotificationDelivery as projection on my.PricelistNotificationDelivery;
+
+    type NotificationRetryResult {
+        selected : Integer;
+        sent     : Integer;
+        failed   : Integer;
+    }
+
+    action retryPricelistNotificationDeliveries(
+        maximumAttempts : Integer
+    ) returns NotificationRetryResult;
 
     // entity ProductPricelistTree    as
     //     select from my.PricelistItemStructureComponents {
@@ -769,14 +868,14 @@ service PriceListService {
         ControlPriceView                   : Boolean;
         ControlDiscountIndicator           : Boolean;
         ControlDiscountRate                : Boolean;
-        ControlWorkflowTile                : Boolean;
-        ControlPriceListReviewScheduleTile : Boolean;
         ControlPricelistMaintenance        : Boolean;
         ControlDataMaintenance             : Boolean;
         ControlMyRequestTile               : Boolean;
         ControlApplicationLogTile          : Boolean;
     };
 }
+
+annotate PriceListService with @cds.server.body_parser.limit: '1mb';
 
 @cds.persistence.skip
 entity Subcategory1VH {

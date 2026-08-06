@@ -102,6 +102,21 @@ annotate service.TermsAndConditions with @(
         ]
     },
 
+    UI.FieldGroup #HeaderTermsAndNotes : {
+        Data: [
+            {
+                $Type : 'UI.DataField',
+                Value : HeaderTermsAndConditions,
+                Label : 'Header Terms and Conditions'
+            },
+            {
+                $Type : 'UI.DataField',
+                Value : HeaderNotes,
+                Label : 'Header Notes'
+            }
+        ]
+    },
+
     UI.FieldGroup #MainCategory : {
         Data: [
             { $Type : 'UI.DataField', Value : MainCategory }
@@ -188,6 +203,12 @@ annotate service.TermsAndConditions with @(
             Target: '@UI.FieldGroup#ERPData'
         },
         {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'FacetHeaderTermsAndNotes',
+            Label : 'Pricelist Header Terms and Notes',
+            Target: '@UI.FieldGroup#HeaderTermsAndNotes'
+        },
+        {
             $Type  : 'UI.ReferenceFacet',
             ID    : 'Facet3',
             Label  : 'Main Category',
@@ -258,6 +279,12 @@ annotate service.TermsAndConditions with @(
             ID    : 'Facet14',
             Label  : 'SubCategory5 Terms and Conditions',
             Target : '@UI.FieldGroup#SubCategory5TermsandConditions'
+        },
+        {
+            $Type : 'UI.ReferenceFacet',
+            ID    : 'FacetPartNumbers',
+            Label : 'Part Numbers',
+            Target: 'partNumberTermsAndConditions/@UI.LineItem'
         }
     ],
 
@@ -487,6 +514,8 @@ annotate service.TermsAndConditions with {
         }        
     ); 
     
+    HeaderTermsAndConditions        @UI.MultiLineText;
+    HeaderNotes                     @UI.MultiLineText;
     MainCategoryTermsandConditions  @UI.MultiLineText;
     SubCategory1TermsandConditions  @UI.MultiLineText;
     SubCategory2TermsandConditions  @UI.MultiLineText;
@@ -494,3 +523,36 @@ annotate service.TermsAndConditions with {
     SubCategory4TermsandConditions  @UI.MultiLineText;
     SubCategory5TermsandConditions  @UI.MultiLineText;  
 }
+
+annotate service.TermsAndConditionPartNumbers with @(
+    UI.LineItem: [
+        {
+            $Type: 'UI.DataField',
+            Value: ProductID,
+            Label: 'Product ID'
+        },
+        {
+            $Type: 'UI.DataField',
+            Value: PartNumberTermsandConditions,
+            Label: 'Part Number Terms and Conditions'
+        }
+    ]
+);
+
+annotate service.TermsAndConditionPartNumbers with {
+    ProductID @(
+        Common.ValueList: {
+            $Type         : 'Common.ValueListType',
+            CollectionPath: 'MatMasVH',
+            Parameters: [
+                {
+                    $Type            : 'Common.ValueListParameterInOut',
+                    LocalDataProperty: 'ProductID',
+                    ValueListProperty: 'Code'
+                }
+            ]
+        }
+    );
+
+    PartNumberTermsandConditions @UI.MultiLineText;
+};

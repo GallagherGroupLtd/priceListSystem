@@ -4,6 +4,7 @@ const STORED_FIELDS = [
     "CategoryLevel",
     "Title",
     "Description",
+    "CountryOfOrigin",
     "MaterialKey",
 
     "PublishedName",
@@ -19,6 +20,8 @@ const STORED_FIELDS = [
     "PriceUnit",
     "PriceValidFrom",
     "PriceValidTo",
+    "ConditionType",
+    "AccessSequence",
 
     "DiscountRate",
     "DiscountValidFrom",

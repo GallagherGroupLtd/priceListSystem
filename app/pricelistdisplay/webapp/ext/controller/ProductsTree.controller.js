@@ -367,10 +367,10 @@ sap.ui.define([
                     const oPublishedCatInput = sap.ui.getCore().byId(sFePrefix + "PublishedMainCategoryInput");
 
                     if (oMainCatInput) {
-                        oMainCatInput.setValue(sCategoryName);
+                        oMainCatInput.setText(sCategoryName);
                     }
                     if (oPublishedCatInput) {
-                        oPublishedCatInput.setValue(sCategoryName);
+                        oPublishedCatInput.setText(sCategoryName);
                     }
 
                     // ====================================================================
@@ -406,8 +406,8 @@ sap.ui.define([
                     const oMainCatInput = sap.ui.getCore().byId(sFePrefix + "MainCategoryInput");
                     const oPublishedCatInput = sap.ui.getCore().byId(sFePrefix + "PublishedMainCategoryInput");
 
-                    if (oMainCatInput) oMainCatInput.setValue("");
-                    if (oPublishedCatInput) oPublishedCatInput.setValue("");
+                    if (oMainCatInput) oMainCatInput.setText("");
+                    if (oPublishedCatInput) oPublishedCatInput.setText("");
                 }
             }
         },

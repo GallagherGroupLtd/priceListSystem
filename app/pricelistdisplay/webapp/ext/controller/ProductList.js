@@ -1,11 +1,59 @@
 sap.ui.define([
     "sap/m/MessageToast",
-    "sap/m/MessageBox"
-], function (MessageToast, MessageBox) {
+    "sap/m/MessageBox",
+    "sap/m/Dialog",
+    "sap/m/Button",
+    "sap/m/Text",
+    "../util/formatter"
+], function (MessageToast, MessageBox, Dialog, Button, Text, Formatter) {
     'use strict';
 
     const ExtController = pricelistapp.pricelistdisplay.ext.controller.PricelistDisplayObjectPageExt.prototype;
     const idPrefix = "pricelistapp.pricelistdisplay::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--";
+
+    function openReadOnlyRowTextDialog(oSource, sPropertyName, sDialogTitle) {
+        const oBindingContext = oSource.getBindingContext("jsonModel");
+        const oRowData = oBindingContext && oBindingContext.getObject();
+
+        if (!oRowData) {
+            MessageToast.show("Unable to determine the selected product tree row.");
+            return;
+        }
+
+        const sContent = String(oRowData[sPropertyName] || "").trim();
+
+        if (!sContent) {
+            MessageToast.show(`No ${sDialogTitle.toLowerCase()} are maintained for this row.`);
+            return;
+        }
+
+        const oDialog = new Dialog({
+            title: sDialogTitle,
+            contentWidth: "40rem",
+            horizontalScrolling: false,
+            verticalScrolling: true,
+            content: [
+                new Text({
+                    text: sContent,
+                    wrapping: true,
+                    renderWhitespace: true,
+                    selectable: true
+                }).addStyleClass("sapUiSmallMargin")
+            ],
+            endButton: new Button({
+                text: "Close",
+                press: function () {
+                    oDialog.close();
+                }
+            }),
+            afterClose: function () {
+                oDialog.destroy();
+            }
+        });
+
+        oDialog.addStyleClass("sapUiContentPadding");
+        oDialog.open();
+    }
 
     function removeNodeFromTree(aNodes, sMaterialKey) {
         for (let i = 0; i < aNodes.length; i++) {
@@ -68,6 +116,18 @@ sap.ui.define([
          *
          * @param oEvent the event object provided by the event provider.
          */
+        formatTreeDate: Formatter.formatTreeDate,
+
+        formatTreeDateRange: Formatter.formatTreeDateRange,
+
+        formatTreeDateForProduct: function (sKind, vDate) {
+            return sKind === "Product" ? Formatter.formatTreeDate(vDate) : "";
+        },
+        
+        formatTreeDateRangeForProduct: function (sKind, vDateFrom, vDateTo) {
+            return sKind === "Product" ? Formatter.formatTreeDateRange(vDateFrom, vDateTo) : "";
+        },
+
         onPress: function (oEvent) {
             MessageToast.show("Custom handler invoked.");
         },
@@ -146,6 +206,14 @@ sap.ui.define([
             // sap.ui.getCore().byId(idPrefix + "ProductListExpandBtn").setVisible(true);
         },
 
+        onOpenDisplayColumnSettings: function () {
+            const oExt = ExtController.getInstance();
+
+            if (oExt && oExt.onOpenDisplayColumnSettings) {
+                oExt.onOpenDisplayColumnSettings();
+            }
+        },
+
         onSortProducts: function (oEvent) {
             const oExt = ExtController.getInstance();
             const oView = oExt.base.getView();
@@ -181,6 +249,14 @@ sap.ui.define([
             MessageToast.show('Product list sorted by description.');
         },
 
+        onOpenHierarchyFilter: function () {
+            ExtController.getInstance().onOpenHierarchyFilter();
+        },
+
+        onClearHierarchyFilter: function () {
+            ExtController.getInstance().onClearHierarchyFilter();
+        },
+
         onExpandAll: function (oEvent) {
             const oButton = oEvent.getSource();
             const oTreeTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
@@ -197,147 +273,28 @@ sap.ui.define([
             sap.ui.getCore().byId(idPrefix + "ProductListExpandAllBtn").setVisible(true);
         },
 
-        onRefresh: function (oEvent) {
-            MessageToast.show("Refresh triggered.");
-            ExtController._getProductPriceList.apply(this);
+        onExportExcel: function () {
+            ExtController.getInstance().onExportExcel(false);
         },
 
-        onRefreshPrice: function (oEvent) {
-            MessageToast.show("Refresh Pricelist by appending new node from item structure table.");
-            ExtController.getInstance()._getProductPriceList()
-                .then((newProductList) => {
-                    ExtController.getInstance()._updateModeToggleEnabled();
-                    // const result = ExtController.getInstance()._addUpdateProductList(newProductList);
-                    // if (result && result.hasChanges) {
-                    //     debugger;
-                    //     ExtController.getInstance()._setTreeTableData(result.productList);
-                    //     // clear any selection after refresh
-                    //     try {
-                    //         const oTable = sap.ui.getCore().byId(idPrefix + "ProductPriceListTreeTable");
-                    //         if (oTable && typeof oTable.clearSelection === 'function') oTable.clearSelection();
-                    //         ExtController.getInstance()._setDeleteBtnState(false);
-                    //         ExtController.getInstance()._updateModeToggleEnabled();
-                    //     } catch (e) { /* ignore */ }
-                    // }
-                });
+        onExportExcelAs: function () {
+            ExtController.getInstance().onExportExcel(true);
         },
 
-        onResetPrice: function (oEvent) {
-
-            MessageBox.confirm("Table will be reset to the original state (before deletes). Continue?", {
-                title: "Confirm Reset Pricelist",
-                actions: [MessageBox.Action.YES, MessageBox.Action.NO],
-                emphasizedAction: MessageBox.Action.YES,
-                onClose: function (oAction) {
-                    if (oAction === MessageBox.Action.YES) {
-                        // delegate reset to extension controller which restores original snapshot if available
-                        ExtController.getInstance().onResetPrice();
-                    }
-                }.bind(this)
-            });
+        onRetrieveDiscounts: function () {
+            ExtController.getInstance().onRetrieveDiscounts();
         },
 
-        onDelete: function (oEvent) {
-            // delegate delete operation to extension controller
-            ExtController.getInstance().onDelete(oEvent);
+        onOpenTermsAndConditions: function (oEvent) {
+            openReadOnlyRowTextDialog(oEvent.getSource(),"TermsAndConditions","Terms and Conditions");
         },
 
-        onUndoDelete: function (oEvent) {
-            // delegate undo delete operation to extension controller
-            ExtController.getInstance().onUndoDelete(oEvent);
-        },
-
-        onDrop: function (oEvent) {
-            const oDraggedControl = oEvent.getParameter("draggedControl");
-            const oDroppedControl = oEvent.getParameter("droppedControl");
-            const sDropPosition = oEvent.getParameter("dropPosition");
-
-            const oDragCtx = oDraggedControl.getBindingContext("jsonModel");
-            const oDropCtx = oDroppedControl.getBindingContext("jsonModel");
-
-            const oDroppedData = oDropCtx.getModel().getProperty(oDropCtx.getPath());
-            const oDraggedData = oDragCtx.getModel().getProperty(oDragCtx.getPath());
-
-            if (!oDraggedData || oDraggedData.kind !== "Product" || !oDraggedData.MaterialKey) {
-                // MessageBox.error("Only product rows can be moved. Category rows are not allowed.");
-                return;
-            }
-
-            if (!oDroppedData) return;
-
-            let oTargetCategory;
-            if (oDroppedData.kind === "Category") {
-                oTargetCategory = oDroppedData;
-            } else if (oDroppedData.kind === "Product") {
-                // Find the parent category of the dropped-on product
-                oTargetCategory = findParentCategory(
-                    ExtController.getInstance().base.getView().getModel("jsonModel").getProperty("/productPriceList"),
-                    oDroppedData.MaterialKey
-                );
-            }
-
-            if (!oTargetCategory) {
-                sap.m.MessageToast.show("Cannot determine target category.");
-                return;
-            }
-
-            const aCatParts = oTargetCategory.key.split(" / ");
-            const oNewCategoryFields = {
-                MainCategory: aCatParts[0] || null,
-                SubCategory1: aCatParts[1] || null,
-                SubCategory2: aCatParts[2] || null,
-                SubCategory3: aCatParts[3] || null,
-                SubCategory4: aCatParts[4] || null,
-                SubCategory5: aCatParts[5] || null
-            };
-
-            const oJsonModel = ExtController.getInstance().base.getView().getModel("jsonModel");
-            const aTree = oJsonModel.getProperty("/productPriceList");
-
-            removeNodeFromTree(aTree, oDraggedData.MaterialKey);
-
-            // Apply new category fields to the dragged node
-            Object.assign(oDraggedData, oNewCategoryFields);
-
-            // oTargetCategory.children.push(oDraggedData);
-            insertNodeIntoCategory(oTargetCategory, oDraggedData, oDroppedData, sDropPosition);
-
-            // No save. just update the model and let user decide when to save by pressing Save button. If want to save immediately, can call submitChanges here.
-            // const oODataModel = ExtController.getInstance().base.getView().getModel();
-            // const oContext = oODataModel.bindContext("/PricelistItemData(" + oDraggedData.ID + ")");
-            // oODataModel.setProperty("MainCategory", oNewCategoryFields.MainCategory, oContext);
-            // // ... repeat for SubCategory1-5
-            // oODataModel.submitBatch("myGroup");
-
-            oJsonModel.setProperty("/productPriceList", [...aTree]);
-        },
-
-        onRowClick: function (oEvent) {
-            // I want to use this but not work yet
-
-            // const oClickedItem = oEvent.getParameter("rowContext");
-            // const sPath = oClickedItem.getPath();
-            // const oModel = oClickedItem.getModel();
-            // const oData = oModel.getProperty(sPath);
-            // MessageToast.show("Row clicked: " + JSON.stringify(oData));
-        },
-
-        onToggleDeleteMode: function (oEvent) {
-            const bDeleteMode = oEvent.getSource().getPressed();
-            const oExt = ExtController.getInstance();
-
-            oExt._setProductTreeModeState(bDeleteMode ? "Delete" : "Display");
-        },
-
-        onToggleReorderMode: function (oEvent) {
-            const bReorderMode = oEvent.getSource().getPressed();
-            const oExt = ExtController.getInstance();
-
-            oExt._setProductTreeModeState(bReorderMode ? "Reorder" : "Display");
+        onOpenNotes: function (oEvent) {
+            openReadOnlyRowTextDialog(oEvent.getSource(),"Notes","Notes");
         },
 
         onSelectionChange: function (oEvent) {
-            ExtController.getInstance()._handleProductTreeSelectionChange(oEvent);
+            ExtController.getInstance()._onSelectionChangeDisplayMode(oEvent);
         },
 
         // onSelectionChangeDisplayMode: function (oEvent) {

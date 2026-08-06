@@ -901,7 +901,8 @@ sap.ui.define([
                 SubCategory3TermsandCond: newSubCat3Terms,
                 SubCategory4TermsandCond: newSubCat4Terms,
                 SubCategory5TermsandCond: newSubCat5Terms,
-                PartNumberTermsandCond: newPartNumTerms
+                PartNumberTermsandCond: newPartNumTerms,
+                TermsAndConditions: newPartNumTerms
             });
 
             // Update /nodes and /nodesAll arrays in the model

@@ -24,9 +24,10 @@ sap.ui.define([
 	 * Object-Page binding context. Must stay in sync with the backend action signature.
 	 */
 	const HEADER_FIELDS = [
-		"ID", "PricelistType", "MarketScopeRegion", "MarketScopeCountry",
-		"SalesOrg", "DistChannel", "CustPriceList",
-		"CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey"
+		"ID", "PricelistType", "MarketScopeRegion", "MarketScopeCountry", "SalesOrg", "DistChannel", "CustPriceList",
+		"CustGroup1", "ErpCustomer", "DeliveringPlant", "Status", "Version", "PricelistGroupID", 
+		"TermsAndConditions", "TACDisableExtUser", "TACDisableIntUser", "Notes", "NotesDisableExtUser", "NotesDisableIntUser",
+		"DisplayLayoutConfig", "DisplayLayoutMaintainedBy", "DisplayLayoutMaintainedAt"
 	];
 
 	/**
@@ -70,10 +71,10 @@ sap.ui.define([
 		"ID", "parent_ID", "pricelist_ID",
 		"PricelistType", "MarketScopeRegion", "MarketScopeCountry",
 		"SalesOrg", "DistChannel", "CustPriceList", "CustGroup1", "ErpCustomer", "DeliveringPlant", "MaterialKey",
-		"OrderIndex", "Kind", "CategoryLevel", "Title", "Description",
+		"OrderIndex", "Kind", "CategoryLevel", "Title", "Description", "CountryOfOrigin",
 		"PublishedName", "TermsAndConditions", "IsTACDisableExt", "IsTACDisableInt",
 		"Notes", "IsNotesDisableExt", "IsNotesDisableInt",
-		"Price", "PriceUnit", "PriceValidFrom", "PriceValidTo",
+		"Price", "PriceUnit", "PriceValidFrom", "PriceValidTo", "ConditionType", "AccessSequence",
 		"DiscountRate", "DiscountValidFrom", "DiscountValidTo", "PriceChangeIndicator",
 		"FuturePrice", "FuturePriceValidFrom", "FuturePriceValidTo",
 		"Status", "StatusValidFromDate", "StatusValidToDate",
@@ -88,6 +89,14 @@ sap.ui.define([
 		"FuturePrice", "FuturePriceValidFrom", "FuturePriceValidTo",
 		"Status", "StatusValidFromDate", "StatusValidToDate",
 		"Supplier", "SupplierSKU"
+	];
+
+	// Fields accepted by saveProductPriceList for each ProductPriceList node.
+	const PRODUCT_PRICE_SAVE_FIELDS = [
+		"ID", "OrderIndex", "Kind", "CategoryLevel", "Title", "Description", "CountryOfOrigin", "MaterialKey",
+		"PublishedName", "TermsAndConditions", "IsTACDisableExt", "IsTACDisableInt", "Notes", "IsNotesDisableExt", "IsNotesDisableInt", 
+		"Price", "PriceUnit", "PriceValidFrom", "PriceValidTo", "ConditionType", "AccessSequence", "DiscountRate","DiscountValidFrom", "DiscountValidTo", "PriceChangeIndicator",
+		"FuturePrice", "FuturePriceValidFrom", "FuturePriceValidTo", "Status", "StatusValidFromDate", "StatusValidToDate", "Supplier", "SupplierSKU"
 	];
 
 	const CATEGORY_NODE_FIELD_CONFIG = [
@@ -119,14 +128,15 @@ sap.ui.define([
 	const EXPORT_COLUMN_FIELD_MAP = {
 		ColCategoriesAndProducts: "Title",
 		ColDescription: "Description",
+		ColCountryOfOrigin: "CountryOfOrigin",
 		ColPriceCurrency: "PriceDisplay",
 		ColValidity: "PriceValidFrom",
 		ColDiscountRate: "DiscountRate",
 		ColDiscountValidity: "DiscountValidFrom",
 		ColDiscountExpiry: "DiscountValidTo",
 		ColPriceChangeIndicator: "PriceChangeIndicator",
-		ColFuturePrice: "FuturePriceDisplay",
-		ColFuturePriceValidity: "FuturePriceValidityDisplay",
+		// ColFuturePrice: "FuturePriceDisplay",
+		// ColFuturePriceValidity: "FuturePriceValidityDisplay",
 		ColStatus: "Status",
 		ColStatusValidFrom: "StatusValidFromDate",
 		ColStatusValidTo: "StatusValidToDate",
@@ -169,14 +179,14 @@ sap.ui.define([
 			 * Runs after the Object Page is ready and all controls are rendered.
 			 * Caches control references and performs the initial state sync.
 			 */
-			onPageReady: function () {
+			onPageReady: async function () {
 				this._productTreeSection = this._getTreeControl("ProductTreeFragment_ID");
 				this._productTreeTable = this._getTreeControl("ProductPriceListTreeTable");
 
 				_oInstance = this;
 
 				this._bindProductDetailSubSections();
-				this._syncEditModeState();
+				await this._syncEditModeState();
 				this._captureOriginalSnapshotWhenEnteringEditMode();
 				this._resetProductDetailState();
 				this._attachEditModeListener();
@@ -186,6 +196,8 @@ sap.ui.define([
 					deleteMode: false,
 					reorderMode: false
 				});
+
+				await this._loadDefaultPricelistTermsAndConditions();
 
 				this._syncProductTreeToolbarState();
 				this._updateModeToggleEnabled();
@@ -199,26 +211,46 @@ sap.ui.define([
 				 * Serialises the current tree to the backend before Fiori Elements commits
 				 * the draft. Returns a rejected promise on error so FE can abort the save.
 				 */
-				onBeforeSave: function () {
+				onBeforeSave: async function () {
 					const oJsonModel = this._getJsonModel();
 
 					// Bug fix: saving while delete/reorder mode is active is not allowed —
 					// the user must press "Finish" on that mode first.
 					if (oJsonModel.getProperty("/isDeleteMode") || oJsonModel.getProperty("/isReorderMode")) {
 						MessageBox.error("Please finish delete or re-order mode before saving your changes.");
-						return Promise.reject();
+						return Promise.reject(new Error("Product-tree mode must be completed before saving."));
 					}
 
 					const aTree = oJsonModel.getProperty("/productPriceList") || [];
 					const aPendingDeletedIds = oJsonModel.getProperty("/pendingDeletedIds") || [];
 
+					const oHeader = await this._getCurrentHeaderData();
+					const oOriginalHeader = this._originalHeaderSnapshot || oHeader;
+
+					const bIsPublication = oHeader.Status === "Published" && oOriginalHeader.Status !== "Published";
+
+					/*
+				     * This will prompt only when a new version is being activated/published.
+				     * The current draft already inherits DisplayLayoutConfig from the previous published version through the existing version-copy architecture.
+				     */
+
+					if (bIsPublication) {
+						const oDisplayLayout = await this._confirmDisplayLayoutBeforePublication(oHeader.DisplayLayoutConfig);
+
+						if (!oDisplayLayout) {
+							return Promise.reject(new Error("Pricelist publication was cancelled."));
+						}
+
+						await this._writeDisplayLayoutToDraft(oDisplayLayout);
+
+						// Refresh the locally captured header after writing the layout to the draft context so saveProductPriceList receives the latest values.
+						Object.assign(oHeader,await this._getCurrentHeaderData());
+					}
+
 					if (!aTree.length && !aPendingDeletedIds.length) {
 						// MessageToast.show("Nothing to save.");
 						return Promise.resolve();
 					}
-
-					const oHeader = this._getCurrentHeaderData();
-					const oOriginalHeader = this._originalHeaderSnapshot || oHeader;
 
 					return this._callSaveProductPriceList(oHeader, oOriginalHeader, aTree);
 				},
@@ -271,6 +303,123 @@ sap.ui.define([
 
 		/** Returns the current controller singleton for use in fragment event handlers. */
 		getInstance: function () { return _oInstance; },
+
+		// Fully expands the Product Tree after its JSON row binding has processed the latest hierarchy.
+		_expandProductTreeFully: function () {
+			const oTable =
+				this._productTreeTable ||
+				this._getTreeControl("ProductPriceListTreeTable");
+
+			if (!oTable) {
+				return;
+			}
+
+			const fnExpand = function () {
+				oTable.expandToLevel(99);
+
+				const oExpandAllButton =
+					sap.ui.getCore().byId(
+						ID_TREE_PREFIX + "ProductListExpandAllBtn"
+					);
+
+				const oCollapseAllButton =
+					sap.ui.getCore().byId(
+						ID_TREE_PREFIX + "ProductListCollapseAllBtn"
+					);
+
+				if (oExpandAllButton) {
+					oExpandAllButton.setVisible(false);
+				}
+
+				if (oCollapseAllButton) {
+					oCollapseAllButton.setVisible(true);
+				}
+			};
+
+			const oRowsBinding = oTable.getBinding("rows");
+
+			if (oRowsBinding) {
+				oTable.attachEventOnce("rowsUpdated", fnExpand);
+			}
+
+			setTimeout(fnExpand, 0);
+		},
+
+		// Enhanced to load both default Pricelist header Terms and Conditions and default Pricelist header Notes from Data Maintenance.
+		_loadDefaultPricelistTermsAndConditions: async function () {
+			const oView = this.base.getView();
+			const oModel = oView.getModel();
+			const oContext = oView.getBindingContext();
+
+			if (!oModel || !oContext) {
+				return;
+			}
+
+			const sContextPath = oContext.getPath();
+
+			if (this._termsResolutionContextPath === sContextPath && this._termsResolutionCompleted) {
+				return;
+			}
+
+			this._termsResolutionContextPath = sContextPath;
+			this._termsResolutionCompleted = false;
+
+			const oHeader = await oModel.bindContext(sContextPath, null, {
+				$select: [
+					"TermsAndConditions",
+					"Notes",
+					"PricelistType",
+					"MarketScopeRegion",
+					"MarketScopeCountry",
+					"SalesOrg",
+					"DistChannel",
+					"CustPriceList",
+					"CustGroup1",
+					"ErpCustomer",
+					"DeliveringPlant"
+				].join(",")
+			}).requestObject();
+
+			if (!oHeader) {
+				return;
+			}
+
+			const sCurrentTerms = oHeader.TermsAndConditions === null || oHeader.TermsAndConditions === undefined ? "" : String(oHeader.TermsAndConditions).trim();
+			const sCurrentNotes = oHeader.Notes === null || oHeader.Notes === undefined ? "" : String(oHeader.Notes).trim();
+
+			if (sCurrentTerms && sCurrentNotes) {
+				this._termsResolutionCompleted = true;
+				return;
+			}
+
+			// const oAction = oModel.bindContext("/resolvePricelistTermsAndConditions(...)");
+			const oAction = oModel.bindContext("/resolvePricelistHeaderDefaults(...)");
+			oAction.setParameter("PricelistType",oHeader.PricelistType ?? null);
+			oAction.setParameter("MarketScopeRegion",oHeader.MarketScopeRegion ?? null);
+			oAction.setParameter("MarketScopeCountry",oHeader.MarketScopeCountry ?? null);
+			oAction.setParameter("SalesOrg",oHeader.SalesOrg ?? null);
+			oAction.setParameter("DistChannel",oHeader.DistChannel ?? null);
+			oAction.setParameter("CustPriceList",oHeader.CustPriceList ?? null);
+			oAction.setParameter("CustGroup1",oHeader.CustGroup1 ?? null);
+			oAction.setParameter("ErpCustomer",oHeader.ErpCustomer ?? null);
+			oAction.setParameter("DeliveringPlant",oHeader.DeliveringPlant ?? null);
+
+			await oAction.execute();
+
+			const oResult = oAction.getBoundContext()?.getObject();
+			const sResolvedTerms = oResult?.TermsAndConditions ?? "";
+			const sResolvedNotes = oResult?.Notes ?? "";
+
+			if (!sCurrentTerms && String(sResolvedTerms).trim() !== "") {
+				oContext.setProperty("TermsAndConditions",sResolvedTerms);
+			}
+
+			if (!sCurrentNotes && String(sResolvedNotes).trim() !== "") {
+				oContext.setProperty("Notes",sResolvedNotes);
+			}
+
+			this._termsResolutionCompleted = true;
+		},
 
 		// ── Product list toolbar handlers ─────────────────────────────────────────
 
@@ -438,18 +587,30 @@ sap.ui.define([
 
 				[
 					"Description",
-					"TermsAndConditions",
-					"Notes",
+					// "TermsAndConditions",
+					// "Notes",
 					"PublishedName",
-					"IsTACDisableExt",
-					"IsTACDisableInt",
-					"IsNotesDisableExt",
-					"IsNotesDisableInt"
+					// "IsTACDisableExt",
+					// "IsTACDisableInt",
+					// "IsNotesDisableExt",
+					// "IsNotesDisableInt"
 				].forEach(function (sField) {
 					if (oFreshNode[sField] !== undefined) {
 						oExistingNode[sField] = oFreshNode[sField];
 					}
 				});
+				
+				if (oExistingNode.Kind === "Product" && oFreshNode.Kind === "Product") {
+					[
+						"Notes",
+						"IsNotesDisableExt",
+						"IsNotesDisableInt"
+					].forEach(function (sField) {
+						if (oFreshNode[sField] !== undefined) {
+							oExistingNode[sField] = oFreshNode[sField];
+						}
+					});
+				}
 			};
 
 			const mergeChildren = function (aExistingChildren, aFreshChildren, sParentPath) {
@@ -679,17 +840,33 @@ sap.ui.define([
 				return;
 			}
 
-			// Capture a snapshot before deletion so the operation can be undone.
-			const aSnapshot = this._clone(aCurrentTree);
+			const aCurrentFullTree = oModel.getProperty("/productPriceListFull") || [];
+			const aVisibleTreeSnapshot = this._clone(aCurrentTree);
+			const aFullTreeSnapshot = this._clone(aCurrentFullTree);
 
 			if (!this._originalSnapshot) {
-				this._originalSnapshot = this._clone(aSnapshot);
+				this._originalSnapshot = this._clone(aVisibleTreeSnapshot);
 			}
 
 			this._deletedSnapshots.push({
-				tree: aSnapshot,
-				pendingDeletedIds: oModel.getProperty("/pendingDeletedIds") || []
+				tree: aVisibleTreeSnapshot,
+				fullTree: aFullTreeSnapshot,
+				pendingDeletedIds: [
+					...(oModel.getProperty("/pendingDeletedIds") || [])
+				]
 			});
+
+			// // Capture a snapshot before deletion so the operation can be undone.
+			// const aSnapshot = this._clone(aCurrentTree);
+
+			// if (!this._originalSnapshot) {
+			// 	this._originalSnapshot = this._clone(aSnapshot);
+			// }
+
+			// this._deletedSnapshots.push({
+			// 	tree: aSnapshot,
+			// 	pendingDeletedIds: oModel.getProperty("/pendingDeletedIds") || []
+			// });
 
 			// Accumulate backend IDs that need to be deleted on save.
 			const aPendingDeletedIds = oModel.getProperty("/pendingDeletedIds") || [];
@@ -724,6 +901,24 @@ sap.ui.define([
 					.filter(Boolean);
 			};
 
+			//This is done to ensure deletion of full tree is not the same as for visible tree, to act as a safety net in case deletion is called in some other way.
+			const filterFullTreeByDeletedIds = (aNodes) => {
+				if (!Array.isArray(aNodes)) return [];
+
+				return aNodes.map((oNode) => {
+					if (!oNode) return null;
+
+					if (oNode.ID && pendingDeletedIdSet.has(oNode.ID)) {
+						return null;
+					}
+
+					return Object.assign({}, oNode, {
+						children: filterFullTreeByDeletedIds(oNode.children || [])
+					});
+				})
+				.filter(Boolean);
+			};
+
 			// After removing the selected rows, drop any Category that has become empty
 			// Deleting the last child of a parent should delete the parent too. 
 			const removeEmptyCategories = (aNodes) => {
@@ -745,9 +940,16 @@ sap.ui.define([
 					})
 					.filter(Boolean);
 			};
-			const aCleanTree = removeEmptyCategories(filterTree(aCurrentTree, "/productPriceList"));
+			// const aCleanTree = removeEmptyCategories(filterTree(aCurrentTree, "/productPriceList"));
 
-			oModel.setProperty("/productPriceList", aCleanTree);
+			const aCleanVisibleTree = removeEmptyCategories(filterTree(aCurrentTree,"/productPriceList"));
+			const aCleanFullTree = removeEmptyCategories(filterFullTreeByDeletedIds(aCurrentFullTree));
+
+			oModel.setProperty("/productPriceList",aCleanVisibleTree);
+			oModel.setProperty("/productPriceListFull",this._clone(aCleanFullTree));
+
+			// oModel.setProperty("/productPriceList", aCleanTree);
+			// oModel.setProperty("/productPriceListFull", this._clone(aCleanTree));
 			oModel.setProperty("/pendingDeletedIds", Array.from(pendingDeletedIdSet));
 			oModel.setProperty("/selectedKeys", []);
 
@@ -770,12 +972,21 @@ sap.ui.define([
 
 			const oSnapshot = this._deletedSnapshots.pop();
 			const oModel = this._getJsonModel();
-			const aTree = Array.isArray(oSnapshot) ? oSnapshot : oSnapshot.tree;
-			const aPendingDeletedIds = Array.isArray(oSnapshot) ? [] : (oSnapshot.pendingDeletedIds || []);
 
-			oModel.setProperty("/productPriceList", this._clone(aTree));
+			const aVisibleTree = Array.isArray(oSnapshot) ? oSnapshot : (oSnapshot.tree || []);
+			const aFullTree = Array.isArray(oSnapshot) ? oSnapshot : (oSnapshot.fullTree || oSnapshot.tree || []);
+			const aPendingDeletedIds = Array.isArray(oSnapshot) ? [] : [
+				...(oSnapshot.pendingDeletedIds || [])
+			];
+			// const aTree = Array.isArray(oSnapshot) ? oSnapshot : oSnapshot.tree;
+			// const aPendingDeletedIds = Array.isArray(oSnapshot) ? [] : (oSnapshot.pendingDeletedIds || []);
+
+			oModel.setProperty("/productPriceList", this._clone(aVisibleTree));
+			oModel.setProperty("/productPriceListFull", this._clone(aFullTree));
 			oModel.setProperty("/pendingDeletedIds", aPendingDeletedIds);
 			oModel.setProperty("/selectedKeys", []);
+
+			oModel.updateBindings(true);
 
 			const oTable = this._getTreeControl("ProductPriceListTreeTable");
 			if (oTable && oTable.clearSelection) oTable.clearSelection();
@@ -898,6 +1109,8 @@ sap.ui.define([
 
 			this._clearProductTreeTransientState();
 			oJsonModel.updateBindings(true);
+
+			this._expandProductTreeFully();
 		},
 
 		// ── Initial load (direct from the ProductPriceList entity) ─────────────────
@@ -918,24 +1131,144 @@ sap.ui.define([
 		 *
 		 * @returns {Promise<void>}
 		 */
+		// _initialLoadProductPriceList: function () {
+		// 	const oJsonModel = this._getJsonModel();
+		// 	if (!oJsonModel) return Promise.resolve();
+
+		// 	return this._fetchProductPriceListEntityTree()
+		// 		.then((aTree) => {
+		// 			oJsonModel.setProperty("/productPriceList", this._clone(aTree));
+		// 			oJsonModel.setProperty("/productPriceListFull", this._clone(aTree));
+		// 			oJsonModel.setProperty("/originalProductPriceList", this._clone(aTree));
+
+		// 			this._originalSnapshot = this._clone(aTree);
+
+		// 			this._clearProductTreeTransientState();
+		// 			oJsonModel.updateBindings(true);
+
+		// 			this._expandProductTreeFully();
+		// 		})
+		// 		.catch((oError) => {
+		// 			console.error(oError);
+		// 			MessageToast.show("Failed to load the pricelist.");
+		// 		});
+		// },
+
+		/**
+		 * Enriches Product nodes in an already-persisted ProductPriceList tree with Country of Origin returned by getProductTreeData.
+		 *
+		 * Only CountryOfOrigin is copied. Persisted prices, discounts, ordering, deletions, notes, IDs and all other maintained fields remain unchanged.
+		 *
+		 * MaterialKey is the primary match. Product Title, which contains the material number, is used as a fallback for older persisted rows without MaterialKey.
+		 */
+		_enrichPersistedTreeCountryOfOrigin: function (aPersistedTree, aGeneratedRows) {
+			const aSafeTree = Array.isArray(aPersistedTree) ? this._clone(aPersistedTree) : [];
+			const aSafeGeneratedRows = Array.isArray(aGeneratedRows) ? aGeneratedRows : [];
+
+			const mCountryByMaterialKey = new Map();
+			const mCountryByMaterial = new Map();
+
+			aSafeGeneratedRows.forEach((oRow) => {
+				const sCountryOfOrigin = String(oRow.CountryOfOrigin || "").trim();
+
+				if (!sCountryOfOrigin) {
+					return;
+				}
+
+				const sMaterialKey = String(oRow.MaterialKey || "").trim();
+				const sMaterial = String(oRow.Material || "").trim();
+
+				if (sMaterialKey) {
+					mCountryByMaterialKey.set(sMaterialKey,sCountryOfOrigin);
+				}
+
+				if (sMaterial) {
+					mCountryByMaterial.set(sMaterial,sCountryOfOrigin);
+				}
+			});
+
+			const enrichNodes = (aNodes) => {
+				(aNodes || []).forEach((oNode) => {
+					if (oNode.Kind === "Product") {
+						const sExistingCountry = String(oNode.CountryOfOrigin || "").trim();
+
+						if (!sExistingCountry) {
+							const sMaterialKey = String(oNode.MaterialKey || "").trim();
+							const sMaterial = String(oNode.Title || "").trim();
+
+							oNode.CountryOfOrigin = mCountryByMaterialKey.get(sMaterialKey) || mCountryByMaterial.get(sMaterial) || null;
+						}
+					}
+
+					if (Array.isArray(oNode.children) && oNode.children.length > 0) {
+						enrichNodes(oNode.children);
+					}
+				});
+			};
+
+			enrichNodes(aSafeTree);
+
+			return aSafeTree;
+		},
+
+		_hasMissingCountryOfOrigin: function (aTree) {
+			const hasMissingValue = (aNodes) => {
+				return (aNodes || []).some((oNode) => {
+					if (oNode.Kind === "Product" && !String(oNode.CountryOfOrigin || "").trim()) {
+						return true;
+					}
+
+					return Array.isArray(oNode.children) && oNode.children.length > 0 && hasMissingValue(oNode.children);
+				});
+			};
+
+			return hasMissingValue(aTree);
+		},
+
 		_initialLoadProductPriceList: function () {
 			const oJsonModel = this._getJsonModel();
-			if (!oJsonModel) return Promise.resolve();
+
+			if (!oJsonModel) {
+				return Promise.resolve();
+			}
+
+			const applyTree = (aTree) => {
+				const aSafeTree = Array.isArray(aTree) ? aTree : [];
+				oJsonModel.setProperty("/productPriceList",this._clone(aSafeTree));
+				oJsonModel.setProperty("/productPriceListFull",this._clone(aSafeTree));
+				oJsonModel.setProperty("/originalProductPriceList",this._clone(aSafeTree));
+
+				this._originalSnapshot = this._clone(aSafeTree);
+				this._clearProductTreeTransientState();
+				oJsonModel.updateBindings(true);
+				this._expandProductTreeFully();
+			};
 
 			return this._fetchProductPriceListEntityTree()
-				.then((aTree) => {
-					oJsonModel.setProperty("/productPriceList", this._clone(aTree));
-					oJsonModel.setProperty("/productPriceListFull", this._clone(aTree));
-					oJsonModel.setProperty("/originalProductPriceList", this._clone(aTree));
+				.then((aPersistedTree) => {
+					const bHasPersistedTree = Array.isArray(aPersistedTree) && aPersistedTree.length > 0;
+					if (!bHasPersistedTree) {
+						return this._getProductPriceList("").then((aGeneratedRows) => {
+							const aGeneratedTree = this._buildTreeFromFlatData(aGeneratedRows || []);
+							applyTree(aGeneratedTree);
+						});
+					}
 
-					this._originalSnapshot = this._clone(aTree);
+					if (!this._hasMissingCountryOfOrigin(aPersistedTree)) {
+						applyTree(aPersistedTree);
+						return;
+					}
 
-					this._clearProductTreeTransientState();
-					oJsonModel.updateBindings(true);
+					return this._getProductPriceList("")
+						.then((aGeneratedRows) => {
+							const aEnrichedTree = this._enrichPersistedTreeCountryOfOrigin(aPersistedTree,aGeneratedRows);
+							applyTree(aEnrichedTree);
+						});
 				})
 				.catch((oError) => {
-					console.error(oError);
+					console.error("Failed to load or enrich product tree:",oError);
 					MessageToast.show("Failed to load the pricelist.");
+					throw oError;
 				});
 		},
 
@@ -1009,7 +1342,13 @@ sap.ui.define([
 			const aRoots = [];
 
 			aFlatRows.forEach((oRow) => {
-				mById[oRow.ID] = Object.assign({}, oRow, { children: [] });
+				const oNode = Object.assign({},oRow,{ children: [] });
+
+				if (oNode.Kind === "Product") {
+					oNode.PartNumberTermsandCond = oNode.TermsAndConditions ?? null;
+				}
+
+				mById[oRow.ID] = oNode;
 			});
 
 			aFlatRows.forEach((oRow) => {
@@ -1035,6 +1374,55 @@ sap.ui.define([
 			sortRec(aRoots);
 
 			return aRoots;
+		},
+
+		_compareItemStructureSequence: function (vSequenceA, vSequenceB) {
+			const sSequenceA = String(vSequenceA ?? "").trim();
+			const sSequenceB = String(vSequenceB ?? "").trim();
+
+			const bBlankA = sSequenceA === "";
+			const bBlankB = sSequenceB === "";
+
+			if (bBlankA && bBlankB) {
+				return 0;
+			}
+
+			if (bBlankA) {
+				return 1;
+			}
+
+			if (bBlankB) {
+				return -1;
+			}
+
+			const bNumericA = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/.test(sSequenceA) && Number.isFinite(Number(sSequenceA));
+			const bNumericB = /^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/.test(sSequenceB) && Number.isFinite(Number(sSequenceB));
+
+			if (bNumericA && bNumericB) {
+				const iNumericComparison = Number(sSequenceA) - Number(sSequenceB);
+
+				if (iNumericComparison !== 0) {
+					return iNumericComparison;
+				}
+
+				return sSequenceA.localeCompare(sSequenceB, undefined, {
+					numeric: true,
+					sensitivity: "base"
+				});
+			}
+
+			if (bNumericA) {
+				return -1;
+			}
+
+			if (bNumericB) {
+				return 1;
+			}
+
+			return sSequenceA.localeCompare(sSequenceB, undefined, {
+				numeric: true,
+				sensitivity: "base"
+			});
 		},
 
 		/**
@@ -1084,6 +1472,11 @@ sap.ui.define([
 							Description: row[oLevelConfig.descField] || null,
 							...oExtraFields,
 
+							//Categories should not carry over Product notes. Category specific notes would have to be explicitly updated by the user as per current setup
+							Notes: null,
+							IsNotesDisableExt: null,
+							IsNotesDisableInt: null,
+
 							// Categories carry no price or discount data.
 							Price: null, PriceUnit: null,
 							PriceValidFrom: null, PriceValidTo: null,
@@ -1108,6 +1501,10 @@ sap.ui.define([
 						}
 					} else {
 						const oExisting = nodeMap[currentPath];
+						if (this._compareItemStructureSequence(row.Sequence,oExisting.Sequence) < 0) {
+							oExisting.Sequence = row.Sequence;
+						}
+
 						Object.entries(oLevelConfig.extraFields).forEach(([sNodeField, sSourceField]) => {
 							const vCurrent = oExisting[sNodeField];
 							if ((vCurrent === null || vCurrent === undefined || vCurrent === "") && row[sSourceField]) {
@@ -1133,6 +1530,8 @@ sap.ui.define([
 						CategoryLevel: 6,
 						Title: row.Material,
 						Description: row.MaterialDescription,
+						CountryOfOrigin: row.CountryOfOrigin || null,
+						PartNumberTermsandCond: row.PartNumberTermsandCond ?? null,
 
 						AccessSequence: row.AccessSequence,
 						ConditionType: row.ConditionType,
@@ -1165,6 +1564,67 @@ sap.ui.define([
 					}
 				}
 			});
+
+			const sortGeneratedTreeBySequence = (aNodes) => {
+				if (!Array.isArray(aNodes) || !aNodes.length) {
+					return;
+				}
+
+				aNodes.forEach((oNode) => {
+					if (Array.isArray(oNode.children) && oNode.children.length) {
+						sortGeneratedTreeBySequence(oNode.children);
+					}
+				});
+
+				const aCategoryNodes = [];
+				const aProductNodes = [];
+
+				aNodes.forEach((oNode, iOriginalIndex) => {
+					const oEntry = {
+						node: oNode,
+						originalIndex: iOriginalIndex
+					};
+
+					if (oNode.Kind === "Category") {
+						aCategoryNodes.push(oEntry);
+					} else {
+						aProductNodes.push(oEntry);
+					}
+				});
+
+				aCategoryNodes.sort((oEntryA, oEntryB) => {
+					const iSequenceComparison = this._compareItemStructureSequence(oEntryA.node.Sequence,oEntryB.node.Sequence);
+
+					if (iSequenceComparison !== 0) {
+						return iSequenceComparison;
+					}
+
+					const iTitleComparison = String(oEntryA.node.Title || "").localeCompare(String(oEntryB.node.Title || ""),undefined,{
+							numeric: true,
+							sensitivity: "base"
+						}
+					);
+
+					if (iTitleComparison !== 0) {
+						return iTitleComparison;
+					}
+
+					return oEntryA.originalIndex - oEntryB.originalIndex;
+				});
+
+				const aOrderedNodes = [
+					...aCategoryNodes.map((oEntry) => oEntry.node),
+					...aProductNodes.map((oEntry) => oEntry.node)
+				];
+
+				aNodes.splice(0, aNodes.length, ...aOrderedNodes);
+
+				aNodes.forEach((oNode, iIndex) => {
+					oNode.OrderIndex = iIndex;
+				});
+			};
+
+			sortGeneratedTreeBySequence(tree);
 
 			return tree;
 		},
@@ -2152,8 +2612,12 @@ sap.ui.define([
 					setAsDefault: false,
 					setAsMasterDefault: false,
 					canDeleteSelected: false
-				}
+				},
 
+				displayLayoutSettings: {
+					columns: [],
+					publicationRequired: false
+				}
 			};
 		},
 
@@ -2435,19 +2899,245 @@ sap.ui.define([
 			}
 		},
 
+		_loadDisplayColumnConfiguration: async function () {
+			const oModel = this.base.getView().getModel();
+
+			const oActionBinding = oModel.bindContext("/getPricelistDisplayColumnConfiguration(...)");
+
+			await oActionBinding.execute();
+
+			const oBoundContext = oActionBinding.getBoundContext();
+			const oResult = oBoundContext ? oBoundContext.getObject() : null;
+
+			const aColumns = Array.isArray(oResult) ? oResult : oResult && Array.isArray(oResult.value) ? oResult.value : [];
+
+			if (!aColumns.length) {
+				throw new Error("Pricelist Display column configuration is unavailable.");
+			}
+
+			return aColumns.map((oColumn, iIndex) => ({
+				id: oColumn.id,
+				label: oColumn.label || oColumn.id,
+				mandatory: !!oColumn.mandatory,
+				defaultVisible: oColumn.defaultVisible !== false,
+				order: Number.isInteger(oColumn.order) ? oColumn.order : iIndex
+			})).sort((oFirst, oSecond) => oFirst.order - oSecond.order);
+		},
+
+		_buildDefaultDisplayLayoutColumns: function (aConfiguration) {
+			return (aConfiguration || []).map((oColumn, iIndex) => ({
+				id: oColumn.id,
+				label: oColumn.label || oColumn.id,
+				mandatory: !!oColumn.mandatory,
+				visible: !!oColumn.mandatory || oColumn.defaultVisible !== false,
+				order: Number.isInteger(oColumn.order) ? oColumn.order : iIndex
+			})).sort((oFirst, oSecond) => oFirst.order - oSecond.order);
+		},
+
+		_parseDisplayLayoutConfig: function (sConfig,aConfiguration) {
+			const aDefaultColumns = this._buildDefaultDisplayLayoutColumns(aConfiguration);
+
+			if (!sConfig) {
+				return aDefaultColumns;
+			}
+
+			try {
+				const aSavedColumns = JSON.parse(sConfig);
+
+				if (!Array.isArray(aSavedColumns)) {
+					return aDefaultColumns;
+				}
+
+				const mSavedById = new Map(aSavedColumns.filter((oColumn) => oColumn && oColumn.id).map((oColumn, iIndex) => [
+					oColumn.id,
+					{
+						visible: oColumn.visible !== false,
+						order: Number.isInteger(oColumn.order) ? oColumn.order : iIndex
+					}
+				]));
+
+				return aDefaultColumns.map((oDefaultColumn, iIndex) => {
+					const oSavedColumn = mSavedById.get(oDefaultColumn.id);
+
+					return {
+						id: oDefaultColumn.id,
+						label: oDefaultColumn.label,
+						mandatory: !!oDefaultColumn.mandatory,
+						visible: oDefaultColumn.mandatory ? true : oSavedColumn ? oSavedColumn.visible : oDefaultColumn.visible,
+						order: oSavedColumn ? oSavedColumn.order : Number.isInteger(oDefaultColumn.order) ? oDefaultColumn.order : iIndex
+					};
+				}).sort((oFirst, oSecond) => oFirst.order - oSecond.order);
+			} catch (oError) {
+				console.error("Invalid DisplayLayoutConfig. Using the central default configuration.",oError);
+				return aDefaultColumns;
+			}
+		},
+
+		_confirmDisplayLayoutBeforePublication: async function (sExistingConfig) {
+			const oJsonModel = this._getJsonModel();
+			const aConfiguration = await this._loadDisplayColumnConfiguration();
+			const aColumns = this._parseDisplayLayoutConfig(sExistingConfig,aConfiguration);
+
+			oJsonModel.setProperty("/displayLayoutSettings/columns",aColumns);
+			oJsonModel.setProperty("/displayLayoutSettings/publicationRequired",true);
+
+			return new Promise((resolve) => {
+				this._fnResolveDisplayLayoutPublication = resolve;
+
+				if (this._oDisplayLayoutPublicationDialog) {
+					this._oDisplayLayoutPublicationDialog.open();
+					return;
+				}
+
+				Fragment.load({
+					id: this.base.getView().getId(),
+					name: "pricelistapp.pricelistmaintain.ext.fragment.DisplayLayoutPublicationDialog",
+					controller: this
+				}).then((oDialog) => {
+					this._oDisplayLayoutPublicationDialog = oDialog;
+					this.base.getView().addDependent(oDialog);
+					oDialog.open();
+				}).catch((oError) => {
+					console.error("Unable to load Display-layout publication dialog.",oError);
+					this._resolveDisplayLayoutPublication(null);
+				});
+			});
+		},
+
+		onDisplayLayoutColumnSelectionChange: function (oEvent) {
+			const oContext = oEvent.getSource().getBindingContext("jsonModel");
+
+			if (!oContext) {
+				return;
+			}
+
+			const oColumn = oContext.getObject();
+
+			if (oColumn && oColumn.mandatory) {
+				oContext.setProperty("visible",true);
+			}
+		},
+
+		onConfirmDisplayLayoutPublication: function () {
+			const oJsonModel = this._getJsonModel();
+
+			const aDialogColumns = oJsonModel.getProperty("/displayLayoutSettings/columns") || [];
+			const bMandatoryColumnsPresent = aDialogColumns.filter((oColumn) => oColumn.mandatory).every((oColumn) => oColumn.visible);
+
+
+			if (!bMandatoryColumnsPresent) {
+				MessageBox.error("Categories and Products and Description must remain visible.");
+				return;
+			}
+
+			const aPersistedColumns = aDialogColumns.map((oColumn, iIndex) => ({
+                id: oColumn.id,
+                visible: oColumn.mandatory ? true : !!oColumn.visible,
+                order: iIndex
+            }));
+
+			this._resolveDisplayLayoutPublication({
+				config: JSON.stringify(aPersistedColumns)
+			});
+		},
+
+		onCancelDisplayLayoutPublication: function () {
+			this._resolveDisplayLayoutPublication(null);
+		},
+
+		onAfterCloseDisplayLayoutPublicationDialog: function () {
+			//Kept as placceholder for future requirements
+		},
+
+		_resolveDisplayLayoutPublication: function (oResult) {
+			if (this._oDisplayLayoutPublicationDialog) {
+				this._oDisplayLayoutPublicationDialog.close();
+			}
+
+			const fnResolve = this._fnResolveDisplayLayoutPublication;
+			this._fnResolveDisplayLayoutPublication = null;
+
+			if (fnResolve) {
+				fnResolve(oResult);
+			}
+		},
+
+		_writeDisplayLayoutToDraft: async function (oDisplayLayout) {
+			const oContext = this.base.getView().getBindingContext();
+
+			if (!oContext) {
+				throw new Error("Pricelist binding context is unavailable.");
+			}
+
+			const sCurrentUser = await this._getCurrentUserId();
+			const sMaintainedAt = new Date().toISOString();
+
+			await Promise.all([
+				oContext.setProperty("DisplayLayoutConfig",oDisplayLayout.config),
+				oContext.setProperty("DisplayLayoutMaintainedBy",sCurrentUser || ""),
+				oContext.setProperty("DisplayLayoutMaintainedAt",sMaintainedAt)
+			]);
+		},
+
+		// Produces the minimal nested tree required by saveProductPriceList.
+		_buildSaveTreePayload: function (aNodes) {
+			if (!Array.isArray(aNodes)) {
+				return [];
+			}
+
+			const cleanNode = (oNode) => {
+				const oPayloadNode = {};
+
+				PRODUCT_PRICE_SAVE_FIELDS.forEach((sField) => {
+					const vValue = oNode[sField];
+
+					if (vValue !== undefined && vValue !== null && vValue !== "") {
+						oPayloadNode[sField] = vValue;
+					}
+				});
+
+				if (oNode.Kind === "Product" && oNode.TermsAndConditions === "") {
+					oPayloadNode.TermsAndConditions = "";
+				}
+
+				// Preserving explicit false values because these are meaningful for boolean fields and would otherwise be omitted by generic cleaning.
+				[
+					"IsTACDisableExt",
+					"IsTACDisableInt",
+					"IsNotesDisableExt",
+					"IsNotesDisableInt",
+					"PriceChangeIndicator"
+				].forEach((sField) => {
+					if (oNode[sField] === false) {
+						oPayloadNode[sField] = false;
+					}
+				});
+
+				if (Array.isArray(oNode.children) && oNode.children.length > 0) {
+					oPayloadNode.children = oNode.children.map(cleanNode);
+				}
+
+				return oPayloadNode;
+			};
+
+			return aNodes.map(cleanNode);
+		},
+
 		_callSaveProductPriceList: function (oHeader, oOriginalHeader, aTree) {
 			const oActionBinding = this.base.getView().getModel().bindContext("/saveProductPriceList(...)");
 
+			const aSaveTree = this._buildSaveTreePayload(aTree);
+
 			oActionBinding.setParameter("headerData", JSON.stringify(oHeader));
 			oActionBinding.setParameter("originalHeaderData", JSON.stringify(oOriginalHeader));
-			oActionBinding.setParameter("treeData", JSON.stringify(aTree));
+			oActionBinding.setParameter("treeData", JSON.stringify(aSaveTree));
 
 			return oActionBinding
 				.execute()
 				.then(() => {
 					MessageToast.show("Pricelist saved successfully.");
 
-					// Clear session-scoped staging state now that it is persisted.
+					// Clearing session-scoped staging state now that it is persisted.
 					this._originalSnapshot = null;
 					this._originalHeaderSnapshot = null;
 					this._deletedSnapshots = [];
@@ -2459,12 +3149,21 @@ sap.ui.define([
 		},
 
 		/** Reads the current header field values from the Object-Page binding context. */
-		_getCurrentHeaderData: function () {
+		_getCurrentHeaderData: async function () {
 			const oContext = this.base.getView().getBindingContext();
 			if (!oContext) return {};
 
+		    const oModel = oContext.getModel();
+			const sContextPath = oContext.getPath();
+
+			const oHeaderBinding = oModel.bindContext(sContextPath, null, {
+				$select: HEADER_FIELDS.join(",")
+			});
+
+			const oHeaderContext = await oHeaderBinding.requestObject();
+
 			return HEADER_FIELDS.reduce((oAcc, sField) => {
-				oAcc[sField] = oContext.getProperty(sField);
+				oAcc[sField] = oHeaderContext?.[sField];
 				return oAcc;
 			}, {});
 		},
@@ -2473,7 +3172,7 @@ sap.ui.define([
 		 * Syncs controller state to the current Object-Page edit / display mode.
 		 * Captures the header snapshot when a draft is open; clears it on activation.
 		 */
-		_syncEditModeState: function () {
+		_syncEditModeState: async function () {
 			const oContext = this.base.getView().getBindingContext();
 			if (!oContext) return;
 
@@ -2482,7 +3181,7 @@ sap.ui.define([
 
 			if (bIsDraft) {
 				if (!this._originalHeaderSnapshot) {
-					this._originalHeaderSnapshot = this._getCurrentHeaderData();
+					this._originalHeaderSnapshot = await this._getCurrentHeaderData();
 				}
 			} else {
 				// Returned to display mode (after Save or Cancel) – clear staged state.
@@ -2515,8 +3214,8 @@ sap.ui.define([
 		 * any leftover delete/reorder buffers so neither mode nor selection survives
 		 * across edit sessions (Bug fix: selection was not cleared on Display→Edit).
 		 */
-		_onEditModeChanged: function () {
-			this._syncEditModeState();
+		_onEditModeChanged: async function () {
+			await this._syncEditModeState();
 			this._captureOriginalSnapshotWhenEnteringEditMode();
 			this._clearProductTreeBufferAndSelection();
 		},
@@ -2977,6 +3676,7 @@ sap.ui.define([
 				aOut.push({
 					Title: "    ".repeat(iLevel) + (oNode.Title || ""),
 					Description: bIsProduct ? (oNode.Description || "") : "",
+					CountryOfOrigin: bIsProduct ? (oNode.CountryOfOrigin || "") : "",
 					PriceDisplay: bIsProduct ? `${oNode.Price || ""} ${oNode.PriceUnit || ""}`.trim() : "",
 					PriceValidFrom: bIsProduct ? (oNode.PriceValidFrom || "") : "",
 					DiscountRate: bIsProduct ? (oNode.DiscountRate || "") : "",
