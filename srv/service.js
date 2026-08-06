@@ -4086,11 +4086,7 @@ module.exports = cds.service.impl(async function () {
     //     setMyRequestDefaults(req);
     // });
 
-    this.on('getTileAuthorization', async (req) => {
-        // return {
-        //     ControlMyRequestTile: true
-        // };
-        
+    this.on('getTileAuthorization', async (req) => {        
         const email = req.data.Email;
 
         console.log("========== getTileAuthorization ==========");
@@ -4131,12 +4127,8 @@ module.exports = cds.service.impl(async function () {
                 Email: email
             });
 
-        console.log("AccountAssignment record:");
-        console.log(JSON.stringify(auth, null, 2));
-
         // If user is not found, hide everything
         if (!auth) {
-            console.log("No AccountAssignment found for email:", email);
             return {
                 ControlPriceListView: false,
                 ControlPriceView: false,
@@ -4149,9 +4141,6 @@ module.exports = cds.service.impl(async function () {
             };
         }
 
-        console.log("Returning tile authorization1:");
-        console.log(JSON.stringify(auth, null, 2));
-
         // Convert null/undefined to false
         const result = {
             ControlPriceListView:               auth.ControlPriceListView ?? false,
@@ -4163,9 +4152,6 @@ module.exports = cds.service.impl(async function () {
             ControlMyRequestTile:               auth.ControlMyRequestTile ?? false,
             ControlApplicationLogTile:          auth.ControlApplicationLogTile ?? false
         };
-
-        console.log("Returning tile authorization2:");
-        console.log(JSON.stringify(result, null, 2));
 
         return result;        
     });    

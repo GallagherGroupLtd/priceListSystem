@@ -36,8 +36,7 @@
  
                                 <HBox id="HBox1" wrap="Wrap">
                                     <items>
-                                        <!-- <GenericTile id="TilePricelist_All" header="Pricelist" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor" visible="{auth>/ControlPriceListView}"> -->
-                                        <GenericTile id="TilePricelist_All" header="Pricelist" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor" visible="{auth>/ControlPriceListView}">
+                                        <GenericTile id="TilePricelist_All" header="Pricelist" press="onNavigationAppPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom tileColor" visible="{auth>/ControlPriceListView}">                                        
                                             <tileContent>
                                                 <TileContent id="TileContentPricelist_All">
                                                     <ImageContent id="ImagePricelist_All" src="sap-icon://sales-order-item" />

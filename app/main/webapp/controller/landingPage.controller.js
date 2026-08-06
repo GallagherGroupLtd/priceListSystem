@@ -324,23 +324,16 @@ sap.ui.define([
 
         _loadTileAuthorization: async function () {
             const oModel = this.getOwnerComponent().getModel();
-            // const sEmail = "kiana.pham123@gallagher.com";
             const sEmail = this.getView().getModel("home").getProperty("/userEmail");
-            console.log("Controller Email:", sEmail);
-
             const oContext = oModel.bindContext("/getTileAuthorization(...)");
+
             oContext.setParameter("Email", sEmail);
             await oContext.execute();
 
             const oAuth = oContext.getBoundContext().getObject();
-
-            console.log("Auth result:", oAuth);
-            console.log("ControlMyRequestTile:", oAuth.ControlMyRequestTile);
-
             const oAuthModel = new sap.ui.model.json.JSONModel(oAuth);
+            
             this.getView().setModel(oAuthModel, "auth");
-
-            console.log("Tile authorization:", oAuth);
         },
 
         onNavigationAppPress: function (oEvent) {
