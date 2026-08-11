@@ -14,6 +14,8 @@ const versionService = require('./pricelist_maintain_srv-code/version-service');
 const notificationService = require("./pricelist_notification_srv-code/notification-service");
 
 const { resolvePricingParameters } = require('./lib/pricing-parameter-resolver');
+const { logApplicationChanges, registerApplicationChangeLogging } = require("./application_log_srv-code/application-change-log");
+const { logUserEngagement } = require("./application_log_srv-code/user-engagement-log");
 const { getPricelistDisplayColumns } = require("./lib/pricelist-display-columns");
 const { DISCOUNT_CONDITION_TYPE_WHITELIST } = require('./pricing_parameter_srv-code/constants');
 
@@ -26,7 +28,7 @@ const DISCOUNT_CONDITION_TYPE_WHITELIST_SET = new Set(DISCOUNT_CONDITION_TYPE_WH
  * @param {Array} requiredHeaders - List of required headers
  * @param {Function} mapRow - Function to map Excel row → entity fields
  **/
-async function handleMassUpload(req, entity, requiredHeaders, mapRow) {
+async function handleMassUpload(req, entity, requiredHeaders, mapRow, auditConfig = null) {
     try {
         const { file } = req.data;
         if (!file) return req.error(400, "No file provided");
@@ -60,6 +62,35 @@ async function handleMassUpload(req, entity, requiredHeaders, mapRow) {
         // Insert into DB
         const tx = cds.transaction(req);
         await tx.run(INSERT.into(entity).entries(enrichedRows));
+
+        // -------------------------------------------------------------------------
+        // Application Change Log - Mass Upload
+        // -------------------------------------------------------------------------
+        if (auditConfig) {
+            let auditCount = 0;
+
+            for (const uploadedRow of enrichedRows) {
+                const trackedFields = Object.keys(uploadedRow).filter(field => !["ID","createdAt","createdBy","modifiedAt","modifiedBy"].includes(field));
+
+                const objectDescription = typeof auditConfig.getObjectDescription === "function" ? auditConfig.getObjectDescription(uploadedRow) : uploadedRow.ID;
+
+                auditCount += await logApplicationChanges({
+                    req,
+                    oldData: null,
+                    newData: uploadedRow,
+                    changeType: "CREATE",
+                    application: auditConfig.application,
+                    functionalArea: auditConfig.functionalArea,
+                    objectType: auditConfig.objectType,
+                    objectId: uploadedRow.ID,
+                    objectDescription,
+                    trackedFields,
+                    fieldLabels: {}
+                });
+            }
+
+            console.log(`[ApplicationChangeLog][MassUpload][${auditConfig.functionalArea}] ${auditCount} audit record(s) created`);
+        }
 
         return { message: "Upload successful", count: rows.length };
     } catch (err) {
@@ -466,9 +497,10 @@ function getPricingParameterTypeFilter(req) {
 
 module.exports = cds.service.impl(async function () {
     // Match the names exactly as they appear in your CSN definitions
-    const { User, TradeScenarios, ItemStructure, PriceProductMaintenance, TermsAndConditions, TermsAndConditionPartNumbers, PricingParameters, TileContent, ContactInfo, AccountAssignment, AccountAssignmentScope, PricingCondType,
-        PricelistData, PricelistItemData, ExternalMaterials, ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest, PriceListTreeLayout, ProductPriceList,
-        PricelistNotificationEvent, PricelistNotificationDelivery } = this.entities;
+    const { User, TradeScenarios, ItemStructure, PriceProductMaintenance, PriceProductPOAFOC, TermsAndConditions, TermsAndConditionPartNumbers, PricingParameters, 
+        PricingParameterEntries, TileContent, ContactInfo, AccountAssignment, AccountAssignmentScope, PricingCondType, PricelistData, PricelistItemData, ExternalMaterials, 
+        ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest, PriceListTreeLayout, ProductPriceList, PricelistNotificationEvent, 
+        PricelistNotificationDelivery } = this.entities;
 
     //Selection of Materials
     async function resolveItems(filters, db, extdb) {
@@ -644,6 +676,462 @@ module.exports = cds.service.impl(async function () {
             console.error("User READ error:", err);
             req.error(500, "Failed to load user profile");
         }
+    });
+
+    // -----------------------------------------------------------------------------
+    // Application Log - User Engagement
+    // -----------------------------------------------------------------------------
+
+    this.on("logUserEngagement", async req => {
+        try {
+            const {
+                eventType,
+                accessedTile,
+                accessedPricelist
+            } = req.data;
+
+            return await logUserEngagement({
+                req,
+                eventType,
+                accessedTile,
+                accessedPricelist
+            });
+        } catch (error) {
+            console.error("[ApplicationLog] Failed to log user engagement:",error);
+            return false;
+        }
+    });
+
+    // -----------------------------------------------------------------------------
+    // Application Change Log - Data Maintenance
+    // -----------------------------------------------------------------------------
+
+    registerApplicationChangeLogging(this, {
+        auditKey: "ContactInfo",
+        entity: ContactInfo,
+        dbEntity: "com.sap.pricelistsystem.ContactInformation",
+        application: "Data Maintenance",
+        functionalArea: "Contact Information",
+        objectType: "ContactInformation",
+        trackedFields: [
+            "PricelistType",
+            "MarketScopeRegion",
+            "MarketScopeCountry",
+            "InternalAccount",
+            "ExternalAccount",
+            "ContactEmail",
+            "ContactNumber"
+        ],
+        fieldLabels: {
+            PricelistType: "Pricelist Type",
+            MarketScopeRegion: "Region",
+            MarketScopeCountry: "Country",
+            InternalAccount: "Internal Account",
+            ExternalAccount: "External Account",
+            ContactEmail: "Contact E-Mail",
+            ContactNumber: "Contact Number"
+        },
+        getObjectDescription: record => record.ContactEmail || [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry].filter(Boolean).join(" / "),
+        children: []
+    });
+
+    registerApplicationChangeLogging(this, {
+        auditKey: "PricingParameters",
+        entity: PricingParameters,
+        dbEntity: "com.sap.pricelistsystem.PricingParameterDetermination",
+        application: "Data Maintenance",
+        functionalArea: "Pricing Parameters",
+        objectType: "PricingParameterDetermination",
+        trackedFields: [
+            "PricelistType",
+            "MarketScopeRegion",
+            "MarketScopeCountry",
+            "SalesOrg",
+            "DistChannel",
+            "CustPriceList",
+            "CustGroup1",
+            "ErpCustomer",
+            "DeliveringPlant"
+        ],
+        fieldLabels: {
+            PricelistType: "Pricelist Type",
+            MarketScopeRegion: "Region",
+            MarketScopeCountry: "Country",
+            SalesOrg: "Sales Organization",
+            DistChannel: "Distribution Channel",
+            CustPriceList: "Customer Pricelist",
+            CustGroup1: "Customer Group 1",
+            ErpCustomer: "ERP Customer Code",
+            DeliveringPlant: "Plant"
+        },
+        getObjectDescription: record => [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry,record.SalesOrg,record.DistChannel].filter(Boolean).join(" / "),
+        children: [
+            {
+                name: "entries",
+                entity: PricingParameterEntries,
+                dbEntity: "com.sap.pricelistsystem.PricingParameterDeterminationEntry",
+                parentField: "parent_ID",
+                objectType: "PricingParameterDeterminationEntry",
+                trackedFields: [
+                    "ParameterType",
+                    "ConditionType",
+                    "AccessSequence",
+                    "Priority"
+                ],
+                fieldLabels: {
+                    ParameterType: "Parameter Type",
+                    ConditionType: "Condition Type",
+                    AccessSequence: "Access Sequence",
+                    Priority: "Priority"
+                },
+                getObjectDescription: record => [record.ParameterType,record.ConditionType,record.AccessSequence].filter(value => value !== undefined && value !== null && value !== "").join(" / ")
+            }
+        ]
+    });
+
+    registerApplicationChangeLogging(this, {
+        auditKey: "TradeScenarios",
+        entity: TradeScenarios,
+        dbEntity: "com.sap.pricelistsystem.TradeAndMarketScenarioDetermination",
+        application: "Data Maintenance",
+        functionalArea: "Trade & Market Scenario",
+        objectType: "TradeAndMarketScenarioDetermination",
+        trackedFields: [
+            "PricelistType",
+            "MarketScopeRegion",
+            "MarketScopeCountry",
+            "EmailSubject",
+            "EmailBody"
+        ],
+        fieldLabels: {
+            PricelistType: "Pricelist Type",
+            MarketScopeRegion: "Market Scope Region",
+            MarketScopeCountry: "Market Scope Country",
+            EmailSubject: "Email Subject",
+            EmailBody: "Email Body"
+        },
+        getObjectDescription: record => [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry].filter(Boolean).join(" / "),
+        children: []
+    });
+
+    registerApplicationChangeLogging(this, {
+        auditKey: "ItemStructure",
+        entity: ItemStructure,
+        dbEntity: "com.sap.pricelistsystem.PricelistItemStructureComponents",
+        application: "Data Maintenance",
+        functionalArea: "Item Structure",
+        objectType: "PricelistItemStructureComponents",
+        trackedFields: [
+            "PricelistType",
+            "MarketScopeRegion",
+            "MarketScopeCountry",
+            "Sequence",
+            "SalesOrg",
+            "DistChannel",
+            "CustPriceList",
+            "CustGroup1",
+            "ErpCustomer",
+            "DeliveringPlant",
+            "MainCategory",
+            "SubCategory1",
+            "SubCategory2",
+            "SubCategory3",
+            "SubCategory4",
+            "SubCategory5",
+            "MainCategoryLocal",
+            "SubCategory1Local",
+            "SubCategory2Local",
+            "SubCategory3Local",
+            "SubCategory4Local",
+            "SubCategory5Local"
+        ],
+        fieldLabels: {
+            PricelistType: "Pricelist Type",
+            MarketScopeRegion: "Region",
+            MarketScopeCountry: "Country",
+            Sequence: "Sequence",
+            SalesOrg: "Sales Organization",
+            DistChannel: "Distribution Channel",
+            CustPriceList: "Customer Pricelist",
+            CustGroup1: "Customer Group 1",
+            ErpCustomer: "ERP Customer",
+            DeliveringPlant: "Plant",
+            MainCategory: "Main Category",
+            SubCategory1: "Subcategory 1",
+            SubCategory2: "Subcategory 2",
+            SubCategory3: "Subcategory 3",
+            SubCategory4: "Subcategory 4",
+            SubCategory5: "Subcategory 5",
+            MainCategoryLocal: "Main Category Local Description",
+            SubCategory1Local: "Subcategory 1 Local Description",
+            SubCategory2Local: "Subcategory 2 Local Description",
+            SubCategory3Local: "Subcategory 3 Local Description",
+            SubCategory4Local: "Subcategory 4 Local Description",
+            SubCategory5Local: "Subcategory 5 Local Description"
+        },
+        getObjectDescription: record => [record.MainCategory,record.SubCategory1,record.SubCategory2,record.SubCategory3,record.SubCategory4,record.SubCategory5].filter(Boolean).join(" / ") || [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry].filter(Boolean).join(" / "),
+        children: []
+    });
+
+    registerApplicationChangeLogging(this, {
+        auditKey: "PriceProductMaintenance",
+        entity: PriceProductMaintenance,
+        dbEntity: "com.sap.pricelistsystem.PricelistPartNumberDetermination",
+        application: "Data Maintenance",
+        functionalArea: "Part Number",
+        objectType: "PricelistPartNumberDetermination",
+        trackedFields: [
+            "PricelistType",
+            "MarketScopeRegion",
+            "MarketScopeCountry",
+            "SalesOrg",
+            "DistChannel",
+            "ProductID",
+            "ErpStatus",
+            "MaterialClassification1",
+            "MaterialClassification2",
+            "ProductDescription1",
+            "ProductDescription2",
+            "ProductStatus",
+            "StatusValidity",
+            "ThirdPartySupplier",
+            "ThirdPartySupplierSKU",
+            "StatusExpiry"
+        ],
+        fieldLabels: {
+            PricelistType: "Pricelist Type",
+            MarketScopeRegion: "Region",
+            MarketScopeCountry: "Country",
+            SalesOrg: "Sales Organization",
+            DistChannel: "Distribution Channel",
+            ProductID: "Product ID",
+            ErpStatus: "ERP Status",
+            MaterialClassification1: "Material Classification",
+            MaterialClassification2: "Pricelist Material Classification",
+            ProductDescription1: "Product Description",
+            ProductDescription2: "Pricelist Product Description",
+            ProductStatus: "Product Status",
+            StatusValidity: "Status Validity",
+            ThirdPartySupplier: "3rd Party Supplier",
+            ThirdPartySupplierSKU: "3rd Party Supplier SKU",
+            StatusExpiry: "Status Expiry"
+        },
+        getObjectDescription: record => [record.ProductID,record.ProductDescription2 || record.ProductDescription1].filter(Boolean).join(" - "),
+        children: [
+            {
+                name: "poaFocValues",
+                entity: PriceProductPOAFOC,
+                dbEntity: "com.sap.pricelistsystem.PricelistPartNumberPOAFOC",
+                parentField: "parent_ID",
+                objectType: "PricelistPartNumberPOAFOC",
+                trackedFields: [
+                    "ProductID",
+                    "PricelistType",
+                    "POAFOCValue"
+                ],
+                fieldLabels: {
+                    ProductID: "Product ID",
+                    PricelistType: "Pricelist Type",
+                    POAFOCValue: "POA / FOC"
+                },
+                getObjectDescription: record => [record.ProductID,record.PricelistType,record.POAFOCValue].filter(Boolean).join(" / ")
+            }
+        ]
+    });
+
+    registerApplicationChangeLogging(this, {
+        auditKey: "TermsAndConditions",
+        entity: TermsAndConditions,
+        dbEntity: "com.sap.pricelistsystem.TermsAndConditionDetermination",
+        application: "Data Maintenance",
+        functionalArea: "Terms & Conditions",
+        objectType: "TermsAndConditionDetermination",
+        trackedFields: [
+            "PricelistType",
+            "MarketScopeRegion",
+            "MarketScopeCountry",
+            "SalesOrg",
+            "DistChannel",
+            "CustPriceList",
+            "CustGroup1",
+            "ErpCustomer",
+            "DeliveringPlant",
+            "HeaderTermsAndConditions",
+            "HeaderNotes",
+            "MainCategory",
+            "SubCategory1",
+            "SubCategory2",
+            "SubCategory3",
+            "SubCategory4",
+            "SubCategory5",
+            "MainCategoryTermsandConditions",
+            "SubCategory1TermsandConditions",
+            "SubCategory2TermsandConditions",
+            "SubCategory3TermsandConditions",
+            "SubCategory4TermsandConditions",
+            "SubCategory5TermsandConditions"
+        ],
+        fieldLabels: {
+            PricelistType: "Pricelist Type",
+            MarketScopeRegion: "Region",
+            MarketScopeCountry: "Country",
+            SalesOrg: "Sales Organization",
+            DistChannel: "Distribution Channel",
+            CustPriceList: "Customer Pricelist",
+            CustGroup1: "Customer Group 1",
+            ErpCustomer: "ERP Customer",
+            DeliveringPlant: "Plant",
+            HeaderTermsAndConditions: "Header Terms and Conditions",
+            HeaderNotes: "Header Notes",
+            MainCategory: "Main Category",
+            SubCategory1: "SubCategory 1",
+            SubCategory2: "SubCategory 2",
+            SubCategory3: "SubCategory 3",
+            SubCategory4: "SubCategory 4",
+            SubCategory5: "SubCategory 5",
+            MainCategoryTermsandConditions: "Main Category Terms and Conditions",
+            SubCategory1TermsandConditions: "SubCategory 1 Terms and Conditions",
+            SubCategory2TermsandConditions: "SubCategory 2 Terms and Conditions",
+            SubCategory3TermsandConditions: "SubCategory 3 Terms and Conditions",
+            SubCategory4TermsandConditions: "SubCategory 4 Terms and Conditions",
+            SubCategory5TermsandConditions: "SubCategory 5 Terms and Conditions"
+        },
+        getObjectDescription: record => [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry,record.MainCategory].filter(Boolean).join(" / "),
+        children: [
+            {
+                name: "partNumberTermsAndConditions",
+                entity: TermsAndConditionPartNumbers,
+                dbEntity: "com.sap.pricelistsystem.TermsAndConditionPartNumber",
+                parentField: "parent_ID",
+                objectType: "TermsAndConditionPartNumber",
+                trackedFields: [
+                    "ProductID",
+                    "PartNumberTermsandConditions"
+                ],
+                fieldLabels: {
+                    ProductID: "Product ID",
+                    PartNumberTermsandConditions: "Part Number Terms and Conditions"
+                },
+                getObjectDescription: record => record.ProductID || ""
+            }
+        ]
+    });
+
+    registerApplicationChangeLogging(this, {
+        auditKey: "TileContent",
+        entity: TileContent,
+        dbEntity: "com.sap.pricelistsystem.InformationTileContent",
+        application: "Data Maintenance",
+        functionalArea: "Information Tile",
+        objectType: "InformationTileContent",
+        trackedFields: [
+            "PricelistType",
+            "MarketScopeRegion",
+            "MarketScopeCountry",
+            "SalesOrg",
+            "DistChannel",
+            "CustPriceList",
+            "CustGroup1",
+            "ErpCustomer",
+            "DeliveringPlant",
+            "InformationHeading",
+            "InformationDetails",
+            "ImageLink"
+        ],
+        fieldLabels: {
+            PricelistType: "Pricelist Type",
+            MarketScopeRegion: "Region",
+            MarketScopeCountry: "Country",
+            SalesOrg: "Sales Organization",
+            DistChannel: "Distribution Channel",
+            CustPriceList: "Customer Pricelist",
+            CustGroup1: "Customer Group 1",
+            ErpCustomer: "ERP Customer Code",
+            DeliveringPlant: "Plant",
+            InformationHeading: "Information Heading",
+            InformationDetails: "Information Details",
+            ImageLink: "Image Link"
+        },
+        getObjectDescription: record => record.InformationHeading || [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry].filter(Boolean).join(" / "),
+        children: []
+    });
+
+    registerApplicationChangeLogging(this, {
+        auditKey: "AccountAssignment",
+        entity: AccountAssignment,
+        dbEntity: "com.sap.pricelistsystem.AccountAssignment",
+        application: "Data Maintenance",
+        functionalArea: "Account Setup",
+        objectType: "AccountAssignment",
+        trackedFields: [
+            "FirstName",
+            "LastName",
+            "Email",
+            "AccountType",
+            "AccountScope",
+            "CommercialScope",
+            "CustomerNumber",
+            "CustPriceList",
+            "CustGroup1",
+            "DeliveringPlant",
+            "ControlPriceListView",
+            "ControlPriceView",
+            "ControlDiscountIndicator",
+            "ControlDiscountRate",
+            "ControlWorkflowTile",
+            "ControlPriceListReviewScheduleTile",
+            "ControlPricelistMaintenance",
+            "ControlDataMaintenance",
+            "ControlMyRequestTile",
+            "ControlApplicationLogTile"
+        ],
+        fieldLabels: {
+            FirstName: "First Name",
+            LastName: "Last Name",
+            Email: "E-Mail",
+            AccountType: "Account Type",
+            AccountScope: "Account Scope",
+            CommercialScope: "Commercial Scope",
+            CustomerNumber: "Customer Code",
+            CustPriceList: "Customer Pricelist",
+            CustGroup1: "Customer Group 1",
+            DeliveringPlant: "Plant",
+            ControlPriceListView: "Pricelist View",
+            ControlPriceView: "Price View",
+            ControlDiscountIndicator: "Discount Indicator",
+            ControlDiscountRate: "Discount Rate",
+            ControlWorkflowTile: "Workflow Tile",
+            ControlPriceListReviewScheduleTile: "Pricelist Review Schedule Tile",
+            ControlPricelistMaintenance: "Pricelist Maintenance",
+            ControlDataMaintenance: "Data Maintenance",
+            ControlMyRequestTile: "My Requests Tile",
+            ControlApplicationLogTile: "Application Log Tile"
+        },
+        getObjectDescription: record => record.Email || [record.FirstName, record.LastName].filter(Boolean).join(" "),
+        children: [
+            {
+                name: "scopes",
+                entity: AccountAssignmentScope,
+                dbEntity: "com.sap.pricelistsystem.AccountAssignmentScope",
+                parentField: "parent_ID",
+                objectType: "AccountAssignmentScope",
+                trackedFields: [
+                    "PricelistType",
+                    "MarketScopeRegion",
+                    "MarketScopeCountry",
+                    "SalesOrg",
+                    "DistChannel"
+                ],
+                fieldLabels: {
+                    PricelistType: "Pricelist Type",
+                    MarketScopeRegion: "Region",
+                    MarketScopeCountry: "Country",
+                    SalesOrg: "Sales Organization",
+                    DistChannel: "Distribution Channel"
+                },
+                getObjectDescription: record => [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry,record.SalesOrg,record.DistChannel].filter(Boolean).join(" / ")
+            }
+        ]
     });
 
     //Handler for Duplicate Row - Data Maintenance App
@@ -1000,7 +1488,13 @@ module.exports = cds.service.impl(async function () {
                 MarketScopeCountry: r["Market Scope Country"] || r["MarketScopeCountry"],
                 EmailSubject: r["Email Subject"] || r["EmailSubject"],
                 EmailBody: r["Email Body"] || r["EmailBody"]
-            })
+            }),
+            {
+                application: "Data Maintenance",
+                functionalArea: "Trade & Market Scenario",
+                objectType: "TradeAndMarketScenarioDetermination",
+                getObjectDescription: record => [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry].filter(Boolean).join(" / ")
+            }
         )
     );
 
@@ -1054,7 +1548,13 @@ module.exports = cds.service.impl(async function () {
                 SubCategory3Local: r["SubCategory 3 Local Description"],
                 SubCategory4Local: r["SubCategory 4 Local Description"],
                 SubCategory5Local: r["SubCategory 5 Local Description"]
-            })
+            }),
+            {
+                application: "Data Maintenance",
+                functionalArea: "Item Structure",
+                objectType: "PricelistItemStructureComponents",
+                getObjectDescription: record => [record.MainCategory,record.SubCategory1,record.SubCategory2,record.SubCategory3,record.SubCategory4,record.SubCategory5].filter(Boolean).join(" / ") || [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry].filter(Boolean).join(" / ")
+            }
         )
     );
 
@@ -1096,7 +1596,13 @@ module.exports = cds.service.impl(async function () {
                 StatusValidity: r["Status Validity"],
                 ThirdPartySupplier: r["3rd Party Supplier"],
                 ThirdPartySupplierSKU: r["3rd Party Supplier SKU"]
-            })
+            }),
+            {
+                application: "Data Maintenance",
+                functionalArea: "Part Number",
+                objectType: "PricelistPartNumberDetermination",
+                getObjectDescription: record => [record.ProductID,record.ProductDescription2 || record.ProductDescription1].filter(Boolean).join(" - ")
+            }
         )
     );
 
@@ -1148,7 +1654,13 @@ module.exports = cds.service.impl(async function () {
                 SubCategory3TermsandConditions: r["SubCategory 3 Terms and Condition"],
                 SubCategory4TermsandConditions: r["SubCategory 4 Terms and Condition"],
                 SubCategory5TermsandConditions: r["SubCategory 5 Terms and Condition"]
-            })
+            }),
+            {
+                application: "Data Maintenance",
+                functionalArea: "Terms & Conditions",
+                objectType: "TermsAndConditionDetermination",
+                getObjectDescription: record => [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry,record.MainCategory].filter(Boolean).join(" / ")
+            }
         )
     );
 
@@ -1195,7 +1707,13 @@ module.exports = cds.service.impl(async function () {
                 CustGroup1: r["Customer Group 1"] || r["CustGroup1"],
                 ErpCustomer: r["ERP Customer"] || r["ErpCustomer"],
                 DeliveringPlant: r["Plant"] || r["DeliveringPlant"]
-            })
+            }),
+            {
+                application: "Data Maintenance",
+                functionalArea: "Pricing Parameters",
+                objectType: "PricingParameterDetermination",
+                getObjectDescription: record => [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry,record.SalesOrg,record.DistChannel].filter(Boolean).join(" / ")
+            }
         )
     );
 
@@ -1210,7 +1728,13 @@ module.exports = cds.service.impl(async function () {
                 InformationHeading: r["Information Heading"] || r["InformationHeading"],
                 InformationDetails: r["Information Details"] || r["InformationDetails"],
                 ImageLink: r["Image Link"] || r["ImageLink"]
-            })
+            }),
+            {
+                application: "Data Maintenance",
+                functionalArea: "Information Tile",
+                objectType: "InformationTileContent",
+                getObjectDescription: record => record.InformationHeading || [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry].filter(Boolean).join(" / ")
+            }
         )
     );
 
@@ -1224,7 +1748,13 @@ module.exports = cds.service.impl(async function () {
                 MarketScopeCountry: r["Market Scope Country"] || r["MarketScopeCountry"],
                 ContactEmail: r["Contact E-Mail"] || r["ContactEmail"],
                 ContactNumber: r["Contact Number"] || r["ContactNumber"]
-            })
+            }),
+            {
+                application: "Data Maintenance",
+                functionalArea: "Contact Information",
+                objectType: "ContactInformation",
+                getObjectDescription: record => record.ContactEmail || [record.PricelistType,record.MarketScopeRegion,record.MarketScopeCountry].filter(Boolean).join(" / ")
+            }
         )
     );
 
@@ -1284,7 +1814,13 @@ module.exports = cds.service.impl(async function () {
                 ControlDataMaintenance: r["Data Maintenance"],
                 ControlMyRequestTile: r["My Requests Tile"],
                 ControlApplicationLogTile: r["Application Log Tile"]
-            })
+            }),
+            {
+                application: "Data Maintenance",
+                functionalArea: "Account Setup",
+                objectType: "AccountAssignment",
+                getObjectDescription: record => record.Email || [record.FirstName,record.LastName].filter(Boolean).join(" ")
+            }
         )
     );
 

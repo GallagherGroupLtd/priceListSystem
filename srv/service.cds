@@ -187,10 +187,14 @@ service PriceListService {
 
     annotate ErpPriceStatus with @odata.draft.enabled;
 
-    entity ApplicationLog             as projection on my.ApplicationLog
-        actions {
-            action copyRow() returns ErpPricelist;
-        };
+    @readonly
+    entity ApplicationLog as projection on my.ApplicationLog;
+
+    action logUserEngagement(
+        eventType          : String(30),
+        accessedTile       : String(255),
+        accessedPricelist  : String(255)
+    ) returns Boolean;
 
     //File Upload Functions
     action MassUploadTradeScenarios(file: String)                    returns String;
@@ -656,6 +660,9 @@ service PriceListService {
         ErpCustomer        : String,
         DeliveringPlant    : String
     ) returns PricelistHeaderDefaults;
+
+    @readonly
+    entity ApplicationChangeLog as projection on my.ApplicationChangeLog;
 
     entity PricelistChangeLog as projection on my.PricelistChangeLog;
 

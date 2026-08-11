@@ -592,17 +592,39 @@ entity MyRequest : managed, cuid {
 }
 
 entity ApplicationLog : managed, cuid {
-    FirstName              : String(255) @title: 'First Name';
-    LastName               : String(255) @title: 'Last Name';
-    EmailAddress           : String(255) @title: 'Email Address';
-    AccountType            : String(255) @title: 'Account Type';
-    AccountScope           : String(255) @title: 'Account Scope';
-    LoggedInDate           : Date        @title: 'Logged In Date';
-    LoggedInTime           : Time        @title: 'Logged In Time';
-    LoggedOffDate          : Date        @title: 'Logged Off Date';
-    LoggedOffTime          : Time        @title: 'Logged Off Time';
+    FirstName              : String(255) @title: 'User First Name';
+    LastName               : String(255) @title: 'User Last Name';
+    EmailAddress           : String(255) @title: 'User Email';
+    AccountType            : String(255) @title: 'User Account Type';
+    AccountScope           : String(255) @title: 'User Account Scope';
+    LoggedInDate           : Date        @title: 'Log In Date';
+    LoggedInTime           : Time        @title: 'Log In Time';
+    // LoggedOffDate          : Date        @title: 'Logged Off Date';
+    // LoggedOffTime          : Time        @title: 'Logged Off Time';
     AccessedTile           : String(255) @title: 'Accessed Tile';
     AccessedPricelist      : String(255) @title: 'Accessed Pricelist';
+    AccessedDate           : Date        @title: 'Accessed Date';
+    AccessedTime           : Time        @title: 'Accessed Time';
     PricelistDownloadDate  : Date        @title: 'Pricelist Download Date';
     PricelistDownloadTime  : Time        @title: 'Pricelist Download Time';
+}
+
+entity ApplicationChangeLog : cuid {
+    changedAt          : DateTime     @title: 'Changed At';
+    changedBy          : String(255)  @title: 'Changed By';
+
+    application        : String(100)  @title: 'Application';
+    functionalArea     : String(100)  @title: 'Functional Area';
+
+    objectType         : String(100)  @title: 'Object Type';
+    objectId           : String(255)  @title: 'Object ID';
+    objectDescription  : String(500)  @title: 'Object Description';
+
+    changeType         : String(20)   @title: 'Change Type';
+
+    field              : String(100)  @title: 'Field';
+    fieldLabel         : String(255)  @title: 'Field Description';
+
+    oldValue           : LargeString  @title: 'Old Value';
+    newValue           : LargeString  @title: 'New Value';
 }
