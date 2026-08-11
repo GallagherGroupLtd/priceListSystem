@@ -9,6 +9,21 @@ sap.ui.define(
         var URLHelper = mobileLibrary.URLHelper;
 
         return Controller.extend('pricelistapp.datamaintain.ext.controller.Main', {
+            _logUserEngagement: async function (sEventType,sAccessedTile = "") {
+                try {
+                    const oModel = this.getView().getModel();
+
+                    const oAction = oModel.bindContext("/logUserEngagement(...)");
+
+                    oAction.setParameter("eventType", sEventType);
+                    oAction.setParameter("accessedTile", sAccessedTile);
+                    oAction.setParameter("accessedPricelist", "");
+
+                    await oAction.execute();
+                } catch (oError) {
+                    console.warn("User engagement logging failed:",oError);
+                }
+            },
             onRowPress: function (oEvent) {
                 // Get the context from the macro event parameters
                 const oBindingContext = oEvent.getParameter("bindingContext");

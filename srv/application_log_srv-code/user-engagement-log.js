@@ -8,6 +8,7 @@ const ACCOUNT_ASSIGNMENT_ENTITY = "com.sap.pricelistsystem.AccountAssignment";
 
 const EVENT_TYPES = {
     LOGIN: "LOGIN",
+    APPLICATION_ACCESS: "APPLICATION_ACCESS",
     TILE_ACCESS: "TILE_ACCESS",
     PRICELIST_ACCESS: "PRICELIST_ACCESS",
     PRICELIST_DOWNLOAD: "PRICELIST_DOWNLOAD"
@@ -78,6 +79,7 @@ async function logUserEngagement({
             entry.LoggedInTime = timestamp.time;
             break;
 
+        case EVENT_TYPES.APPLICATION_ACCESS:
         case EVENT_TYPES.TILE_ACCESS:
             entry.AccessedTile = accessedTile || "";
             entry.AccessedDate = timestamp.date;

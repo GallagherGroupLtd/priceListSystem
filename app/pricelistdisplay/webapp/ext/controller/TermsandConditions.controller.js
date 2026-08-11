@@ -323,6 +323,20 @@ sap.ui.define([
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
 
+                try {
+                    const oModel = this.getView().getModel();
+                    const oAction = oModel.bindContext("/logUserEngagement(...)");
+
+                    oAction.setParameter("eventType","PRICELIST_DOWNLOAD");
+                    oAction.setParameter("accessedTile","Pricelist");
+
+                    oAction.setParameter("accessedPricelist",headerObject.PricelistTitle || headerObject.ID || "");
+
+                    await oAction.execute();
+                } catch (oLogError) {
+                    console.warn("Pricelist download logging failed:",oLogError);
+                }
+
                 MessageToast.show("PDF downloaded.");
             } catch (e) {
                 console.error("PDF export failed:", e);
