@@ -4,11 +4,32 @@ const { getUserEmail } = require("./lib/account-assignment-authorization");
 const { resolvePricingParameters } = require('./lib/pricing-parameter-resolver');
 const { getPricelistDisplayColumns } = require("./lib/pricelist-display-columns");
 const buildVersionHistoryComparison = require("./pricelist-display_srv-code/version-history-comparison");
+const { logUserEngagement } = require("./application_log_srv-code/user-engagement-log");
 const { pruneTreeRows } = require("./pricelist-display_srv-code/product-tree-authorization");
 
 const { SELECT } = cds.ql;
 
 module.exports = cds.service.impl(async function () {
+    this.on("logUserEngagement", async req => {
+        try {
+            const {
+                eventType,
+                accessedTile,
+                accessedPricelist
+            } = req.data;
+
+            return await logUserEngagement({
+                req,
+                eventType,
+                accessedTile,
+                accessedPricelist
+            });
+        } catch (error) {
+            console.error("[ApplicationLog][PriceListDisplay] Failed to log user engagement:",error);
+            return false;
+        }
+    });
+
     this.on("getPricelistDisplayColumnConfiguration",() => {
             return getPricelistDisplayColumns();
         }

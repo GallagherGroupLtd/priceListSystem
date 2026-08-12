@@ -164,7 +164,13 @@ service PriceListDisplayService {
     action getPricelistUpdates(
         pricelistId : UUID
     ) returns PricelistVersionComparisonResult;
-    
+
+    action logUserEngagement(
+        eventType         : String(30),
+        accessedTile      : String(255),
+        accessedPricelist : String(255)
+    ) returns Boolean;
+
     entity StatusVH as projection on base.StatusVH;
     entity PricelistTypeVH as projection on base.PricelistTypeVH;
     entity MarketRegionVH as projection on base.MarketRegionVH;
