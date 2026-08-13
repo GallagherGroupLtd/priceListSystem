@@ -1,0 +1,31 @@
+<mvc:View controllerName="pricelistapp.applicationlog.ext.controller.ApplicationLogHome" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" xmlns:f="sap.f">
+    <Page title="Application Log" showNavButton="false">
+        <content>
+            <VBox class="sapUiLargeMargin" width="100%">
+                <Title text="Application Log" level="H1" class="sapUiSmallMarginBottom" />
+                <Text text="Select the log you want to review." class="sapUiMediumMarginBottom" />
+                <HBox wrap="Wrap" renderType="Bare">
+                    <GenericTile header="User Engagement" subheader="Application access and downloads" press=".onUserEngagementPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                        <tileContent>
+                            <TileContent>
+                                <content>
+                                    <ImageContent src="sap-icon://activity-items" />
+                                </content>
+                            </TileContent>
+                        </tileContent>
+                    </GenericTile>
+
+                    <GenericTile header="Application Changes" subheader="Data and configuration changes" press=".onApplicationChangesPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                        <tileContent>
+                            <TileContent>
+                                <content>
+                                    <ImageContent src="sap-icon://change-analysis" />
+                                </content>
+                            </TileContent>
+                        </tileContent>
+                    </GenericTile>
+                </HBox>
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>

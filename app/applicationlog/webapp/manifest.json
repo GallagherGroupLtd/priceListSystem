@@ -15,6 +15,19 @@
       "version": "1.25.0",
       "toolsId": "2fe159c5-e01b-4e6d-95ef-8520426329c9"
     },
+    "crossNavigation": {
+      "inbounds": {
+        "applicationlog-display": {
+          "semanticObject": "AppLog",
+          "action": "display",
+          "title": "{{appTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    },
     "dataSources": {
       "mainService": {
         "uri": "/odata/v4/price-list/",
@@ -25,6 +38,10 @@
         }
       }
     }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "priceListSystem.service"
   },
   "sap.ui": {
     "technology": "UI5",
@@ -80,21 +97,52 @@
     "resources": {
       "css": []
     },
+    "extends": {
+      "extensions": {
+        "sap.ui.controllerExtensions": {
+          "sap.fe.templates.ListReport.ListReportController": {
+            "controllerName": "pricelistapp.applicationlog.ext.controller.ApplicationLogListExt"
+          }
+        }
+      }
+    },
     "routing": {
       "config": {},
       "routes": [
         {
-          "pattern": ":?query:",
-          "name": "ApplicationLogList",
-          "target": "ApplicationLogList"
+            "pattern": ":?query:",
+            "name": "ApplicationLogHome",
+            "target": "ApplicationLogHome"
         },
         {
-          "pattern": "ApplicationLog({key}):?query:",
-          "name": "ApplicationLogObjectPage",
-          "target": "ApplicationLogObjectPage"
+            "pattern": "ApplicationLog:?query:",
+            "name": "ApplicationLogList",
+            "target": "ApplicationLogList"
+        },
+        {
+            "pattern": "ApplicationLog({key}):?query:",
+            "name": "ApplicationLogObjectPage",
+            "target": "ApplicationLogObjectPage"
+        },
+        {
+            "pattern": "ApplicationChangeLog:?query:",
+            "name": "ApplicationChangeLogList",
+            "target": "ApplicationChangeLogList"
+        },
+        {
+            "pattern": "ApplicationChangeLog({key}):?query:",
+            "name": "ApplicationChangeLogObjectPage",
+            "target": "ApplicationChangeLogObjectPage"
         }
       ],
       "targets": {
+        "ApplicationLogHome": {
+          "type": "View",
+          "id": "ApplicationLogHome",
+          "name": "ApplicationLogHome",
+          "path": "pricelistapp.applicationlog.view",
+          "viewType": "XML"
+        },
         "ApplicationLogList": {
           "type": "Component",
           "id": "ApplicationLogList",
@@ -103,7 +151,8 @@
             "settings": {
               "contextPath": "/ApplicationLog",
               "variantManagement": "Page",
-              "hideFilterBar": true,
+              "hideFilterBar": false,
+              "initialLoad": "Enabled",
               "navigation": {
                 "ApplicationLog": {
                   "detail": {
@@ -114,7 +163,8 @@
               "controlConfiguration": {
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
-                    "type": "ResponsiveTable"
+                    "type": "ResponsiveTable",
+                    "useExportToExcel": true
                   }
                 }
               }
@@ -129,6 +179,45 @@
             "settings": {
               "editableHeaderContent": false,
               "contextPath": "/ApplicationLog"
+            }
+          }
+        },
+        "ApplicationChangeLogList": {
+          "type": "Component",
+          "id": "ApplicationChangeLogList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "contextPath": "/ApplicationChangeLog",
+              "variantManagement": "Page",
+              "hideFilterBar": false,
+              "initialLoad": "Enabled",
+              "navigation": {
+                "ApplicationChangeLog": {
+                  "detail": {
+                    "route": "ApplicationChangeLogObjectPage"
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "type": "ResponsiveTable",
+                    "useExportToExcel": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ApplicationChangeLogObjectPage": {
+          "type": "Component",
+          "id": "ApplicationChangeLogObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/ApplicationChangeLog"
             }
           }
         }
