@@ -102,6 +102,9 @@
         "sap.ui.controllerExtensions": {
           "sap.fe.templates.ListReport.ListReportController": {
             "controllerName": "pricelistapp.applicationlog.ext.controller.ApplicationLogListExt"
+          },
+          "sap.fe.templates.ObjectPage.ObjectPageController": {
+            "controllerName": "pricelistapp.applicationlog.ext.controller.PricelistNotificationEventObjectPageExt"
           }
         }
       }
@@ -110,29 +113,39 @@
       "config": {},
       "routes": [
         {
-            "pattern": ":?query:",
-            "name": "ApplicationLogHome",
-            "target": "ApplicationLogHome"
+          "pattern": ":?query:",
+          "name": "ApplicationLogHome",
+          "target": "ApplicationLogHome"
         },
         {
-            "pattern": "ApplicationLog:?query:",
-            "name": "ApplicationLogList",
-            "target": "ApplicationLogList"
+          "pattern": "ApplicationLog:?query:",
+          "name": "ApplicationLogList",
+          "target": "ApplicationLogList"
         },
         {
-            "pattern": "ApplicationLog({key}):?query:",
-            "name": "ApplicationLogObjectPage",
-            "target": "ApplicationLogObjectPage"
+          "pattern": "ApplicationLog({key}):?query:",
+          "name": "ApplicationLogObjectPage",
+          "target": "ApplicationLogObjectPage"
         },
         {
-            "pattern": "ApplicationChangeLog:?query:",
-            "name": "ApplicationChangeLogList",
-            "target": "ApplicationChangeLogList"
+          "pattern": "ApplicationChangeLog:?query:",
+          "name": "ApplicationChangeLogList",
+          "target": "ApplicationChangeLogList"
         },
         {
-            "pattern": "ApplicationChangeLog({key}):?query:",
-            "name": "ApplicationChangeLogObjectPage",
-            "target": "ApplicationChangeLogObjectPage"
+          "pattern": "ApplicationChangeLog({key}):?query:",
+          "name": "ApplicationChangeLogObjectPage",
+          "target": "ApplicationChangeLogObjectPage"
+        },
+        {
+          "pattern": "PricelistNotificationEvent:?query:",
+          "name": "PricelistNotificationEventList",
+          "target": "PricelistNotificationEventList"
+        },
+        {
+          "pattern": "PricelistNotificationEvent({key}):?query:",
+          "name": "PricelistNotificationEventObjectPage",
+          "target": "PricelistNotificationEventObjectPage"
         }
       ],
       "targets": {
@@ -218,6 +231,55 @@
             "settings": {
               "editableHeaderContent": false,
               "contextPath": "/ApplicationChangeLog"
+            }
+          }
+        },
+        "PricelistNotificationEventList": {
+          "type": "Component",
+          "id": "PricelistNotificationEventList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "contextPath": "/PricelistNotificationEvent",
+              "variantManagement": "Page",
+              "hideFilterBar": false,
+              "initialLoad": "Enabled",
+              "navigation": {
+                "PricelistNotificationEvent": {
+                  "detail": {
+                    "route": "PricelistNotificationEventObjectPage"
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "type": "ResponsiveTable",
+                    "useExportToExcel": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PricelistNotificationEventObjectPage": {
+          "type": "Component",
+          "id": "PricelistNotificationEventObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/PricelistNotificationEvent",
+              "content": {
+                "body": {
+                  "sections": {
+                    "PricelistChangeComparison": {
+                      "template": "pricelistapp.applicationlog.ext.fragment.PricelistChangeComparison",
+                      "title": "Detailed Changes"
+                    }
+                  }
+                }
+              }
             }
           }
         }

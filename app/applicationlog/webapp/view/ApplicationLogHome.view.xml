@@ -24,6 +24,16 @@
                             </TileContent>
                         </tileContent>
                     </GenericTile>
+
+                    <GenericTile header="Pricelist Changes" subheader="Published pricelist changes" press=".onPricelistChangesPress" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
+                        <tileContent>
+                            <TileContent>
+                                <content>
+                                    <ImageContent src="sap-icon://compare" />
+                                </content>
+                            </TileContent>
+                        </tileContent>
+                    </GenericTile>
                 </HBox>
             </VBox>
         </content>

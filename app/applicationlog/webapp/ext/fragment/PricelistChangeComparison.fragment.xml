@@ -1,0 +1,159 @@
+<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m" xmlns:t="sap.ui.table">
+    <VBox width="100%" busy="{pricelistComparison>/loading}">
+        <MessageStrip visible="{= !!${pricelistComparison>/loadError} }" text="{pricelistComparison>/loadError}" type="Error" showIcon="true" class="sapUiSmallMarginBottom" />
+        <MessageStrip visible="{pricelistComparison>/notApplicable}" text="Detailed version comparison is available for published pricelist events only."
+            type="Information" showIcon="true" class="sapUiSmallMarginBottom" />
+        <VBox visible="{pricelistComparison>/available}" width="100%">
+            <ObjectStatus visible="{pricelistComparison>/hasPreviousVersion}" text="{= 'Version ' + ${pricelistComparison>/currentVersion} + ' compared with Version ' + ${pricelistComparison>/previousVersion} }"
+                class="sapUiSmallMarginBottom" />
+            <ObjectStatus visible="{= !${pricelistComparison>/hasPreviousVersion} }" text="{= 'Version ' + ${pricelistComparison>/currentVersion} + ' is the first published version' }"
+                class="sapUiSmallMarginBottom" />
+            <HBox wrap="Wrap" class="sapUiSmallMarginBottom">
+                <ObjectStatus title="Updated Items" text="{pricelistComparison>/summary/updatesCount}" class="sapUiMediumMarginEnd" />
+                <ObjectStatus title="Upcoming Prices" text="{pricelistComparison>/summary/upcomingPriceCount}" class="sapUiMediumMarginEnd" />
+                <ObjectStatus title="Added / Removed" text="{pricelistComparison>/summary/addedRemovedCount}" class="sapUiMediumMarginEnd" />
+                <ObjectStatus title="T&amp;C / Notes" text="{pricelistComparison>/summary/termsNotesCount}" />
+            </HBox>
+            <Panel visible="{= ${pricelistComparison>/summary/updatesCount} > 0 }" headerText="Pricelist Updates" expandable="true" expanded="true" width="100%" class="sapUiSmallMarginBottom">
+                <t:Table rows="{pricelistComparison>/pricelistUpdates}" selectionMode="None" width="100%">
+                    <t:columns>
+                        <t:Column width="15rem">
+                            <Label text="Item" />
+                            <t:template>
+                                <Text text="{pricelistComparison>title}" wrapping="true" />
+                            </t:template>
+                        </t:Column>
+
+                        <t:Column width="16rem">
+                            <Label text="Description" />
+                            <t:template>
+                                <Text text="{pricelistComparison>description}" wrapping="true" />
+                            </t:template>
+                        </t:Column>
+
+                        <t:Column width="10rem">
+                            <Label text="Change Type" />
+                            <t:template>
+                                <Text text="{pricelistComparison>changeType}" />
+                            </t:template>
+                        </t:Column>
+
+                        <t:Column width="10rem">
+                            <Label text="Previous Price" />
+                            <t:template>
+                                <Text text="{pricelistComparison>previousPrice}" />
+                            </t:template>
+                        </t:Column>
+
+                        <t:Column width="10rem">
+                            <Label text="Updated Price" />
+                            <t:template>
+                                <Text text="{pricelistComparison>updatedPrice}" />
+                            </t:template>
+                        </t:Column>
+
+                        <t:Column width="10rem">
+                            <Label text="Previous Discount" />
+                            <t:template>
+                                <Text text="{pricelistComparison>previousDiscountRate}" />
+                            </t:template>
+                        </t:Column>
+
+                        <t:Column width="10rem">
+                            <Label text="Updated Discount" />
+                            <t:template>
+                                <Text text="{pricelistComparison>updatedDiscountRate}" />
+                            </t:template>
+                        </t:Column>
+                    </t:columns>
+                </t:Table>
+            </Panel>
+
+            <Panel visible="{= ${pricelistComparison>/summary/upcomingPriceCount} > 0 }" headerText="Upcoming Price Changes" expandable="true" expanded="true" width="100%" class="sapUiSmallMarginBottom">
+                <t:Table rows="{pricelistComparison>/upcomingPrices}" selectionMode="None" width="100%">
+                    <t:columns>
+                        <t:Column width="15rem">
+                            <Label text="Item" />
+                            <t:template>
+                                <Text text="{pricelistComparison>title}" wrapping="true" />
+                            </t:template>
+                        </t:Column>
+
+                        <t:Column width="12rem">
+                            <Label text="Previous Upcoming Price" />
+                            <t:template>
+                                <Text text="{pricelistComparison>previousFuturePrice}" />
+                            </t:template>
+                        </t:Column>
+
+                        <t:Column width="12rem">
+                            <Label text="Updated Upcoming Price" />
+                            <t:template>
+                                <Text text="{pricelistComparison>updatedFuturePrice}" />
+                            </t:template>
+                        </t:Column>
+
+                        <t:Column width="12rem">
+                            <Label text="Effective From" />
+                            <t:template>
+                                <Text text="{pricelistComparison>updatedFuturePriceValidFrom}" />
+                            </t:template>
+                        </t:Column>
+
+                        <t:Column width="12rem">
+                            <Label text="Effective To" />
+                            <t:template>
+                                <Text text="{pricelistComparison>updatedFuturePriceValidTo}" />
+                            </t:template>
+                        </t:Column>
+                    </t:columns>
+                </t:Table>
+            </Panel>
+
+            <Panel visible="{= ${pricelistComparison>/summary/addedRemovedCount} > 0 }" headerText="Added / Removed Products" expandable="true" expanded="true" width="100%" class="sapUiSmallMarginBottom">
+                <t:Table rows="{pricelistComparison>/addedRemovedProducts}" selectionMode="None" width="100%">
+                    <t:columns>
+                        <t:Column width="15rem">
+                            <Label text="Item" />
+                            <t:template>
+                                <Text text="{pricelistComparison>title}" wrapping="true" />
+                            </t:template>
+                        </t:Column>
+
+                        <t:Column width="18rem">
+                            <Label text="Description" />
+                            <t:template>
+                                <Text text="{pricelistComparison>description}" wrapping="true" />
+                            </t:template>
+                        </t:Column>
+
+                        <t:Column width="10rem">
+                            <Label text="Change Type" />
+                            <t:template>
+                                <ObjectStatus text="{pricelistComparison>changeType}" />
+                            </t:template>
+                        </t:Column>
+                    </t:columns>
+                </t:Table>
+            </Panel>
+
+            <Panel visible="{= ${pricelistComparison>/summary/termsNotesCount} > 0 }" headerText="Terms &amp; Conditions / Notes" expandable="true" expanded="true" width="100%">
+                <List items="{pricelistComparison>/termsNotesUpdates}" growing="true">
+                    <CustomListItem>
+                        <VBox width="100%" class="sapUiSmallMargin">
+                            <Title text="{pricelistComparison>title}" level="H5" />
+                            <Label text="Previous Terms &amp; Conditions" class="sapUiTinyMarginTop" />
+                            <Text text="{pricelistComparison>previousTermsAndConditions}" wrapping="true" />
+                            <Label text="Updated Terms &amp; Conditions" class="sapUiTinyMarginTop" />
+                            <Text text="{pricelistComparison>updatedTermsAndConditions}" wrapping="true" />
+                            <Label text="Previous Notes" class="sapUiTinyMarginTop" />
+                            <Text text="{pricelistComparison>previousNotes}" wrapping="true" />
+                            <Label text="Updated Notes" class="sapUiTinyMarginTop" />
+                            <Text text="{pricelistComparison>updatedNotes}" wrapping="true" />
+                        </VBox>
+                    </CustomListItem>
+                </List>
+            </Panel>
+        </VBox>
+    </VBox>
+</core:FragmentDefinition>

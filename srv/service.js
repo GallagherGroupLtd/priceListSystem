@@ -12,7 +12,7 @@ const saveProductPriceList = require('./pricelist_maintain_srv-code/save-product
 const versionService = require('./pricelist_maintain_srv-code/version-service');
 
 const notificationService = require("./pricelist_notification_srv-code/notification-service");
-
+const buildVersionHistoryComparison = require("./pricelist-display_srv-code/version-history-comparison");
 const { resolvePricingParameters } = require('./lib/pricing-parameter-resolver');
 const { logApplicationChanges, registerApplicationChangeLogging } = require("./application_log_srv-code/application-change-log");
 const { logUserEngagement } = require("./application_log_srv-code/user-engagement-log");
@@ -699,6 +699,61 @@ module.exports = cds.service.impl(async function () {
         } catch (error) {
             console.error("[ApplicationLog] Failed to log user engagement:",error);
             return false;
+        }
+    });
+
+    // -----------------------------------------------------------------------------
+    // Application Change Log - Display Formatting
+    // -----------------------------------------------------------------------------
+    this.before("READ", "ApplicationChangeLog", req => {
+        const oSelect = req.query?.SELECT;
+        const aColumns = oSelect?.columns;
+
+        if (!Array.isArray(aColumns)) {
+            return;
+        }
+
+        const hasColumn = sName => aColumns.some(oColumn => Array.isArray(oColumn?.ref) && oColumn.ref.length === 1 && oColumn.ref[0] === sName);
+
+        if (!hasColumn("oldValue")) {
+            aColumns.push({ref: ["oldValue"]});
+        }
+
+        if (!hasColumn("newValue")) {
+            aColumns.push({ref: ["newValue"]});
+        }
+    });
+
+    this.after("READ", "ApplicationChangeLog", rows => {
+        const records = Array.isArray(rows) ? rows : [rows];
+
+        const formatAuditValue = value => {
+            if (value === null || value === undefined) {
+                return "";
+            }
+
+            const text = String(value);
+
+            try {
+                const parsed = JSON.parse(text);
+
+                if (parsed !== null && typeof parsed === "object") {
+                    return JSON.stringify(parsed, null, 2);
+                }
+            } catch (error) {
+                // Plain text value. Return unchanged.
+            }
+
+            return text;
+        };
+
+        for (const record of records) {
+            if (!record) {
+                continue;
+            }
+
+            record.oldValueDisplay = formatAuditValue(record.oldValue);
+            record.newValueDisplay = formatAuditValue(record.newValue);
         }
     });
 
@@ -2665,6 +2720,10 @@ module.exports = cds.service.impl(async function () {
     //         req.data.TechnicalFilter = pricingCondType.TechnicalFilter;
     //     }
     // });
+
+    this.on("getPricelistChangeComparison", async req => {
+        return buildVersionHistoryComparison(this,req);
+    });
 
     this.on("retryPricelistNotificationDeliveries",async (req) => {
         const maximumAttempts = Number(req.data.maximumAttempts || 3);

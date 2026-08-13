@@ -13,6 +13,10 @@ sap.ui.define(
 
                 onApplicationChangesPress: function () {
                     this.getOwnerComponent().getRouter().navTo("ApplicationChangeLogList");
+                },
+
+                onPricelistChangesPress: function () {
+                    this.getOwnerComponent().getRouter().navTo("PricelistNotificationEventList");
                 }
             }
         );
