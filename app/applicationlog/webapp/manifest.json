@@ -191,7 +191,19 @@
           "options": {
             "settings": {
               "editableHeaderContent": false,
-              "contextPath": "/ApplicationLog"
+              "contextPath": "/ApplicationLog",
+              "content": {
+                "header": {
+                  "actions": {
+                    "BackToList": {
+                      "text": "Back to User Engagement",
+                      "press": "pricelistapp.applicationlog.ext.controller.ApplicationLogObjectPageActions.onBackToUserEngagement",
+                      "visible": true,
+                      "enabled": true
+                    }
+                  }
+                }
+              }
             }
           }
         },
@@ -230,7 +242,19 @@
           "options": {
             "settings": {
               "editableHeaderContent": false,
-              "contextPath": "/ApplicationChangeLog"
+              "contextPath": "/ApplicationChangeLog",
+              "content": {
+                "header": {
+                  "actions": {
+                    "BackToList": {
+                      "text": "Back to Application Changes",
+                      "press": "pricelistapp.applicationlog.ext.controller.ApplicationLogObjectPageActions.onBackToApplicationChanges",
+                      "visible": true,
+                      "enabled": true
+                    }
+                  }
+                }
+              }
             }
           }
         },
@@ -271,6 +295,16 @@
               "editableHeaderContent": false,
               "contextPath": "/PricelistNotificationEvent",
               "content": {
+                "header": {
+                  "actions": {
+                    "BackToList": {
+                      "text": "Back to Pricelist Changes",
+                      "press": "pricelistapp.applicationlog.ext.controller.ApplicationLogObjectPageActions.onBackToPricelistChanges",
+                      "visible": true,
+                      "enabled": true
+                    }
+                  }
+                },
                 "body": {
                   "sections": {
                     "PricelistChangeComparison": {

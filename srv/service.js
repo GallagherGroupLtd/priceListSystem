@@ -16,6 +16,7 @@ const buildVersionHistoryComparison = require("./pricelist-display_srv-code/vers
 const { resolvePricingParameters } = require('./lib/pricing-parameter-resolver');
 const { logApplicationChanges, registerApplicationChangeLogging } = require("./application_log_srv-code/application-change-log");
 const { logUserEngagement } = require("./application_log_srv-code/user-engagement-log");
+const { getCurrentAccountAssignment, isInternalAdmin } = require("./lib/account-assignment-authorization");
 const { getPricelistDisplayColumns } = require("./lib/pricelist-display-columns");
 const { DISCOUNT_CONDITION_TYPE_WHITELIST } = require('./pricing_parameter_srv-code/constants');
 
@@ -502,6 +503,26 @@ module.exports = cds.service.impl(async function () {
         ExternalCustomers, ExternalPricelist, ResolvedPricelistItem, MyRequest, PriceListTreeLayout, ProductPriceList, PricelistNotificationEvent, 
         PricelistNotificationDelivery } = this.entities;
 
+    // -----------------------------------------------------------------------------
+    // Application Log - Authorization
+    // -----------------------------------------------------------------------------
+
+    async function ensureApplicationLogInternalAdmin(req) {
+        const userContext = await getCurrentAccountAssignment(req);
+
+        if (!userContext?.assignment || !isInternalAdmin(userContext.assignment)) {
+            return req.reject(403, "You are not authorized to access Application Log.");
+        }
+
+        return userContext;
+    }
+
+    this.before("READ","ApplicationLog",ensureApplicationLogInternalAdmin);
+
+    this.before("READ","ApplicationChangeLog",ensureApplicationLogInternalAdmin);
+
+    this.before("READ","PricelistNotificationEvent",ensureApplicationLogInternalAdmin);
+
     //Selection of Materials
     async function resolveItems(filters, db, extdb) {
         const filterNew = Object.fromEntries(
@@ -681,7 +702,6 @@ module.exports = cds.service.impl(async function () {
     // -----------------------------------------------------------------------------
     // Application Log - User Engagement
     // -----------------------------------------------------------------------------
-
     this.on("logUserEngagement", async req => {
         try {
             const {
@@ -2720,6 +2740,8 @@ module.exports = cds.service.impl(async function () {
     //         req.data.TechnicalFilter = pricingCondType.TechnicalFilter;
     //     }
     // });
+
+    this.before("getPricelistChangeComparison",ensureApplicationLogInternalAdmin);
 
     this.on("getPricelistChangeComparison", async req => {
         return buildVersionHistoryComparison(this,req);
