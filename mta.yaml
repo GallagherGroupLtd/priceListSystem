@@ -114,6 +114,10 @@ modules:
       - pricelistappmyrequest.zip
       name: pricelistappmyrequest
       target-path: resources/
+    - artifacts:
+      - pricelistappapplicationlog.zip
+      name: pricelistappapplicationlog
+      target-path: resources/
 - name: pricelistappmain
   type: html5
   path: app/main
@@ -298,6 +302,18 @@ modules:
 - name: pricelistappmyrequest
   type: html5
   path: app/myrequest
+  build-parameters:
+    build-result: dist
+    builder: custom
+    commands:
+    - npm install
+    - npm run build:cf
+    - npm ci
+    - npm run build
+    supported-platforms: []
+- name: pricelistappapplicationlog
+  type: html5
+  path: app/applicationlog
   build-parameters:
     build-result: dist
     builder: custom

@@ -150,6 +150,7 @@ sap.ui.define([
 				this._productTreeTable = sap.ui.getCore().byId('pricelistapp.pricelistdisplay::PricelistDataObjectPage--fe::CustomSubSection::ProductsTree--ProductPriceListTreeTable');
 
 				_oInstance = this;
+				this._logPricelistAccess();
 				this._loadPricelistUpdates();
 				this._initializeDiscountContext();
 				this._loadAndApplyOfficialDisplayLayout();
@@ -460,6 +461,64 @@ sap.ui.define([
 					IsExternalUser: false,
 					CustomerNumber: ""
 				});
+			}
+		},
+
+		_logPricelistAccess: async function () {
+			try {
+				const oBindingContext = this.base.getView().getBindingContext();
+
+				if (!oBindingContext) {
+					return;
+				}
+
+				const oPricelist = await oBindingContext.requestObject();
+
+				if (!oPricelist || !oPricelist.ID) {
+					return;
+				}
+
+				if (this._lastLoggedPricelistId === oPricelist.ID) {
+					return;
+				}
+
+				this._lastLoggedPricelistId = oPricelist.ID;
+
+				await this._executeAction("/logUserEngagement(...)",
+					{
+						eventType: "PRICELIST_ACCESS",
+						accessedTile: "Pricelist",
+						accessedPricelist: oPricelist.PricelistTitle || oPricelist.ID
+					}
+				);
+			} catch (oError) {
+				console.warn("Pricelist access logging failed:",oError);
+			}
+		},
+
+		_logPricelistDownload: async function () {
+			try {
+				const oBindingContext = this.base.getView().getBindingContext();
+
+				if (!oBindingContext) {
+					return;
+				}
+
+				const oPricelist = await oBindingContext.requestObject();
+
+				if (!oPricelist || !oPricelist.ID) {
+					return;
+				}
+
+				await this._executeAction("/logUserEngagement(...)",
+					{
+						eventType: "PRICELIST_DOWNLOAD",
+						accessedTile: "Pricelist",
+						accessedPricelist: oPricelist.PricelistTitle || oPricelist.ID
+					}
+				);
+			} catch (oError) {
+				console.warn("Pricelist download logging failed:",oError);
 			}
 		},
 
@@ -1935,11 +1994,10 @@ sap.ui.define([
 				this._oExportHandler = new ExportHandler();
 			}
 
-			const pExport = bShowSettingsDialog
-				? this._oExportHandler.exportAs(mSettings)
-				: this._oExportHandler.export(mSettings);
-
-			pExport.catch(function (oError) {
+			const pExport = bShowSettingsDialog ? this._oExportHandler.exportAs(mSettings) : this._oExportHandler.export(mSettings);
+			pExport.then(() => {
+				this._logPricelistDownload();
+			}).catch(function (oError) {
 				if (oError) {
 					MessageBox.error("Export failed: " + (oError.message || "Unknown error."));
 				}

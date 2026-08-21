@@ -15,6 +15,19 @@
       "version": "1.25.0",
       "toolsId": "2fe159c5-e01b-4e6d-95ef-8520426329c9"
     },
+    "crossNavigation": {
+      "inbounds": {
+        "applicationlog-display": {
+          "semanticObject": "AppLog",
+          "action": "display",
+          "title": "{{appTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    },
     "dataSources": {
       "mainService": {
         "uri": "/odata/v4/price-list/",
@@ -25,6 +38,10 @@
         }
       }
     }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "priceListSystem.service"
   },
   "sap.ui": {
     "technology": "UI5",
@@ -80,11 +97,28 @@
     "resources": {
       "css": []
     },
+    "extends": {
+      "extensions": {
+        "sap.ui.controllerExtensions": {
+          "sap.fe.templates.ListReport.ListReportController": {
+            "controllerName": "pricelistapp.applicationlog.ext.controller.ApplicationLogListExt"
+          },
+          "sap.fe.templates.ObjectPage.ObjectPageController": {
+            "controllerName": "pricelistapp.applicationlog.ext.controller.PricelistNotificationEventObjectPageExt"
+          }
+        }
+      }
+    },
     "routing": {
       "config": {},
       "routes": [
         {
           "pattern": ":?query:",
+          "name": "ApplicationLogHome",
+          "target": "ApplicationLogHome"
+        },
+        {
+          "pattern": "ApplicationLog:?query:",
           "name": "ApplicationLogList",
           "target": "ApplicationLogList"
         },
@@ -92,9 +126,36 @@
           "pattern": "ApplicationLog({key}):?query:",
           "name": "ApplicationLogObjectPage",
           "target": "ApplicationLogObjectPage"
+        },
+        {
+          "pattern": "ApplicationChangeLog:?query:",
+          "name": "ApplicationChangeLogList",
+          "target": "ApplicationChangeLogList"
+        },
+        {
+          "pattern": "ApplicationChangeLog({key}):?query:",
+          "name": "ApplicationChangeLogObjectPage",
+          "target": "ApplicationChangeLogObjectPage"
+        },
+        {
+          "pattern": "PricelistNotificationEvent:?query:",
+          "name": "PricelistNotificationEventList",
+          "target": "PricelistNotificationEventList"
+        },
+        {
+          "pattern": "PricelistNotificationEvent({key}):?query:",
+          "name": "PricelistNotificationEventObjectPage",
+          "target": "PricelistNotificationEventObjectPage"
         }
       ],
       "targets": {
+        "ApplicationLogHome": {
+          "type": "View",
+          "id": "ApplicationLogHome",
+          "name": "ApplicationLogHome",
+          "path": "pricelistapp.applicationlog.view",
+          "viewType": "XML"
+        },
         "ApplicationLogList": {
           "type": "Component",
           "id": "ApplicationLogList",
@@ -103,7 +164,8 @@
             "settings": {
               "contextPath": "/ApplicationLog",
               "variantManagement": "Page",
-              "hideFilterBar": true,
+              "hideFilterBar": false,
+              "initialLoad": "Enabled",
               "navigation": {
                 "ApplicationLog": {
                   "detail": {
@@ -114,7 +176,8 @@
               "controlConfiguration": {
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
-                    "type": "ResponsiveTable"
+                    "type": "ResponsiveTable",
+                    "useExportToExcel": true
                   }
                 }
               }
@@ -128,7 +191,129 @@
           "options": {
             "settings": {
               "editableHeaderContent": false,
-              "contextPath": "/ApplicationLog"
+              "contextPath": "/ApplicationLog",
+              "content": {
+                "header": {
+                  "actions": {
+                    "BackToList": {
+                      "text": "Back to User Engagement",
+                      "press": "pricelistapp.applicationlog.ext.controller.ApplicationLogObjectPageActions.onBackToUserEngagement",
+                      "visible": true,
+                      "enabled": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ApplicationChangeLogList": {
+          "type": "Component",
+          "id": "ApplicationChangeLogList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "contextPath": "/ApplicationChangeLog",
+              "variantManagement": "Page",
+              "hideFilterBar": false,
+              "initialLoad": "Enabled",
+              "navigation": {
+                "ApplicationChangeLog": {
+                  "detail": {
+                    "route": "ApplicationChangeLogObjectPage"
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "type": "ResponsiveTable",
+                    "useExportToExcel": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ApplicationChangeLogObjectPage": {
+          "type": "Component",
+          "id": "ApplicationChangeLogObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/ApplicationChangeLog",
+              "content": {
+                "header": {
+                  "actions": {
+                    "BackToList": {
+                      "text": "Back to Application Changes",
+                      "press": "pricelistapp.applicationlog.ext.controller.ApplicationLogObjectPageActions.onBackToApplicationChanges",
+                      "visible": true,
+                      "enabled": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PricelistNotificationEventList": {
+          "type": "Component",
+          "id": "PricelistNotificationEventList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "contextPath": "/PricelistNotificationEvent",
+              "variantManagement": "Page",
+              "hideFilterBar": false,
+              "initialLoad": "Enabled",
+              "navigation": {
+                "PricelistNotificationEvent": {
+                  "detail": {
+                    "route": "PricelistNotificationEventObjectPage"
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "type": "ResponsiveTable",
+                    "useExportToExcel": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PricelistNotificationEventObjectPage": {
+          "type": "Component",
+          "id": "PricelistNotificationEventObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/PricelistNotificationEvent",
+              "content": {
+                "header": {
+                  "actions": {
+                    "BackToList": {
+                      "text": "Back to Pricelist Changes",
+                      "press": "pricelistapp.applicationlog.ext.controller.ApplicationLogObjectPageActions.onBackToPricelistChanges",
+                      "visible": true,
+                      "enabled": true
+                    }
+                  }
+                },
+                "body": {
+                  "sections": {
+                    "PricelistChangeComparison": {
+                      "template": "pricelistapp.applicationlog.ext.fragment.PricelistChangeComparison",
+                      "title": "Detailed Changes"
+                    }
+                  }
+                }
+              }
             }
           }
         }

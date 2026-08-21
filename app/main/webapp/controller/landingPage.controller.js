@@ -34,6 +34,9 @@ sap.ui.define([
             //Fetch logged in user email if running in Fiori Launchpad.
             this._setUserEmail(oViewModel);
 
+            //Log entry into the Pricelist landing application.
+            this._logUserEngagement("LOGIN");
+
             //Set Picture using UI module path to ensure it works in both local and Fiori environments.
             this._setImagePath();
 
@@ -334,6 +337,22 @@ sap.ui.define([
             const oAuthModel = new sap.ui.model.json.JSONModel(oAuth);
             
             this.getView().setModel(oAuthModel, "auth");
+        },
+
+        _logUserEngagement: async function (sEventType,sAccessedTile = "",sAccessedPricelist = "") {
+            try {
+                const oModel = this.getOwnerComponent().getModel();
+
+                const oAction = oModel.bindContext("/logUserEngagement(...)");
+
+                oAction.setParameter("eventType", sEventType);
+                oAction.setParameter("accessedTile", sAccessedTile);
+                oAction.setParameter("accessedPricelist", sAccessedPricelist);
+
+                await oAction.execute();
+            } catch (oError) {
+                console.warn("User engagement logging failed:",oError);
+            }
         },
 
         onNavigationAppPress: function (oEvent) {
